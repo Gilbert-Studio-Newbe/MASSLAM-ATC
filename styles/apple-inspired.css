@@ -1,0 +1,312 @@
+/* Apple-inspired styling for MASSLAM ATC by ASH */
+
+/* Base font and colors */
+:root {
+  --apple-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  --apple-bg: #f5f5f7;
+  --apple-text: #1d1d1f;
+  --apple-text-secondary: #86868b;
+  --apple-blue: #0071e3;
+  --apple-blue-hover: #0077ed;
+  --apple-card-bg: #ffffff;
+  --apple-border: #d2d2d7;
+  --apple-success: #4bb543;
+  --apple-warning: #ff9500;
+  --apple-error: #ff3b30;
+  --apple-section-spacing: 3rem;
+  --apple-component-spacing: 1.5rem;
+}
+
+/* Global styles */
+body {
+  font-family: var(--apple-font);
+  background-color: var(--apple-bg);
+  color: var(--apple-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+h1 {
+  font-size: 2.5rem;
+  line-height: 1.1;
+}
+
+h2 {
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: 1.5rem;
+  line-height: 1.3;
+}
+
+/* Layout components */
+.apple-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.apple-section {
+  margin-bottom: var(--apple-section-spacing);
+}
+
+.apple-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
+}
+
+/* Header and navigation */
+.apple-header {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(210, 210, 215, 0.8);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.apple-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 3.5rem;
+}
+
+.apple-nav-list {
+  display: flex;
+  gap: 2rem;
+}
+
+.apple-nav-link {
+  color: var(--apple-text);
+  font-size: 0.875rem;
+  font-weight: 400;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.apple-nav-link:hover {
+  color: var(--apple-blue);
+}
+
+/* Cards and containers */
+.apple-card {
+  background-color: var(--apple-card-bg);
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.apple-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.apple-card-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--apple-border);
+}
+
+.apple-card-body {
+  padding: 1.5rem;
+}
+
+.apple-card-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--apple-border);
+}
+
+/* Form elements */
+.apple-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid var(--apple-border);
+  border-radius: 0.5rem;
+  background-color: var(--apple-card-bg);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.apple-input:focus {
+  outline: none;
+  border-color: var(--apple-blue);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
+}
+
+.apple-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231d1d1f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+/* Buttons */
+.apple-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 1.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.apple-button-primary {
+  background-color: var(--apple-blue);
+  color: white;
+}
+
+.apple-button-primary:hover {
+  background-color: var(--apple-blue-hover);
+}
+
+.apple-button-secondary {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--apple-text);
+}
+
+.apple-button-secondary:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Specs table styling */
+.apple-specs-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.apple-specs-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  border-bottom: 1px solid var(--apple-border);
+}
+
+.apple-specs-row:last-child {
+  border-bottom: none;
+}
+
+.apple-specs-label {
+  padding: 1rem;
+  font-weight: 600;
+  color: var(--apple-text-secondary);
+}
+
+.apple-specs-value {
+  padding: 1rem;
+}
+
+/* Visualization components */
+.apple-visualization {
+  background-color: var(--apple-card-bg);
+  border-radius: 1rem;
+  overflow: hidden;
+  padding: 1.5rem;
+}
+
+.apple-visualization-title {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+/* Results section */
+.apple-results {
+  background-color: var(--apple-card-bg);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.apple-results-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--apple-border);
+}
+
+.apple-results-body {
+  padding: 1.5rem;
+}
+
+.apple-results-section {
+  margin-bottom: 2rem;
+}
+
+.apple-results-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Environmental impact section */
+.apple-environmental {
+  background-color: #f2f7f2;
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.apple-environmental-title {
+  color: var(--apple-success);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.apple-environmental-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.apple-environmental-item {
+  text-align: center;
+}
+
+.apple-environmental-value {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.apple-environmental-label {
+  color: var(--apple-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Footer */
+.apple-footer {
+  background-color: var(--apple-card-bg);
+  padding: 2rem 0;
+  text-align: center;
+  color: var(--apple-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .apple-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .apple-specs-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .apple-specs-label {
+    padding-bottom: 0.25rem;
+  }
+  
+  .apple-specs-value {
+    padding-top: 0.25rem;
+  }
+} 

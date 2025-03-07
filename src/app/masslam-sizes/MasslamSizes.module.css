@@ -164,6 +164,11 @@
   border: 1px solid #38bdf8;
 }
 
+.refreshing {
+  background-color: #e0f2fe;
+  border: 1px solid #38bdf8;
+}
+
 .success {
   background-color: #dcfce7;
   border: 1px solid #22c55e;

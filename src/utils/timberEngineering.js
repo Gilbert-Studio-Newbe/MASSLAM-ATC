@@ -9,6 +9,7 @@ import {
   getMasslamSizes,
   initializeMasslamSizes
 } from './timberSizes';
+import { calculateFireResistanceAllowance } from './masslamProperties';
 
 // Constants
 export const TIMBER_PROPERTIES = {
@@ -50,9 +51,10 @@ console.log('timberEngineering.js: Initial MASSLAM sizes:', getMasslamSizes());
  * @param {number} spacing - Spacing in mm
  * @param {number} load - Load in kPa
  * @param {string} timberGrade - Timber grade (GL18, GL21, GL24)
+ * @param {string} fireRating - Fire rating (e.g., "60/60/60", "90/90/90")
  * @returns {Object} Calculated joist size and properties
  */
-export function calculateJoistSize(span, spacing, load, timberGrade) {
+export function calculateJoistSize(span, spacing, load, timberGrade, fireRating = 'none') {
   // Placeholder implementation
   const spanMm = span * 1000; // Convert to mm
   
@@ -60,9 +62,23 @@ export function calculateJoistSize(span, spacing, load, timberGrade) {
   const theoreticalWidth = Math.max(45, Math.ceil(spanMm / 30)); // Simplified calculation
   const theoreticalDepth = Math.max(140, Math.ceil(spanMm / 15)); // Simplified calculation
   
+  // Calculate fire resistance allowance if needed
+  let fireAllowance = 0;
+  if (fireRating && fireRating !== 'none') {
+    fireAllowance = calculateFireResistanceAllowance(fireRating);
+  }
+  
+  // Add fire resistance allowance to width and depth
+  // For joists, typically only 3 sides are exposed (bottom and two sides)
+  const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
+  const fireAdjustedDepth = theoreticalDepth + fireAllowance; // Only bottom exposed
+  
+  console.log(`Joist size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
+  console.log(`Joist size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
+  
   // Find the nearest available width and depth
-  const width = findNearestWidth(theoreticalWidth);
-  const depth = findNearestDepth(width, theoreticalDepth);
+  const width = findNearestWidth(fireAdjustedWidth);
+  const depth = findNearestDepth(width, fireAdjustedDepth);
   
   return {
     width: width,
@@ -70,11 +86,22 @@ export function calculateJoistSize(span, spacing, load, timberGrade) {
     span: span,
     spacing: spacing,
     load: load,
-    grade: timberGrade
+    grade: timberGrade,
+    fireRating: fireRating,
+    fireAllowance: fireAllowance
   };
 }
 
-export function calculateBeamSize(span, load, timberGrade) {
+/**
+ * Calculate the required beam size based on span and load
+ * 
+ * @param {number} span - Span in meters
+ * @param {number} load - Load in kPa
+ * @param {string} timberGrade - Timber grade (GL18, GL21, GL24)
+ * @param {string} fireRating - Fire rating (e.g., "60/60/60", "90/90/90")
+ * @returns {Object} Calculated beam size and properties
+ */
+export function calculateBeamSize(span, load, timberGrade, fireRating = 'none') {
   // Placeholder implementation
   const spanMm = span * 1000; // Convert to mm
   
@@ -82,16 +109,32 @@ export function calculateBeamSize(span, load, timberGrade) {
   const theoreticalWidth = Math.max(65, Math.ceil(spanMm / 25)); // Simplified calculation
   const theoreticalDepth = Math.max(240, Math.ceil(spanMm / 12)); // Simplified calculation
   
+  // Calculate fire resistance allowance if needed
+  let fireAllowance = 0;
+  if (fireRating && fireRating !== 'none') {
+    fireAllowance = calculateFireResistanceAllowance(fireRating);
+  }
+  
+  // Add fire resistance allowance to width and depth
+  // For beams, typically 3 sides are exposed (bottom and two sides)
+  const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
+  const fireAdjustedDepth = theoreticalDepth + fireAllowance; // Only bottom exposed
+  
+  console.log(`Beam size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
+  console.log(`Beam size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
+  
   // Find the nearest available width and depth
-  const width = findNearestWidth(theoreticalWidth);
-  const depth = findNearestDepth(width, theoreticalDepth);
+  const width = findNearestWidth(fireAdjustedWidth);
+  const depth = findNearestDepth(width, fireAdjustedDepth);
   
   return {
     width: width,
     depth: depth,
     span: span,
     load: load,
-    grade: timberGrade
+    grade: timberGrade,
+    fireRating: fireRating,
+    fireAllowance: fireAllowance
   };
 }
 
@@ -101,9 +144,10 @@ export function calculateBeamSize(span, load, timberGrade) {
  * @param {number} height - Height in meters
  * @param {number} load - Load in kN
  * @param {string} timberGrade - Timber grade (GL18, GL21, GL24)
+ * @param {string} fireRating - Fire rating (e.g., "60/60/60", "90/90/90")
  * @returns {Object} Calculated column size and properties
  */
-export function calculateColumnSize(height, load, timberGrade) {
+export function calculateColumnSize(height, load, timberGrade, fireRating = 'none') {
   // Placeholder implementation
   const heightMm = height * 1000; // Convert to mm
   
@@ -111,16 +155,32 @@ export function calculateColumnSize(height, load, timberGrade) {
   const theoreticalWidth = Math.max(90, Math.ceil(Math.sqrt(load) * 20)); // Simplified calculation
   const theoreticalDepth = theoreticalWidth; // Square columns for simplicity
   
+  // Calculate fire resistance allowance if needed
+  let fireAllowance = 0;
+  if (fireRating && fireRating !== 'none') {
+    fireAllowance = calculateFireResistanceAllowance(fireRating);
+  }
+  
+  // Add fire resistance allowance to width and depth
+  // For columns, all 4 sides are exposed
+  const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
+  const fireAdjustedDepth = theoreticalDepth + (2 * fireAllowance); // Both sides exposed
+  
+  console.log(`Column size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
+  console.log(`Column size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
+  
   // Find the nearest available width and depth
-  const width = findNearestWidth(theoreticalWidth);
-  const depth = findNearestDepth(width, theoreticalDepth);
+  const width = findNearestWidth(fireAdjustedWidth);
+  const depth = findNearestDepth(width, fireAdjustedDepth);
   
   return {
     width: width,
     depth: depth,
     height: height,
     load: load,
-    grade: timberGrade
+    grade: timberGrade,
+    fireRating: fireRating,
+    fireAllowance: fireAllowance
   };
 }
 

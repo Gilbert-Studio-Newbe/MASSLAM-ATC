@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { 
   calculateJoistSize, 
@@ -25,13 +25,13 @@ import {
 } from '@/utils/timberSizes';
 import { calculateFireResistanceAllowance } from '@/utils/masslamProperties';
 import TimberSizesTable from './TimberSizesTable';
+import FireResistanceCalculator from './FireResistanceCalculator';
 // ... other imports as before
 
 // Rename the custom function to avoid naming conflict
 const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRating = 'none') => {
   // Column width should match beam width
   const width = beamWidth;
-  console.log(`Setting column width to match beam width: ${width}mm`);
   
   // Calculate load based on number of floors
   const totalLoad = load * floors;
@@ -60,8 +60,8 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
   const fireAdjustedWidth = width + (2 * fireAllowance); // Both sides exposed
   const fireAdjustedDepth = depth + (2 * fireAllowance); // Both sides exposed
   
-  console.log(`Column size before fire adjustment: ${width}x${depth}mm`);
-  console.log(`Column size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
+  console.log(`Multi-floor column size before fire adjustment: ${width}x${depth}mm`);
+  console.log(`Multi-floor column size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
   
   // Find nearest available width and depth
   const adjustedWidth = findNearestWidth(fireAdjustedWidth);
@@ -75,6 +75,19 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
     floors: floors,
     fireRating: fireRating,
     fireAllowance: fireAllowance
+  };
+};
+
+// Debounce utility function
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
   };
 };
 
@@ -290,35 +303,17 @@ export default function TimberCalculator() {
     const adjustedJoistWidth = findNearestWidth(joistResult.width);
     const adjustedJoistDepth = findNearestDepth(adjustedJoistWidth, joistResult.depth);
     
-    // For beams - initial calculation
+    // For beams
     const beamType = 'beam';
-    let adjustedBeamWidth = findNearestWidth(beamResult.width);
-    let adjustedBeamDepth = findNearestDepth(adjustedBeamWidth, beamResult.depth);
+    const adjustedBeamWidth = findNearestWidth(beamResult.width);
+    const adjustedBeamDepth = findNearestDepth(adjustedBeamWidth, beamResult.depth);
     
-    // For columns - initial calculation
+    // For columns - use our custom function that matches beam width
     const columnType = 'column';
     const columnHeight = 3; // Standard floor height in meters
-    const initialColumnResult = calculateMultiFloorColumnSize(adjustedBeamWidth, load * joistSpan * 0.8, columnHeight, numFloors, fireRating);
+    const columnResult = calculateMultiFloorColumnSize(adjustedBeamWidth, load * joistSpan * 0.8, columnHeight, numFloors, fireRating);
     
-    // Apply the constraint: beam and column widths must match
-    // Use the wider of the two to determine the width of both
-    const commonWidth = Math.max(adjustedBeamWidth, initialColumnResult.width);
-    
-    // If the common width is different from the beam width, recalculate beam depth
-    if (commonWidth !== adjustedBeamWidth) {
-      console.log(`Adjusting beam width from ${adjustedBeamWidth}mm to ${commonWidth}mm to match column width`);
-      adjustedBeamWidth = commonWidth;
-      adjustedBeamDepth = findNearestDepth(adjustedBeamWidth, beamResult.depth);
-    }
-    
-    // Recalculate column with the common width
-    const columnResult = calculateMultiFloorColumnSize(commonWidth, load * joistSpan * 0.8, columnHeight, numFloors, fireRating);
-    
-    console.log('Calculation results after width matching:', { 
-      joists: { width: adjustedJoistWidth, depth: adjustedJoistDepth },
-      beams: { width: adjustedBeamWidth, depth: adjustedBeamDepth },
-      columns: { width: columnResult.width, depth: columnResult.depth }
-    });
+    console.log('Initial calculation results:', { joistResult, beamResult, columnResult });
     
     // Verify that the adjusted sizes exist in the MASSLAM catalog
     const sizes = getMasslamSizes();
@@ -503,7 +498,7 @@ export default function TimberCalculator() {
       
       <div className="apple-grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Config Panel */}
-        <div className="lg:col-span-6 xl:col-span-5">
+        <div className="lg:col-span-8 xl:col-span-7 2xl:col-span-6">
           <div className="apple-card">
             <div className="apple-card-header flex justify-between items-center">
               <h2 className="text-xl font-semibold m-0">Configuration</h2>
@@ -668,7 +663,7 @@ export default function TimberCalculator() {
         </div>
         
         {/* Results Panel */}
-        <div className="lg:col-span-6 xl:col-span-7">
+        <div className="lg:col-span-4 xl:col-span-5 2xl:col-span-6">
           {results ? (
             <div className="apple-results">
               <div className="apple-results-header">
@@ -883,11 +878,6 @@ export default function TimberCalculator() {
                               <strong>Fire Allowance:</strong> {results.beams.fireAllowance.toFixed(1)}mm per face
                             </p>
                           )}
-                          {results.beams.width === results.columns.width && (
-                            <p className="text-green-600 mt-2">
-                              <strong>✓</strong> Width matched with columns
-                            </p>
-                          )}
               </div>
               
                         {/* Column Results */}
@@ -899,11 +889,6 @@ export default function TimberCalculator() {
                           {results.columns.fireAllowance > 0 && (
                             <p className="text-blue-600">
                               <strong>Fire Allowance:</strong> {results.columns.fireAllowance.toFixed(1)}mm per face
-                            </p>
-                          )}
-                          {results.beams.width === results.columns.width && (
-                            <p className="text-green-600 mt-2">
-                              <strong>✓</strong> Width matched with beams
                             </p>
                           )}
               </div>
@@ -923,28 +908,59 @@ export default function TimberCalculator() {
                             <p><strong>Carbon Savings:</strong> {results.carbonSavings.toFixed(2)} tonnes CO₂e</p>
                           </div>
                         </div>
-            </div>
-            
-                      {/* Additional Resources */}
-                      <div className="mt-4 bg-white p-4 rounded-lg shadow">
-                        <h4 className="font-semibold mb-2">Additional Resources</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <Link href="/fire-resistance" className="text-blue-600 hover:text-blue-800">
-                            <div className="border border-blue-200 rounded-lg p-4 hover:bg-blue-50 transition-colors">
-                              <h5 className="font-semibold">Fire Resistance Analysis</h5>
-                              <p className="text-sm text-gray-600">Analyze fire resistance for specific timber sizes</p>
-                            </div>
-                          </Link>
-                          <Link href="/calculation-methodology" className="text-blue-600 hover:text-blue-800">
-                            <div className="border border-blue-200 rounded-lg p-4 hover:bg-blue-50 transition-colors">
-                              <h5 className="font-semibold">Calculation Methodology</h5>
-                              <p className="text-sm text-gray-600">Learn about design constraints and calculation methods</p>
-                            </div>
-                          </Link>
-                        </div>
                       </div>
                     </div>
                   </div>
+                )}
+                
+                {/* Fire Resistance Analysis */}
+                {fireRating !== 'none' && results && (
+                  <div className="apple-section mt-4">
+                    <h3 className="apple-section-title">Fire Resistance Analysis</h3>
+                    <div className="apple-section-content">
+                      {/* Joist Fire Resistance */}
+                      {results.joists && (
+                        <div className="mb-4">
+                          <h4 className="font-semibold mb-2">Joist Fire Resistance</h4>
+                          <FireResistanceCalculator 
+                            dimensions={{ 
+                              width: results.joists.width, 
+                              depth: results.joists.depth 
+                            }} 
+                            selectedFRL={fireRating} 
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Beam Fire Resistance */}
+                      {results.beams && (
+                        <div className="mb-4">
+                          <h4 className="font-semibold mb-2">Beam Fire Resistance</h4>
+                          <FireResistanceCalculator 
+                            dimensions={{ 
+                              width: results.beams.width, 
+                              depth: results.beams.depth 
+                            }} 
+                            selectedFRL={fireRating} 
+                          />
+                        </div>
+                      )}
+                      
+                      {/* Column Fire Resistance */}
+                      {results.columns && (
+                        <div className="mb-4">
+                          <h4 className="font-semibold mb-2">Column Fire Resistance</h4>
+                          <FireResistanceCalculator 
+                            dimensions={{ 
+                              width: results.columns.width, 
+                              depth: results.columns.depth 
+                            }} 
+                            selectedFRL={fireRating} 
+                          />
+                        </div>
+                      )}
+                    </div>
+            </div>
                 )}
                 
                 {/* Save Project Button */}

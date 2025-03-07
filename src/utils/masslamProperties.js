@@ -9,7 +9,57 @@ export const CHARRING_RATES = {
   glulam: 0.7,     // Glue laminated timber
   clt: 0.65,       // Cross-laminated timber
   lvl: 0.7,        // Laminated veneer lumber
+  masslam_sl33: 0.7, // MASSLAM SL33 (from mechanical properties CSV)
 };
+
+/**
+ * Load the charring rate from the MASSLAM_SL33_Mechanical_Properties.csv file
+ * @returns {Promise<number>} The charring rate in mm/min
+ */
+export async function loadMasslamSL33CharringRate() {
+  try {
+    // Fetch the CSV file
+    const response = await fetch('/data/MASSLAM_SL33_Mechanical_Properties.csv');
+    if (!response.ok) {
+      console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
+      return CHARRING_RATES.masslam_sl33; // Return default value if fetch fails
+    }
+    
+    const csvText = await response.text();
+    const lines = csvText.trim().split('\n');
+    
+    // Find the line with the charring rate
+    const charringRateLine = lines.find(line => line.toLowerCase().includes('charring rate'));
+    
+    if (!charringRateLine) {
+      console.warn('Charring rate not found in MASSLAM_SL33_Mechanical_Properties.csv');
+      return CHARRING_RATES.masslam_sl33; // Return default value if not found
+    }
+    
+    // Parse the charring rate value
+    const values = charringRateLine.split(',');
+    if (values.length < 2) {
+      console.warn('Invalid charring rate format in CSV');
+      return CHARRING_RATES.masslam_sl33; // Return default value if format is invalid
+    }
+    
+    const charringRate = parseFloat(values[1]);
+    if (isNaN(charringRate)) {
+      console.warn('Invalid charring rate value in CSV');
+      return CHARRING_RATES.masslam_sl33; // Return default value if value is invalid
+    }
+    
+    console.log(`Loaded MASSLAM SL33 charring rate from CSV: ${charringRate} mm/min`);
+    
+    // Update the default charring rate
+    CHARRING_RATES.masslam_sl33 = charringRate;
+    
+    return charringRate;
+  } catch (error) {
+    console.error('Error loading MASSLAM SL33 charring rate:', error);
+    return CHARRING_RATES.masslam_sl33; // Return default value if an error occurs
+  }
+}
 
 /**
  * Calculate the fire resistance properties of a timber element
@@ -49,6 +99,34 @@ export function calculateFireResistance(charringRate, dimensions, requiredMinute
     loadCapacityReduction,
     passes,
   };
+}
+
+/**
+ * Calculate the additional size needed for fire resistance
+ * 
+ * @param {string} frl - Fire Resistance Level (e.g., "60/60/60", "90/90/90")
+ * @param {number} charringRate - Charring rate in mm/min
+ * @returns {number} Additional size needed in mm for each exposed face
+ */
+export function calculateFireResistanceAllowance(frl, charringRate = CHARRING_RATES.masslam_sl33) {
+  // Parse FRL value (e.g., "60/60/60" -> 60)
+  let minutes = 0;
+  if (frl && frl !== 'none') {
+    minutes = parseInt(frl.split('/')[0]) || 0;
+  }
+  
+  // Calculate char depth based on charring rate and required minutes
+  const charDepth = charringRate * minutes;
+  
+  // Add zero strength layer (additional 7mm beyond char layer)
+  const zeroStrengthLayer = 7;
+  
+  // Total allowance per exposed face
+  const totalAllowance = charDepth + zeroStrengthLayer;
+  
+  console.log(`Fire resistance allowance for ${frl}: ${totalAllowance.toFixed(1)}mm per exposed face`);
+  
+  return totalAllowance;
 }
 
 /**

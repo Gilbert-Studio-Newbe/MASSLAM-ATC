@@ -19,6 +19,7 @@ export default function MasslamSizesPage() {
   const [error, setError] = useState(null);
   const [verificationResult, setVerificationResult] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
+  const [refreshStatus, setRefreshStatus] = useState(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -119,6 +120,39 @@ export default function MasslamSizesPage() {
     }
   };
 
+  const refreshTimberSizes = async () => {
+    try {
+      setRefreshStatus({ status: 'refreshing', message: 'Refreshing timber sizes...' });
+      
+      // Call the refresh API endpoint
+      const response = await fetch('/api/refresh-timber-sizes', {
+        method: 'POST',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to refresh timber sizes');
+      }
+      
+      const data = await response.json();
+      
+      // Reset the module and reload the sizes
+      initializeMasslamSizes();
+      await loadSizesFromCSV();
+      
+      setRefreshStatus({ 
+        status: 'success', 
+        message: `Timber sizes refreshed successfully. ${data.message || ''}` 
+      });
+    } catch (err) {
+      console.error('Error refreshing timber sizes:', err);
+      setRefreshStatus({ 
+        status: 'error', 
+        message: `Error refreshing timber sizes: ${err.message}` 
+      });
+    }
+  };
+
   // Group sizes by type
   const sizesByType = sizes.reduce((acc, size) => {
     acc[size.type] = acc[size.type] || [];
@@ -174,6 +208,12 @@ export default function MasslamSizesPage() {
           </div>
         )}
         
+        {refreshStatus && (
+          <div className={`${styles.uploadStatus} ${styles[refreshStatus.status]}`}>
+            <p>{refreshStatus.message}</p>
+          </div>
+        )}
+        
         <div className={styles.actions}>
           <button 
             onClick={() => {
@@ -183,6 +223,12 @@ export default function MasslamSizesPage() {
             className={styles.button}
           >
             Reload Sizes
+          </button>
+          <button 
+            onClick={refreshTimberSizes} 
+            className={styles.button}
+          >
+            Refresh Timber Sizes
           </button>
           <button 
             onClick={() => debugMasslamSizes()} 
