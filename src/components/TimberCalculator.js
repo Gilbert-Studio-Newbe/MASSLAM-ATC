@@ -74,13 +74,13 @@ export default function TimberCalculator() {
   const [results, setResults] = useState(null);
   
   // Building dimension state variables
-  const [buildingLength, setBuildingLength] = useState(6);    // Default 6m
-  const [buildingWidth, setBuildingWidth] = useState(4);      // Default 4m
-  const [lengthwiseBays, setLengthwiseBays] = useState(2);    // Default 2 bays
-  const [widthwiseBays, setWidthwiseBays] = useState(2);      // Default 2 bays
+  const [buildingLength, setBuildingLength] = useState(18);    // Default 18m
+  const [buildingWidth, setBuildingWidth] = useState(14);      // Default 14m
+  const [lengthwiseBays, setLengthwiseBays] = useState(3);    // Default 3 bays for 18m length
+  const [widthwiseBays, setWidthwiseBays] = useState(2);      // Default 2 bays for 14m width
   
   // Add a new state variable for number of floors
-  const [numFloors, setNumFloors] = useState(1); // Default to 1 floor
+  const [numFloors, setNumFloors] = useState(6); // Default to 6 floors
   
   // Maximum allowed span for a single bay (in meters)
   const MAX_BAY_SPAN = 9.0;
@@ -236,9 +236,9 @@ export default function TimberCalculator() {
   
   // Example of a component section converted to use Tailwind classes
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Member Calculator</h1>
+    <div className="apple-section">
+      <div className="flex justify-between items-center mb-12">
+        <h1 style={{ color: 'var(--apple-text)' }}>Member Calculator</h1>
       </div>
       
       {/* Success Message */}
@@ -251,48 +251,52 @@ export default function TimberCalculator() {
       {/* Save Project Modal */}
       {showSaveModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Save Project</h2>
+          <div className="apple-card max-w-md w-full">
+            <div className="apple-card-header">
+              <h2 className="text-xl font-semibold">Save Project</h2>
+            </div>
             
-            <div className="grid grid-cols-1 gap-3 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
-                <input 
-                  type="text" 
-                  className="input w-full"
-                  value={projectDetails.name}
-                  onChange={(e) => setProjectDetails({...projectDetails, name: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
-                <input 
-                  type="text" 
-                  className="input w-full"
-                  value={projectDetails.client}
-                  onChange={(e) => setProjectDetails({...projectDetails, client: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                <input 
-                  type="text" 
-                  className="input w-full"
-                  value={projectDetails.location}
-                  onChange={(e) => setProjectDetails({...projectDetails, location: e.target.value})}
-                />
+            <div className="apple-card-body">
+              <div className="grid grid-cols-1 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Project Name</label>
+                  <input 
+                    type="text" 
+                    className="apple-input"
+                    value={projectDetails.name}
+                    onChange={(e) => setProjectDetails({...projectDetails, name: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Client</label>
+                  <input 
+                    type="text" 
+                    className="apple-input"
+                    value={projectDetails.client}
+                    onChange={(e) => setProjectDetails({...projectDetails, client: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Location</label>
+                  <input 
+                    type="text" 
+                    className="apple-input"
+                    value={projectDetails.location}
+                    onChange={(e) => setProjectDetails({...projectDetails, location: e.target.value})}
+                  />
+                </div>
               </div>
             </div>
             
-            <div className="flex justify-end space-x-3">
+            <div className="apple-card-footer flex justify-end space-x-3">
               <button 
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition"
+                className="apple-button apple-button-secondary"
                 onClick={() => setShowSaveModal(false)}
               >
                 Cancel
               </button>
               <button 
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                className="apple-button apple-button-primary"
                 onClick={saveProject}
               >
                 Save Project
@@ -302,498 +306,520 @@ export default function TimberCalculator() {
         </div>
       )}
       
-      <div className="flex flex-col md:flex-row w-full gap-8 flex-wrap">
+      <div className="apple-grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Config Panel */}
-        <div className="flex-1 min-w-[300px] max-w-[500px] p-4 bg-gray-50 rounded-lg shadow">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800">Configuration</h2>
-          </div>
-          
-          {/* Structure Configuration */}
-          <div className="card mb-4">
-            <h3 className="text-lg font-semibold mb-2">Structure Configuration</h3>
-            <div className="grid grid-cols-1 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Load Type</label>
-                <div className="flex space-x-4">
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      className="form-radio h-4 w-4 text-blue-600"
-                      name="loadType"
-                      checked={load === 1.5}
-                      onChange={() => setLoad(1.5)}
-                    />
-                    <span className="ml-2">Residential (1.5 kPa)</span>
-                  </label>
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      className="form-radio h-4 w-4 text-blue-600"
-                      name="loadType"
-                      checked={load === 3}
-                      onChange={() => setLoad(3)}
-                    />
-                    <span className="ml-2">Commercial (3 kPa)</span>
-                  </label>
+        <div className="lg:col-span-8 xl:col-span-7 2xl:col-span-6">
+          <div className="apple-card">
+            <div className="apple-card-header flex justify-between items-center">
+              <h2 className="text-xl font-semibold m-0">Configuration</h2>
+            </div>
+            
+            <div className="apple-card-body">
+              <div className="apple-specs-table mb-8">
+                <h3 className="text-lg font-semibold mb-6">Structure Configuration</h3>
+                
+                <div className="apple-specs-row">
+                  <div className="apple-specs-label">Load Type</div>
+                  <div className="apple-specs-value">
+                    <div className="flex flex-col space-y-3">
+                      <label className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          className="form-radio h-5 w-5"
+                          style={{ accentColor: 'var(--apple-blue)' }}
+                          name="loadType"
+                          checked={load === 1.5}
+                          onChange={() => setLoad(1.5)}
+                        />
+                        <span className="ml-3">Residential (1.5 kPa)</span>
+                      </label>
+                      <label className="inline-flex items-center">
+                        <input
+                          type="radio"
+                          className="form-radio h-5 w-5"
+                          style={{ accentColor: 'var(--apple-blue)' }}
+                          name="loadType"
+                          checked={load === 3}
+                          onChange={() => setLoad(3)}
+                        />
+                        <span className="ml-3">Commercial (3 kPa)</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Select the appropriate load type for your structure</p>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fire Rating (FRL)</label>
-                <select 
-                  className="select w-full"
-                  value={fireRating}
-                  onChange={(e) => setFireRating(e.target.value)}
-                >
-                  <option value="none">None</option>
-                  <option value="30/30/30">30/30/30</option>
-                  <option value="60/60/60">60/60/60</option>
-                  <option value="90/90/90">90/90/90</option>
-                </select>
+                <div className="apple-specs-row">
+                  <div className="apple-specs-label">Fire Rating (FRL)</div>
+                  <div className="apple-specs-value">
+                    <select 
+                      className="apple-input apple-select mb-0"
+                      value={fireRating}
+                      onChange={(e) => setFireRating(e.target.value)}
+                    >
+                      <option value="none">None</option>
+                      <option value="30/30/30">30/30/30</option>
+                      <option value="60/60/60">60/60/60</option>
+                      <option value="90/90/90">90/90/90</option>
+                    </select>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          
-          {/* Dimensions */}
-          <div className="card mb-4">
-            <h3 className="text-lg font-semibold mb-2">Dimensions</h3>
-            <div className="grid grid-cols-1 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Total Building Length (m)</label>
-                <input 
-                  type="number" 
-                  className="input w-full"
-                  min="1" 
-                  max="50" 
-                  value={buildingLength} 
-                  onChange={(e) => setBuildingLength(parseFloat(e.target.value))} 
-                />
-              </div>
+              
+              <div className="apple-specs-table mb-8">
+                <h3 className="text-lg font-semibold mb-6">Dimensions</h3>
+                
+                <div className="apple-specs-row">
+                  <div className="apple-specs-label">Building Length (m)</div>
+                  <div className="apple-specs-value">
+                    <input 
+                      type="number" 
+                      className="apple-input mb-0"
+                      min="1" 
+                      max="50" 
+                      value={buildingLength} 
+                      onChange={(e) => setBuildingLength(parseFloat(e.target.value))} 
+                    />
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Total Building Width (m)</label>
-                <input 
-                  type="number" 
-                  className="input w-full"
-                  min="1" 
-                  max="50" 
-                  value={buildingWidth} 
-                  onChange={(e) => setBuildingWidth(parseFloat(e.target.value))} 
-                />
-              </div>
+                <div className="apple-specs-row">
+                  <div className="apple-specs-label">Building Width (m)</div>
+                  <div className="apple-specs-value">
+                    <input 
+                      type="number" 
+                      className="apple-input mb-0"
+                      min="1" 
+                      max="50" 
+                      value={buildingWidth} 
+                      onChange={(e) => setBuildingWidth(parseFloat(e.target.value))} 
+                    />
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Number of Floors</label>
-                <input 
-                  type="number" 
-                  className="input w-full"
-                  min="1" 
-                  max="10" 
-                  value={numFloors} 
-                  onChange={(e) => setNumFloors(parseInt(e.target.value))} 
-                />
-                <p className="text-xs text-gray-500 mt-1">Affects column sizing and load calculations</p>
-              </div>
+                <div className="apple-specs-row">
+                  <div className="apple-specs-label">Number of Floors</div>
+                  <div className="apple-specs-value">
+                    <input 
+                      type="number" 
+                      className="apple-input mb-0"
+                      min="1" 
+                      max="10" 
+                      value={numFloors} 
+                      onChange={(e) => setNumFloors(parseInt(e.target.value))} 
+                    />
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Number of Bays (Length)</label>
-                <input 
-                  type="number" 
-                  className="input w-full"
-                  min="1" 
-                  max="20" 
-                  value={lengthwiseBays} 
-                  onChange={(e) => setLengthwiseBays(parseInt(e.target.value))} 
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Auto-adjusts when bay span exceeds {MAX_BAY_SPAN}m
-                </p>
-              </div>
+                <div className="apple-specs-row">
+                  <div className="apple-specs-label">Bays (Length)</div>
+                  <div className="apple-specs-value">
+                    <input 
+                      type="number" 
+                      className="apple-input mb-2"
+                      min="1" 
+                      max="20" 
+                      value={lengthwiseBays} 
+                      onChange={(e) => setLengthwiseBays(parseInt(e.target.value))} 
+                    />
+                    <p className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
+                      Auto-adjusts when bay span exceeds {MAX_BAY_SPAN}m
+                    </p>
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Number of Bays (Width)</label>
-                <input 
-                  type="number" 
-                  className="input w-full"
-                  min="1" 
-                  max="20" 
-                  value={widthwiseBays} 
-                  onChange={(e) => setWidthwiseBays(parseInt(e.target.value))} 
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Auto-adjusts when bay span exceeds {MAX_BAY_SPAN}m
-                </p>
-              </div>
+                <div className="apple-specs-row">
+                  <div className="apple-specs-label">Bays (Width)</div>
+                  <div className="apple-specs-value">
+                    <input 
+                      type="number" 
+                      className="apple-input mb-2"
+                      min="1" 
+                      max="20" 
+                      value={widthwiseBays} 
+                      onChange={(e) => setWidthwiseBays(parseInt(e.target.value))} 
+                    />
+                    <p className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
+                      Auto-adjusts when bay span exceeds {MAX_BAY_SPAN}m
+                    </p>
+                  </div>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Joist Centres (mm)</label>
-                <input 
-                  type="number" 
-                  className="input w-full bg-gray-100 cursor-not-allowed"
-                  value={800} 
-                  disabled 
-                />
-                <p className="text-xs text-gray-500 mt-1">Fixed at 800mm centres</p>
+                <div className="apple-specs-row">
+                  <div className="apple-specs-label">Joist Centres (mm)</div>
+                  <div className="apple-specs-value">
+                    <input 
+                      type="number" 
+                      className="apple-input mb-2 bg-gray-100 cursor-not-allowed"
+                      value={800} 
+                      disabled 
+                    />
+                    <p className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>Fixed at 800mm centres</p>
+                  </div>
+                </div>
               </div>
-            </div>
-            
-            {/* Calculated Bay Sizes */}
-            <div className="mt-4 p-3 bg-gray-100 rounded-md">
-              <h4 className="text-md font-medium text-gray-800 mb-2">Calculated Bay Sizes</h4>
-              <div className="grid grid-cols-1 gap-2">
-                <p className="text-sm"><strong>Bay Size (Length):</strong> {(buildingLength / lengthwiseBays).toFixed(2)} m</p>
-                <p className="text-sm"><strong>Bay Size (Width):</strong> {(buildingWidth / widthwiseBays).toFixed(2)} m</p>
-                <p className="text-sm"><strong>Joist Spacing:</strong> 800 mm (fixed)</p>
+              
+              {/* Calculated Bay Sizes */}
+              <div className="mb-8 p-6 rounded-lg" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
+                <h4 className="text-md font-medium mb-4">Calculated Bay Sizes</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <p className="text-sm"><strong>Bay Size (Length):</strong> {(buildingLength / lengthwiseBays).toFixed(2)} m</p>
+                  <p className="text-sm"><strong>Bay Size (Width):</strong> {(buildingWidth / widthwiseBays).toFixed(2)} m</p>
+                  <p className="text-sm"><strong>Joist Spacing:</strong> 800 mm (fixed)</p>
+                </div>
               </div>
-            </div>
-            
-            {/* Calculate Button */}
-            <button 
-              className="btn btn-primary w-full py-3 text-lg"
-              onClick={() => {
-                console.log('Calculating structure with dimensions:', {
-                  buildingLength,
-                  buildingWidth,
-                  lengthwiseBays,
-                  widthwiseBays,
-                  load,
-                  numFloors,
-                  joistSpacing: '800mm (fixed)'
-                });
-                
-                // Calculate the spans based on building dimensions and number of bays
-                const lengthwiseSpan = buildingLength / lengthwiseBays;
-                const widthwiseSpan = buildingWidth / widthwiseBays;
+              
+              {/* Calculate Button */}
+              <button 
+                className="apple-button apple-button-primary w-full py-4 text-lg"
+                onClick={() => {
+                  console.log('Calculating structure with dimensions:', {
+                    buildingLength,
+                    buildingWidth,
+                    lengthwiseBays,
+                    widthwiseBays,
+                    load,
+                    numFloors,
+                    joistSpacing: '800mm (fixed)'
+                  });
+                  
+                  // Calculate the spans based on building dimensions and number of bays
+                  const lengthwiseSpan = buildingLength / lengthwiseBays;
+                  const widthwiseSpan = buildingWidth / widthwiseBays;
 
-                // Determine which span direction the joists will span
-                // Typically, joists span the shorter distance
-                const joistSpan = Math.min(lengthwiseSpan, widthwiseSpan);
-                const beamSpan = Math.max(lengthwiseSpan, widthwiseSpan);
-                
-                console.log('Calculated spans:', { joistSpan, beamSpan });
-                
-                // Calculate initial results based on inputs
-                const joistResult = calculateJoistSize(joistSpan, 0.8, load, timberGrade);
-                const beamResult = calculateBeamSize(beamSpan, load, timberGrade);
-                
-                // Find nearest available sizes from MASSLAM catalog (rounding up)
-                // For joists
-                const joistType = 'joist';
-                const adjustedJoistWidth = findNearestWidth(joistResult.width);
-                const adjustedJoistDepth = findNearestDepth(adjustedJoistWidth, joistResult.depth);
-                
-                // For beams
-                const beamType = 'beam';
-                const adjustedBeamWidth = findNearestWidth(beamResult.width);
-                const adjustedBeamDepth = findNearestDepth(adjustedBeamWidth, beamResult.depth);
-                
-                // For columns - use our custom function that matches beam width
-                const columnType = 'column';
-                const columnHeight = 3; // Standard floor height in meters
-                const columnResult = calculateMultiFloorColumnSize(adjustedBeamWidth, load * joistSpan * 0.8, columnHeight, numFloors);
-                
-                console.log('Initial calculation results:', { joistResult, beamResult, columnResult });
-                
-                // Verify that the adjusted sizes exist in the MASSLAM catalog
-                const sizes = getMasslamSizes();
-                const joistExists = sizes.some(size => 
-                  size.width === adjustedJoistWidth && 
-                  size.depth === adjustedJoistDepth && 
-                  size.type === joistType
-                );
-                
-                const beamExists = sizes.some(size => 
-                  size.width === adjustedBeamWidth && 
-                  size.depth === adjustedBeamDepth && 
-                  size.type === beamType
-                );
-                
-                const columnExists = sizes.some(size => 
-                  size.width === columnResult.width && 
-                  size.depth === columnResult.depth && 
-                  size.type === columnType
-                );
-                
-                console.log('Size verification:', {
-                  joist: { width: adjustedJoistWidth, depth: adjustedJoistDepth, exists: joistExists },
-                  beam: { width: adjustedBeamWidth, depth: adjustedBeamDepth, exists: beamExists },
-                  column: { width: columnResult.width, depth: columnResult.depth, exists: columnExists }
-                });
-                
-                if (!joistExists || !beamExists || !columnExists) {
-                  console.warn('WARNING: Some selected sizes do not exist in the MASSLAM catalog!', {
+                  // Determine which span direction the joists will span
+                  // Typically, joists span the shorter distance
+                  const joistSpan = Math.min(lengthwiseSpan, widthwiseSpan);
+                  const beamSpan = Math.max(lengthwiseSpan, widthwiseSpan);
+                  
+                  console.log('Calculated spans:', { joistSpan, beamSpan });
+                  
+                  // Calculate initial results based on inputs
+                  const joistResult = calculateJoistSize(joistSpan, 0.8, load, timberGrade);
+                  const beamResult = calculateBeamSize(beamSpan, load, timberGrade);
+                  
+                  // Find nearest available sizes from MASSLAM catalog (rounding up)
+                  // For joists
+                  const joistType = 'joist';
+                  const adjustedJoistWidth = findNearestWidth(joistResult.width);
+                  const adjustedJoistDepth = findNearestDepth(adjustedJoistWidth, joistResult.depth);
+                  
+                  // For beams
+                  const beamType = 'beam';
+                  const adjustedBeamWidth = findNearestWidth(beamResult.width);
+                  const adjustedBeamDepth = findNearestDepth(adjustedBeamWidth, beamResult.depth);
+                  
+                  // For columns - use our custom function that matches beam width
+                  const columnType = 'column';
+                  const columnHeight = 3; // Standard floor height in meters
+                  const columnResult = calculateMultiFloorColumnSize(adjustedBeamWidth, load * joistSpan * 0.8, columnHeight, numFloors);
+                  
+                  console.log('Initial calculation results:', { joistResult, beamResult, columnResult });
+                  
+                  // Verify that the adjusted sizes exist in the MASSLAM catalog
+                  const sizes = getMasslamSizes();
+                  const joistExists = sizes.some(size => 
+                    size.width === adjustedJoistWidth && 
+                    size.depth === adjustedJoistDepth && 
+                    size.type === joistType
+                  );
+                  
+                  const beamExists = sizes.some(size => 
+                    size.width === adjustedBeamWidth && 
+                    size.depth === adjustedBeamDepth && 
+                    size.type === beamType
+                  );
+                  
+                  const columnExists = sizes.some(size => 
+                    size.width === columnResult.width && 
+                    size.depth === columnResult.depth && 
+                    size.type === columnType
+                  );
+                  
+                  console.log('Size verification:', {
                     joist: { width: adjustedJoistWidth, depth: adjustedJoistDepth, exists: joistExists },
                     beam: { width: adjustedBeamWidth, depth: adjustedBeamDepth, exists: beamExists },
                     column: { width: columnResult.width, depth: columnResult.depth, exists: columnExists }
                   });
-                } else {
-                  console.log('All selected sizes exist in the MASSLAM catalog.');
-                }
-                
-                // Update the results with the adjusted sizes
-                joistResult.width = adjustedJoistWidth;
-                joistResult.depth = adjustedJoistDepth;
-                
-                beamResult.width = adjustedBeamWidth;
-                beamResult.depth = adjustedBeamDepth;
-                
-                columnResult.width = columnResult.width;
-                columnResult.depth = columnResult.depth;
-                
-                // Calculate volume and environmental impact
-                const joistVolume = (joistResult.width / 1000) * (joistResult.depth / 1000) * joistSpan;
-                const beamVolume = (beamResult.width / 1000) * (beamResult.depth / 1000) * beamSpan;
-                const columnVolume = (columnResult.width / 1000) * (columnResult.depth / 1000) * columnHeight * 4; // 4 columns
-                
-                const totalVolume = joistVolume + beamVolume + columnVolume;
-                const weight = calculateTimberWeight(totalVolume, timberGrade);
-                const carbonSavings = calculateCarbonSavings(totalVolume);
-                
-                setResults({
-                  joists: joistResult,
-                  beams: beamResult,
-                  columns: columnResult,
-                  joistSpan,
-                  beamSpan,
-                  buildingLength,
-                  buildingWidth,
-                  lengthwiseBays,
-                  widthwiseBays,
-                  load,
-                  numFloors,
-                  volume: totalVolume,
-                  weight,
-                  carbonSavings,
-                  valid: true
-                });
+                  
+                  if (!joistExists || !beamExists || !columnExists) {
+                    console.warn('WARNING: Some selected sizes do not exist in the MASSLAM catalog!', {
+                      joist: { width: adjustedJoistWidth, depth: adjustedJoistDepth, exists: joistExists },
+                      beam: { width: adjustedBeamWidth, depth: adjustedBeamDepth, exists: beamExists },
+                      column: { width: columnResult.width, depth: columnResult.depth, exists: columnExists }
+                    });
+                  } else {
+                    console.log('All selected sizes exist in the MASSLAM catalog.');
+                  }
+                  
+                  // Update the results with the adjusted sizes
+                  joistResult.width = adjustedJoistWidth;
+                  joistResult.depth = adjustedJoistDepth;
+                  
+                  beamResult.width = adjustedBeamWidth;
+                  beamResult.depth = adjustedBeamDepth;
+                  
+                  columnResult.width = columnResult.width;
+                  columnResult.depth = columnResult.depth;
+                  
+                  // Calculate volume and environmental impact
+                  const joistVolume = (joistResult.width / 1000) * (joistResult.depth / 1000) * joistSpan;
+                  const beamVolume = (beamResult.width / 1000) * (beamResult.depth / 1000) * beamSpan;
+                  const columnVolume = (columnResult.width / 1000) * (columnResult.depth / 1000) * columnHeight * 4; // 4 columns
+                  
+                  const totalVolume = joistVolume + beamVolume + columnVolume;
+                  const weight = calculateTimberWeight(totalVolume, timberGrade);
+                  const carbonSavings = calculateCarbonSavings(totalVolume);
+                  
+                  setResults({
+                    joists: joistResult,
+                    beams: beamResult,
+                    columns: columnResult,
+                    joistSpan,
+                    beamSpan,
+                    buildingLength,
+                    buildingWidth,
+                    lengthwiseBays,
+                    widthwiseBays,
+                    load,
+                    numFloors,
+                    volume: totalVolume,
+                    weight,
+                    carbonSavings,
+                    valid: true
+                  });
 
-                // Validate that all sizes are from the MASSLAM catalog
-                setTimeout(() => {
-                  const allSizesValid = verifyLoadedSizes();
-                  console.log('All sizes valid:', allSizesValid);
-                }, 100);
-              }}
-            >
-              Calculate Structure
-            </button>
+                  // Validate that all sizes are from the MASSLAM catalog
+                  setTimeout(() => {
+                    const allSizesValid = verifyLoadedSizes();
+                    console.log('All sizes valid:', allSizesValid);
+                  }, 100);
+                }}
+              >
+                Calculate Structure
+              </button>
+            </div>
           </div>
         </div>
         
         {/* Results Panel */}
-        <div className="flex-1 min-w-[300px]">
+        <div className="lg:col-span-4 xl:col-span-5 2xl:col-span-6">
           {results ? (
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h2 className="text-xl font-semibold mb-4">Calculation Results</h2>
-              
-              {/* Building Information */}
-              <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-medium mb-2">Building Information</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm">Dimensions:</p>
-                    <p className="font-medium">{results.buildingLength}m × {results.buildingWidth}m</p>
-                  </div>
-                  <div>
-                    <p className="text-sm">Number of Floors:</p>
-                    <p className="font-medium">{results.numFloors}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm">Bay Size:</p>
-                    <p className="font-medium">{(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</p>
-                  </div>
-                  <div>
-                    <p className="text-sm">Load:</p>
-                    <p className="font-medium">{results.load} kPa ({results.load === 1.5 ? 'Residential' : 'Commercial'})</p>
-                  </div>
-                </div>
+            <div className="apple-results">
+              <div className="apple-results-header">
+                <h2 className="text-xl font-semibold">Calculation Results</h2>
               </div>
               
-              {/* Visualizations - Side by side */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {/* Bay Layout Visualization */}
-                <div>
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-2">
-                    <h3 className="font-medium mb-2">Bay Layout</h3>
-                    <div className="flex justify-center">
-                      <div className="relative" style={{ 
-                        height: `${Math.max(150, results.numFloors * 60)}px`,
-                        width: '100%',
-                        maxWidth: '300px'
-                      }}>
-                        <div className="bay-grid absolute inset-0" style={{
-                          display: 'grid',
-                          gridTemplateColumns: `repeat(${results.lengthwiseBays}, 1fr)`,
-                          gridTemplateRows: `repeat(${results.widthwiseBays}, 1fr)`,
-                          gap: '2px'
-                        }}>
-                          {Array.from({ length: results.lengthwiseBays * results.widthwiseBays }).map((_, index) => (
-                            <div key={index} className="bay-cell" style={{
-                              backgroundColor: '#e0e0e0',
-                              border: '1px solid #999',
-                              display: 'flex',
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              fontSize: '0.8rem',
-                              padding: '8px'
-                            }}>
-                              {/* Bay cells are empty now */}
-                            </div>
-                          ))}
-                        </div>
-                        
-                        {/* Joist Direction Arrows */}
-                        {(() => {
-                          // Determine if joists span lengthwise or widthwise
-                          const lengthwiseSpan = results.buildingLength / results.lengthwiseBays;
-                          const widthwiseSpan = results.buildingWidth / results.widthwiseBays;
-                          
-                          // Joists span the shorter distance
-                          const joistsSpanLengthwise = lengthwiseSpan < widthwiseSpan;
-                          
-                          // Return arrows for each bay
-                          return Array.from({ length: results.lengthwiseBays * results.widthwiseBays }).map((_, index) => {
-                            const row = Math.floor(index / results.lengthwiseBays);
-                            const col = index % results.lengthwiseBays;
-                            
-                            const arrowStyle = {
-                              position: 'absolute',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#4B5563', // Dark gray color
-                              fontWeight: 'bold',
-                              fontSize: '1rem',
-                              zIndex: 10
-                            };
-                            
-                            if (joistsSpanLengthwise) {
-                              // Horizontal arrows (joists span left to right)
-                              return (
-                                <div 
-                                  key={`arrow-${index}`}
-                                  style={{
-                                    ...arrowStyle,
-                                    top: `${(row + 0.5) * (100 / results.widthwiseBays)}%`,
-                                    left: `${(col + 0.5) * (100 / results.lengthwiseBays)}%`,
-                                    transform: 'translate(-50%, -50%)',
-                                    width: `${70 / results.lengthwiseBays}%`,
-                                    height: '20%'
-                                  }}
-                                >
-                                  <span>⟷</span>
-                                </div>
-                              );
-                            } else {
-                              // Vertical arrows (joists span top to bottom)
-                              return (
-                                <div 
-                                  key={`arrow-${index}`}
-                                  style={{
-                                    ...arrowStyle,
-                                    left: `${(col + 0.5) * (100 / results.lengthwiseBays)}%`,
-                                    top: `${(row + 0.5) * (100 / results.widthwiseBays)}%`,
-                                    transform: 'translate(-50%, -50%)',
-                                    height: `${70 / results.widthwiseBays}%`,
-                                    width: '20%',
-                                    flexDirection: 'column'
-                                  }}
-                                >
-                                  <span>⟷</span>
-                                </div>
-                              );
-                            }
-                          });
-                        })()}
-                      </div>
+              <div className="apple-results-body">
+                {/* Building Information */}
+                <div className="apple-results-section p-6 rounded-lg" style={{ backgroundColor: 'rgba(0, 113, 227, 0.05)' }}>
+                  <h3 className="font-medium mb-4">Building Information</h3>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <p className="text-sm mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Dimensions:</p>
+                      <p className="font-medium">{results.buildingLength}m × {results.buildingWidth}m</p>
                     </div>
-                  </div>
-                  <div className="text-center text-sm text-gray-600">
-                    <div>Bay Size: {(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</div>
-                    <div className="mt-1">
-                      <strong style={{ color: '#4B5563' }}>↔ Arrows indicate joist span direction:</strong> {results.joistSpan.toFixed(2)}m
+                    <div>
+                      <p className="text-sm mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Number of Floors:</p>
+                      <p className="font-medium">{results.numFloors}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Bay Size:</p>
+                      <p className="font-medium">{(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</p>
+                    </div>
+                    <div>
+                      <p className="text-sm mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Load:</p>
+                      <p className="font-medium">{results.load} kPa ({results.load === 1.5 ? 'Residential' : 'Commercial'})</p>
                     </div>
                   </div>
                 </div>
                 
-                {/* Structure Visualization */}
-                <div>
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-2">
-                    <h3 className="font-medium mb-2">Structure Visualization</h3>
-                    <div className="flex justify-center">
-                      <div className="relative" style={{ 
-                        height: `${Math.max(150, results.numFloors * 60)}px`,
-                        width: '100%',
-                        maxWidth: '300px'
-                      }}>
-                        {Array.from({ length: results.numFloors }).map((_, index) => {
-                          const floorIndex = results.numFloors - 1 - index; // Start from top floor
-                          
-                          return (
-                            <div 
-                              key={floorIndex}
-                              className="absolute left-0 right-0"
-                              style={{ 
-                                height: '50px',
-                                bottom: `${floorIndex * 60}px`,
-                                zIndex: results.numFloors - floorIndex,
+                {/* Visualizations - Side by side */}
+                <div className="apple-results-section grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Bay Layout Visualization */}
+                  <div>
+                    <div className="apple-visualization mb-3">
+                      <h3 className="apple-visualization-title">Bay Layout</h3>
+                      <div className="flex justify-center">
+                        <div className="relative" style={{ 
+                          height: `${Math.max(180, results.numFloors * 60)}px`,
+                          width: '100%',
+                          maxWidth: '300px'
+                        }}>
+                          <div className="bay-grid absolute inset-0" style={{
+                            display: 'grid',
+                            gridTemplateColumns: `repeat(${results.lengthwiseBays}, 1fr)`,
+                            gridTemplateRows: `repeat(${results.widthwiseBays}, 1fr)`,
+                            gap: '2px'
+                          }}>
+                            {Array.from({ length: results.lengthwiseBays * results.widthwiseBays }).map((_, index) => (
+                              <div key={index} className="bay-cell" style={{
                                 backgroundColor: '#e0e0e0',
-                                border: '1px solid #999'
-                              }}
-                            >
-                              <div className="text-center text-xs mt-1">Floor {floorIndex + 1}</div>
-                            </div>
-                          );
-                        })}
+                                border: '1px solid #999',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                fontSize: '0.8rem',
+                                padding: '8px',
+                                borderRadius: '0'
+                              }}>
+                                {/* Bay cells are empty now */}
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Joist Direction Arrows */}
+                          {(() => {
+                            // Determine if joists span lengthwise or widthwise
+                            const lengthwiseSpan = results.buildingLength / results.lengthwiseBays;
+                            const widthwiseSpan = results.buildingWidth / results.widthwiseBays;
+                            
+                            // Joists span the shorter distance
+                            const joistsSpanLengthwise = lengthwiseSpan < widthwiseSpan;
+                            
+                            // Return arrows for each bay
+                            return Array.from({ length: results.lengthwiseBays * results.widthwiseBays }).map((_, index) => {
+                              const row = Math.floor(index / results.lengthwiseBays);
+                              const col = index % results.lengthwiseBays;
+                              
+                              const arrowStyle = {
+                                position: 'absolute',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#4B5563', // Dark gray color
+                                fontWeight: 'bold',
+                                fontSize: '1rem',
+                                zIndex: 10
+                              };
+                              
+                              if (joistsSpanLengthwise) {
+                                // Horizontal arrows (joists span left to right)
+                                return (
+                                  <div 
+                                    key={`arrow-${index}`}
+                                    style={{
+                                      ...arrowStyle,
+                                      top: `${(row + 0.5) * (100 / results.widthwiseBays)}%`,
+                                      left: `${(col + 0.5) * (100 / results.lengthwiseBays)}%`,
+                                      transform: 'translate(-50%, -50%)',
+                                      width: `${70 / results.lengthwiseBays}%`,
+                                      height: '20%'
+                                    }}
+                                  >
+                                    <span>⟷</span>
+                                  </div>
+                                );
+                              } else {
+                                // Vertical arrows (joists span top to bottom)
+                                return (
+                                  <div 
+                                    key={`arrow-${index}`}
+                                    style={{
+                                      ...arrowStyle,
+                                      left: `${(col + 0.5) * (100 / results.lengthwiseBays)}%`,
+                                      top: `${(row + 0.5) * (100 / results.widthwiseBays)}%`,
+                                      transform: 'translate(-50%, -50%)',
+                                      height: `${70 / results.widthwiseBays}%`,
+                                      width: '20%',
+                                      flexDirection: 'column'
+                                    }}
+                                  >
+                                    <span>⟷</span>
+                                  </div>
+                                );
+                              }
+                            });
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-center text-sm" style={{ color: 'var(--apple-text-secondary)' }}>
+                      <div>Bay Size: {(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</div>
+                      <div className="mt-2">
+                        <strong style={{ color: '#4B5563' }}>↔ Arrows indicate joist span direction:</strong> {results.joistSpan.toFixed(2)}m
                       </div>
                     </div>
                   </div>
-                  <div className="text-center text-sm text-gray-600">
-                    <div>Floors: {results.numFloors}</div>
+                  
+                  {/* Structure Visualization */}
+                  <div>
+                    <div className="apple-visualization mb-3">
+                      <h3 className="apple-visualization-title">Structure Visualization</h3>
+                      <div className="flex justify-center">
+                        <div className="relative" style={{ 
+                          height: `${Math.max(180, results.numFloors * 60)}px`,
+                          width: '100%',
+                          maxWidth: '300px'
+                        }}>
+                          {Array.from({ length: results.numFloors }).map((_, index) => {
+                            const floorIndex = results.numFloors - 1 - index; // Start from top floor
+                            
+                            return (
+                              <div 
+                                key={floorIndex}
+                                className="absolute left-0 right-0"
+                                style={{ 
+                                  height: '50px',
+                                  bottom: `${floorIndex * 60}px`,
+                                  zIndex: results.numFloors - floorIndex,
+                                  backgroundColor: '#e0e0e0',
+                                  border: '1px solid #999',
+                                  borderRadius: '0'
+                                }}
+                              >
+                                <div className="text-center text-xs mt-1">Floor {floorIndex + 1}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-center text-sm" style={{ color: 'var(--apple-text-secondary)' }}>
+                      <div>Floors: {results.numFloors}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* Timber Sizes Table */}
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">Selected Timber Sizes</h3>
-                <TimberSizesTable results={results} />
-              </div>
-              
-              {/* Environmental Impact */}
-              <div className="p-4 bg-teal-50 rounded-lg mb-6">
-                <h3 className="font-medium mb-2">Environmental Impact</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm">Timber Volume:</p>
-                    <p className="text-xl font-bold">{results.volume.toFixed(2)} m³</p>
-                  </div>
-                  <div>
-                    <p className="text-sm">Weight:</p>
-                    <p className="text-xl font-bold">{results.weight.toFixed(2)} kg</p>
-                  </div>
-                  <div>
-                    <p className="text-sm">Carbon Savings:</p>
-                    <p className="text-xl font-bold">{results.carbonSavings.toFixed(2)} tonnes CO₂e</p>
+                
+                {/* Timber Sizes Table */}
+                <div className="apple-results-section">
+                  <h3 className="text-lg font-semibold mb-5">Selected Timber Sizes</h3>
+                  <TimberSizesTable results={results} />
+                </div>
+                
+                {/* Environmental Impact */}
+                <div className="apple-environmental">
+                  <h3 className="apple-environmental-title">Environmental Impact</h3>
+                  <div className="apple-environmental-grid">
+                    <div className="apple-environmental-item">
+                      <p className="apple-environmental-value">{results.volume.toFixed(2)} m³</p>
+                      <p className="apple-environmental-label">Timber Volume</p>
+                    </div>
+                    <div className="apple-environmental-item">
+                      <p className="apple-environmental-value">{results.weight.toFixed(2)} kg</p>
+                      <p className="apple-environmental-label">Weight</p>
+                    </div>
+                    <div className="apple-environmental-item">
+                      <p className="apple-environmental-value">{results.carbonSavings.toFixed(2)} tonnes</p>
+                      <p className="apple-environmental-label">Carbon Savings (CO₂e)</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* Save Project Button */}
-              <div className="flex justify-end">
-                <button 
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                  onClick={() => setShowSaveModal(true)}
-                >
-                  Save Project
-                </button>
+                
+                {/* Save Project Button */}
+                <div className="flex justify-end mt-8">
+                  <button 
+                    className="apple-button apple-button-primary"
+                    onClick={() => setShowSaveModal(true)}
+                  >
+                    Save Project
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow p-4">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Results</h2>
-              <p className="text-gray-600">Configure your timber structure and click "Calculate Structure" to see results.</p>
+            <div className="apple-card p-6 text-center">
+              <h2 className="text-xl font-semibold mb-4">Results</h2>
+              <p style={{ color: 'var(--apple-text-secondary)' }}>Configure your timber structure and click "Calculate Structure" to see results.</p>
             </div>
           )}
         </div>

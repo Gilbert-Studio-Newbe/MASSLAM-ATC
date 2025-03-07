@@ -4,21 +4,64 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Apple-inspired styling for MASSLAM ATC by ASH */
+
+/* Base font and colors */
+:root {
+  --apple-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  --apple-bg: #f5f5f7;
+  --apple-text: #1d1d1f;
+  --apple-text-secondary: #86868b;
+  --apple-blue: #0071e3;
+  --apple-blue-hover: #0077ed;
+  --apple-card-bg: #ffffff;
+  --apple-border: #d2d2d7;
+  --apple-success: #4bb543;
+  --apple-warning: #ff9500;
+  --apple-error: #ff3b30;
+  --apple-section-spacing: 4rem;
+  --apple-component-spacing: 2rem;
+  --apple-inner-spacing: 1.5rem;
+}
+
+/* Global styles */
+body {
+  font-family: var(--apple-font);
+  background-color: var(--apple-bg);
+  color: var(--apple-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin-bottom: var(--apple-inner-spacing);
+}
+
+h1 {
+  font-size: 2.5rem;
+  line-height: 1.1;
+  margin-bottom: 2rem;
+}
+
+h2 {
+  font-size: 2rem;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  margin-bottom: 1.25rem;
+}
+
 @layer base {
   html {
     @apply text-gray-900;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-bold;
-  }
-  h1 {
-    @apply text-2xl;
-  }
-  h2 {
-    @apply text-xl;
-  }
-  h3 {
-    @apply text-lg;
   }
 }
 
@@ -65,5 +108,331 @@
   }
   .shadow-hover {
     @apply transition-medium shadow hover:shadow-md;
+  }
+}
+
+/* Layout components */
+.apple-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.apple-section {
+  margin-bottom: var(--apple-section-spacing);
+  padding: 1rem 0;
+}
+
+.apple-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2.5rem;
+}
+
+/* Header and navigation */
+.apple-header {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(210, 210, 215, 0.8);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0.5rem 0;
+}
+
+.apple-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 4rem;
+}
+
+.apple-nav-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1.75rem;
+  white-space: nowrap;
+}
+
+.apple-nav-link {
+  color: var(--apple-text);
+  font-size: 0.875rem;
+  font-weight: 400;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.apple-nav-link:hover {
+  color: var(--apple-blue);
+}
+
+/* Cards and containers */
+.apple-card {
+  background-color: var(--apple-card-bg);
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  margin-bottom: var(--apple-component-spacing);
+}
+
+.apple-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.apple-card-header {
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid var(--apple-border);
+}
+
+.apple-card-body {
+  padding: 1.5rem 2rem 2rem;
+}
+
+.apple-card-footer {
+  padding: 1.75rem 2rem;
+  border-top: 1px solid var(--apple-border);
+}
+
+/* Form elements */
+.apple-input {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  font-size: 1rem;
+  border: 1px solid var(--apple-border);
+  border-radius: 0.75rem;
+  background-color: var(--apple-card-bg);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 1.25rem;
+}
+
+.apple-input:focus {
+  outline: none;
+  border-color: var(--apple-blue);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
+}
+
+.apple-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%231d1d1f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+/* Buttons */
+.apple-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 1.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.apple-button-primary {
+  background-color: var(--apple-blue);
+  color: white;
+}
+
+.apple-button-primary:hover {
+  background-color: var(--apple-blue-hover);
+}
+
+.apple-button-secondary {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--apple-text);
+}
+
+.apple-button-secondary:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Specs table */
+.apple-specs-table {
+  margin-bottom: 3rem;
+}
+
+.apple-specs-table:last-child {
+  margin-bottom: 0;
+}
+
+.apple-specs-table h3 {
+  margin-bottom: 1.5rem;
+}
+
+.apple-specs-row {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) 1.5fr;
+  border-bottom: 1px solid var(--apple-border);
+  align-items: center;
+}
+
+.apple-specs-row:last-child {
+  border-bottom: none;
+}
+
+.apple-specs-label {
+  padding: 0.75rem 1.5rem 0.75rem 0;
+  font-weight: 500;
+  color: var(--apple-text-secondary);
+  overflow: visible;
+}
+
+.apple-specs-value {
+  padding: 0.75rem 0;
+  min-width: 0;
+}
+
+/* Visualization components */
+.apple-visualization {
+  background-color: var(--apple-card-bg);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.apple-visualization-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+/* Results section */
+.apple-results {
+  background-color: var(--apple-card-bg);
+  border-radius: 1.25rem;
+  overflow: hidden;
+}
+
+/* 
+ * To manually adjust the padding for the line under "Calculation Results",
+ * modify the padding value below. The current value is 1.25rem 2rem.
+ * - Increase the first value (1.25rem) to move the line down
+ * - Decrease the first value to move the line up
+ */
+.apple-results-header {
+  padding: 0.5rem 2rem;
+  border-bottom: 1px solid var(--apple-border);
+}
+
+.apple-results-body {
+  padding: 1.5rem 2rem 2rem;
+}
+
+.apple-results-section {
+  margin-bottom: 3rem;
+}
+
+.apple-results-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Environmental impact section */
+.apple-environmental {
+  background-color: #f2f7f2;
+  border-radius: 1.25rem;
+  padding: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.apple-environmental-title {
+  color: var(--apple-success);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.apple-environmental-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.apple-environmental-item {
+  text-align: center;
+}
+
+.apple-environmental-value {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--apple-success);
+  margin-bottom: 0.5rem;
+}
+
+.apple-environmental-label {
+  font-size: 0.875rem;
+  color: var(--apple-text-secondary);
+}
+
+/* Footer */
+.apple-footer {
+  background-color: var(--apple-card-bg);
+  border-top: 1px solid var(--apple-border);
+  padding: 2rem 0;
+  margin-top: 4rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--apple-text-secondary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .apple-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .apple-specs-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .apple-specs-label {
+    padding: 1rem 0 0.5rem 0;
+    border-bottom: none;
+  }
+  
+  .apple-specs-value {
+    padding: 0 0 1rem 0;
+  }
+  
+  .apple-nav {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .apple-nav-list {
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+  .apple-specs-row {
+    grid-template-columns: minmax(160px, 1fr) 1.5fr;
+  }
+  
+  .apple-specs-label {
+    padding: 1rem 1rem 1rem 0;
+  }
+  
+  .apple-specs-value {
+    padding: 1rem 0;
+  }
+}
+
+@media (max-width: 1024px) {
+  .apple-container {
+    padding: 0 1.5rem;
+  }
+  
+  .apple-nav-list {
+    gap: 1.25rem;
   }
 }
