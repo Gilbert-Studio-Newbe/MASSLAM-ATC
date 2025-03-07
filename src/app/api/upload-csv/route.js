@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { writeFile } from 'fs/promises';
 import path from 'path';
 
+// Set the maximum size limit for the request body
+export const dynamic = 'force-dynamic';
+export const maxDuration = 10; // 10 seconds
+export const runtime = 'nodejs';
+
 export async function POST(request) {
   try {
     const formData = await request.formData();
@@ -123,13 +128,4 @@ export async function POST(request) {
       { status: 500 }
     );
   }
-}
-
-// Increase the body size limit for file uploads
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '1mb',
-    },
-  },
-}; 
+} 
