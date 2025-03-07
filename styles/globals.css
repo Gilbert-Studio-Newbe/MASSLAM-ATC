@@ -1,5 +1,4 @@
-/* This file is not being used. The main styles are in /styles/globals.css which is imported in layout.tsx */
-
+/* styles/globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
