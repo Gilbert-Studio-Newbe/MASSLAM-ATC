@@ -1,6 +1,7 @@
 import "./globals.css";
 import { ReactNode } from 'react';
 import Link from 'next/link';
+import { useState } from 'react';
 
 export const metadata = { 
   title: "ATC by ASH", 
@@ -17,12 +18,19 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <div className="min-h-screen" style={{ backgroundColor: 'var(--apple-bg)' }}> 
           <header className="apple-header"> 
             <div className="apple-container apple-nav"> 
-              <div className="flex items-center"> 
+              <div className="flex items-center justify-between w-full md:w-auto"> 
                 <h1 className="text-2xl font-semibold" style={{ color: 'var(--apple-text)' }}> 
                   ATC by ASH 
-                </h1> 
+                </h1>
+                <button className="mobile-menu-button md:hidden" aria-label="Toggle menu">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                  </svg>
+                </button>
               </div> 
-              <nav> 
+              <nav className="mobile-nav"> 
                 <ul className="apple-nav-list"> 
                   <li> 
                     <Link href="/" className="apple-nav-link">Member Calculator</Link> 
@@ -56,7 +64,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </p> 
             </div> 
           </footer> 
-        </div> 
+        </div>
+        <script dangerouslySetInnerHTML={{ __html: `
+          document.addEventListener('DOMContentLoaded', function() {
+            const menuButton = document.querySelector('.mobile-menu-button');
+            const mobileNav = document.querySelector('.mobile-nav');
+            
+            menuButton.addEventListener('click', function() {
+              mobileNav.classList.toggle('active');
+            });
+          });
+        `}} />
       </body> 
     </html> 
   ); 
