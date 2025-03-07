@@ -308,7 +308,7 @@ export default function TimberCalculator() {
       
       <div className="apple-grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Config Panel */}
-        <div className="lg:col-span-8 xl:col-span-7 2xl:col-span-6">
+        <div className="lg:col-span-5 xl:col-span-5 2xl:col-span-4">
           <div className="apple-card">
             <div className="apple-card-header flex justify-between items-center">
               <h2 className="text-xl font-semibold m-0">Configuration</h2>
@@ -602,7 +602,7 @@ export default function TimberCalculator() {
         </div>
         
         {/* Results Panel */}
-        <div className="lg:col-span-4 xl:col-span-5 2xl:col-span-6">
+        <div className="lg:col-span-7 xl:col-span-7 2xl:col-span-8">
           {results ? (
             <div className="apple-results">
               <div className="apple-results-header">
