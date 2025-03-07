@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { 
   calculateJoistSize, 
@@ -20,7 +20,8 @@ import {
   initializeMasslamSizes,
   getMasslamSizes,
   verifyLoadedSizes,
-  filterToStandardSizes
+  filterToStandardSizes,
+  resetMasslamSizes
 } from '@/utils/timberSizes';
 import TimberSizesTable from './TimberSizesTable';
 // ... other imports as before
@@ -56,6 +57,19 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors) => {
     height: height,
     load: totalLoad,
     floors: floors
+  };
+};
+
+// Debounce utility function
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
   };
 };
 
@@ -234,6 +248,180 @@ export default function TimberCalculator() {
     loadSizes();
   }, []);
   
+  // Extract calculation logic into a separate function
+  const calculateStructure = useCallback(() => {
+    console.log('Calculating structure with dimensions:', {
+      buildingLength,
+      buildingWidth,
+      lengthwiseBays,
+      widthwiseBays,
+      load,
+      numFloors,
+      joistSpacing: '800mm (fixed)'
+    });
+    
+    // Calculate the spans based on building dimensions and number of bays
+    const lengthwiseSpan = buildingLength / lengthwiseBays;
+    const widthwiseSpan = buildingWidth / widthwiseBays;
+
+    // Determine which span direction the joists will span
+    // Typically, joists span the shorter distance
+    const joistSpan = Math.min(lengthwiseSpan, widthwiseSpan);
+    const beamSpan = Math.max(lengthwiseSpan, widthwiseSpan);
+    
+    console.log('Calculated spans:', { joistSpan, beamSpan });
+    
+    // Calculate initial results based on inputs
+    const joistResult = calculateJoistSize(joistSpan, 0.8, load, timberGrade);
+    const beamResult = calculateBeamSize(beamSpan, load, timberGrade);
+    
+    // Find nearest available sizes from MASSLAM catalog (rounding up)
+    // For joists
+    const joistType = 'joist';
+    const adjustedJoistWidth = findNearestWidth(joistResult.width);
+    const adjustedJoistDepth = findNearestDepth(adjustedJoistWidth, joistResult.depth);
+    
+    // For beams
+    const beamType = 'beam';
+    const adjustedBeamWidth = findNearestWidth(beamResult.width);
+    const adjustedBeamDepth = findNearestDepth(adjustedBeamWidth, beamResult.depth);
+    
+    // For columns - use our custom function that matches beam width
+    const columnType = 'column';
+    const columnHeight = 3; // Standard floor height in meters
+    const columnResult = calculateMultiFloorColumnSize(adjustedBeamWidth, load * joistSpan * 0.8, columnHeight, numFloors);
+    
+    console.log('Initial calculation results:', { joistResult, beamResult, columnResult });
+    
+    // Verify that the adjusted sizes exist in the MASSLAM catalog
+    const sizes = getMasslamSizes();
+    const joistExists = sizes.some(size => 
+      size.width === adjustedJoistWidth && 
+      size.depth === adjustedJoistDepth && 
+      size.type === joistType
+    );
+    
+    const beamExists = sizes.some(size => 
+      size.width === adjustedBeamWidth && 
+      size.depth === adjustedBeamDepth && 
+      size.type === beamType
+    );
+    
+    const columnExists = sizes.some(size => 
+      size.width === columnResult.width && 
+      size.depth === columnResult.depth && 
+      size.type === columnType
+    );
+    
+    console.log('Size verification:', {
+      joist: { width: adjustedJoistWidth, depth: adjustedJoistDepth, exists: joistExists },
+      beam: { width: adjustedBeamWidth, depth: adjustedBeamDepth, exists: beamExists },
+      column: { width: columnResult.width, depth: columnResult.depth, exists: columnExists }
+    });
+    
+    if (!joistExists || !beamExists || !columnExists) {
+      console.warn('WARNING: Some selected sizes do not exist in the MASSLAM catalog!', {
+        joist: { width: adjustedJoistWidth, depth: adjustedJoistDepth, exists: joistExists },
+        beam: { width: adjustedBeamWidth, depth: adjustedBeamDepth, exists: beamExists },
+        column: { width: columnResult.width, depth: columnResult.depth, exists: columnExists }
+      });
+    } else {
+      console.log('All selected sizes exist in the MASSLAM catalog.');
+    }
+    
+    // Update the results with the adjusted sizes
+    joistResult.width = adjustedJoistWidth;
+    joistResult.depth = adjustedJoistDepth;
+    
+    beamResult.width = adjustedBeamWidth;
+    beamResult.depth = adjustedBeamDepth;
+    
+    columnResult.width = columnResult.width;
+    columnResult.depth = columnResult.depth;
+    
+    // Calculate volume and environmental impact
+    const joistVolume = (joistResult.width / 1000) * (joistResult.depth / 1000) * joistSpan;
+    const beamVolume = (beamResult.width / 1000) * (beamResult.depth / 1000) * beamSpan;
+    const columnVolume = (columnResult.width / 1000) * (columnResult.depth / 1000) * columnHeight * 4; // 4 columns
+    
+    const totalVolume = joistVolume + beamVolume + columnVolume;
+    const weight = calculateTimberWeight(totalVolume, timberGrade);
+    const carbonSavings = calculateCarbonSavings(totalVolume);
+    
+    setResults({
+      joists: joistResult,
+      beams: beamResult,
+      columns: columnResult,
+      joistSpan,
+      beamSpan,
+      buildingLength,
+      buildingWidth,
+      lengthwiseBays,
+      widthwiseBays,
+      load,
+      numFloors,
+      volume: totalVolume,
+      weight,
+      carbonSavings,
+      valid: true
+    });
+
+    // Validate that all sizes are from the MASSLAM catalog
+    setTimeout(() => {
+      const allSizesValid = verifyLoadedSizes();
+      console.log('All sizes valid:', allSizesValid);
+    }, 100);
+  }, [buildingLength, buildingWidth, lengthwiseBays, widthwiseBays, load, numFloors, timberGrade]);
+
+  // Create debounced version of the calculation function
+  const debouncedCalculate = useCallback(
+    debounce(() => calculateStructure(), 300),
+    [calculateStructure]
+  );
+
+  // Run calculations when inputs change
+  useEffect(() => {
+    // Only run if we have valid inputs
+    if (
+      buildingLength > 0 && 
+      buildingWidth > 0 && 
+      lengthwiseBays > 0 && 
+      widthwiseBays > 0 && 
+      numFloors > 0
+    ) {
+      debouncedCalculate();
+    }
+  }, [buildingLength, buildingWidth, lengthwiseBays, widthwiseBays, load, numFloors, debouncedCalculate]);
+
+  // Update input handlers to use the debounced calculation
+  const handleBuildingLengthChange = (value) => {
+    setBuildingLength(parseFloat(value));
+  };
+
+  const handleBuildingWidthChange = (value) => {
+    setBuildingWidth(parseFloat(value));
+  };
+
+  const handleLengthwiseBaysChange = (value) => {
+    setLengthwiseBays(parseInt(value));
+  };
+
+  const handleWidthwiseBaysChange = (value) => {
+    setWidthwiseBays(parseInt(value));
+  };
+
+  const handleNumFloorsChange = (value) => {
+    setNumFloors(parseInt(value));
+  };
+
+  const handleLoadChange = (value) => {
+    setLoad(value);
+  };
+
+  const handleFireRatingChange = (value) => {
+    setFireRating(value);
+  };
+
   // Example of a component section converted to use Tailwind classes
   return (
     <div className="apple-section">
@@ -329,7 +517,7 @@ export default function TimberCalculator() {
                           style={{ accentColor: 'var(--apple-blue)' }}
                           name="loadType"
                           checked={load === 1.5}
-                          onChange={() => setLoad(1.5)}
+                          onChange={() => handleLoadChange(1.5)}
                         />
                         <span className="ml-3">Residential (1.5 kPa)</span>
                       </label>
@@ -340,7 +528,7 @@ export default function TimberCalculator() {
                           style={{ accentColor: 'var(--apple-blue)' }}
                           name="loadType"
                           checked={load === 3}
-                          onChange={() => setLoad(3)}
+                          onChange={() => handleLoadChange(3)}
                         />
                         <span className="ml-3">Commercial (3 kPa)</span>
                       </label>
@@ -354,7 +542,7 @@ export default function TimberCalculator() {
                     <select 
                       className="apple-input apple-select mb-0"
                       value={fireRating}
-                      onChange={(e) => setFireRating(e.target.value)}
+                      onChange={(e) => handleFireRatingChange(e.target.value)}
                     >
                       <option value="none">None</option>
                       <option value="30/30/30">30/30/30</option>
@@ -377,7 +565,7 @@ export default function TimberCalculator() {
                       min="1" 
                       max="50" 
                       value={buildingLength} 
-                      onChange={(e) => setBuildingLength(parseFloat(e.target.value))} 
+                      onChange={(e) => handleBuildingLengthChange(e.target.value)} 
                     />
                   </div>
                 </div>
@@ -391,7 +579,7 @@ export default function TimberCalculator() {
                       min="1" 
                       max="50" 
                       value={buildingWidth} 
-                      onChange={(e) => setBuildingWidth(parseFloat(e.target.value))} 
+                      onChange={(e) => handleBuildingWidthChange(e.target.value)} 
                     />
                   </div>
                 </div>
@@ -405,7 +593,7 @@ export default function TimberCalculator() {
                       min="1" 
                       max="10" 
                       value={numFloors} 
-                      onChange={(e) => setNumFloors(parseInt(e.target.value))} 
+                      onChange={(e) => handleNumFloorsChange(e.target.value)} 
                     />
                   </div>
                 </div>
@@ -419,7 +607,7 @@ export default function TimberCalculator() {
                       min="1" 
                       max="20" 
                       value={lengthwiseBays} 
-                      onChange={(e) => setLengthwiseBays(parseInt(e.target.value))} 
+                      onChange={(e) => handleLengthwiseBaysChange(e.target.value)} 
                     />
                     <p className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
                       Auto-adjusts when bay span exceeds {MAX_BAY_SPAN}m
@@ -436,7 +624,7 @@ export default function TimberCalculator() {
                       min="1" 
                       max="20" 
                       value={widthwiseBays} 
-                      onChange={(e) => setWidthwiseBays(parseInt(e.target.value))} 
+                      onChange={(e) => handleWidthwiseBaysChange(e.target.value)} 
                     />
                     <p className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
                       Auto-adjusts when bay span exceeds {MAX_BAY_SPAN}m
@@ -467,136 +655,6 @@ export default function TimberCalculator() {
                   <p className="text-sm"><strong>Joist Spacing:</strong> 800 mm (fixed)</p>
                 </div>
               </div>
-              
-              {/* Calculate Button */}
-              <button 
-                className="apple-button apple-button-primary w-full py-4 text-lg"
-                onClick={() => {
-                  console.log('Calculating structure with dimensions:', {
-                    buildingLength,
-                    buildingWidth,
-                    lengthwiseBays,
-                    widthwiseBays,
-                    load,
-                    numFloors,
-                    joistSpacing: '800mm (fixed)'
-                  });
-                  
-                  // Calculate the spans based on building dimensions and number of bays
-                  const lengthwiseSpan = buildingLength / lengthwiseBays;
-                  const widthwiseSpan = buildingWidth / widthwiseBays;
-
-                  // Determine which span direction the joists will span
-                  // Typically, joists span the shorter distance
-                  const joistSpan = Math.min(lengthwiseSpan, widthwiseSpan);
-                  const beamSpan = Math.max(lengthwiseSpan, widthwiseSpan);
-                  
-                  console.log('Calculated spans:', { joistSpan, beamSpan });
-                  
-                  // Calculate initial results based on inputs
-                  const joistResult = calculateJoistSize(joistSpan, 0.8, load, timberGrade);
-                  const beamResult = calculateBeamSize(beamSpan, load, timberGrade);
-                  
-                  // Find nearest available sizes from MASSLAM catalog (rounding up)
-                  // For joists
-                  const joistType = 'joist';
-                  const adjustedJoistWidth = findNearestWidth(joistResult.width);
-                  const adjustedJoistDepth = findNearestDepth(adjustedJoistWidth, joistResult.depth);
-                  
-                  // For beams
-                  const beamType = 'beam';
-                  const adjustedBeamWidth = findNearestWidth(beamResult.width);
-                  const adjustedBeamDepth = findNearestDepth(adjustedBeamWidth, beamResult.depth);
-                  
-                  // For columns - use our custom function that matches beam width
-                  const columnType = 'column';
-                  const columnHeight = 3; // Standard floor height in meters
-                  const columnResult = calculateMultiFloorColumnSize(adjustedBeamWidth, load * joistSpan * 0.8, columnHeight, numFloors);
-                  
-                  console.log('Initial calculation results:', { joistResult, beamResult, columnResult });
-                  
-                  // Verify that the adjusted sizes exist in the MASSLAM catalog
-                  const sizes = getMasslamSizes();
-                  const joistExists = sizes.some(size => 
-                    size.width === adjustedJoistWidth && 
-                    size.depth === adjustedJoistDepth && 
-                    size.type === joistType
-                  );
-                  
-                  const beamExists = sizes.some(size => 
-                    size.width === adjustedBeamWidth && 
-                    size.depth === adjustedBeamDepth && 
-                    size.type === beamType
-                  );
-                  
-                  const columnExists = sizes.some(size => 
-                    size.width === columnResult.width && 
-                    size.depth === columnResult.depth && 
-                    size.type === columnType
-                  );
-                  
-                  console.log('Size verification:', {
-                    joist: { width: adjustedJoistWidth, depth: adjustedJoistDepth, exists: joistExists },
-                    beam: { width: adjustedBeamWidth, depth: adjustedBeamDepth, exists: beamExists },
-                    column: { width: columnResult.width, depth: columnResult.depth, exists: columnExists }
-                  });
-                  
-                  if (!joistExists || !beamExists || !columnExists) {
-                    console.warn('WARNING: Some selected sizes do not exist in the MASSLAM catalog!', {
-                      joist: { width: adjustedJoistWidth, depth: adjustedJoistDepth, exists: joistExists },
-                      beam: { width: adjustedBeamWidth, depth: adjustedBeamDepth, exists: beamExists },
-                      column: { width: columnResult.width, depth: columnResult.depth, exists: columnExists }
-                    });
-                  } else {
-                    console.log('All selected sizes exist in the MASSLAM catalog.');
-                  }
-                  
-                  // Update the results with the adjusted sizes
-                  joistResult.width = adjustedJoistWidth;
-                  joistResult.depth = adjustedJoistDepth;
-                  
-                  beamResult.width = adjustedBeamWidth;
-                  beamResult.depth = adjustedBeamDepth;
-                  
-                  columnResult.width = columnResult.width;
-                  columnResult.depth = columnResult.depth;
-                  
-                  // Calculate volume and environmental impact
-                  const joistVolume = (joistResult.width / 1000) * (joistResult.depth / 1000) * joistSpan;
-                  const beamVolume = (beamResult.width / 1000) * (beamResult.depth / 1000) * beamSpan;
-                  const columnVolume = (columnResult.width / 1000) * (columnResult.depth / 1000) * columnHeight * 4; // 4 columns
-                  
-                  const totalVolume = joistVolume + beamVolume + columnVolume;
-                  const weight = calculateTimberWeight(totalVolume, timberGrade);
-                  const carbonSavings = calculateCarbonSavings(totalVolume);
-                  
-                  setResults({
-                    joists: joistResult,
-                    beams: beamResult,
-                    columns: columnResult,
-                    joistSpan,
-                    beamSpan,
-                    buildingLength,
-                    buildingWidth,
-                    lengthwiseBays,
-                    widthwiseBays,
-                    load,
-                    numFloors,
-                    volume: totalVolume,
-                    weight,
-                    carbonSavings,
-                    valid: true
-                  });
-
-                  // Validate that all sizes are from the MASSLAM catalog
-                  setTimeout(() => {
-                    const allSizesValid = verifyLoadedSizes();
-                    console.log('All sizes valid:', allSizesValid);
-                  }, 100);
-                }}
-              >
-                Calculate Structure
-              </button>
             </div>
           </div>
         </div>
