@@ -7,9 +7,10 @@ import { useState } from 'react';
  * 
  * @param {Object} props Component props
  * @param {Object} props.results The calculation results containing joists, beams, and columns
+ * @param {boolean} props.compact Whether to display the table in compact mode
  * @returns {JSX.Element} The TimberSizesTable component
  */
-export default function TimberSizesTable({ results }) {
+export default function TimberSizesTable({ results, compact = false }) {
   const [activeTab, setActiveTab] = useState('all');
   
   if (!results) return null;
@@ -48,67 +49,69 @@ export default function TimberSizesTable({ results }) {
   
   return (
     <div className="rounded-lg overflow-hidden">
-      <div className="flex border-b mb-6" style={{ borderColor: 'var(--apple-border)' }}>
-        <button 
-          className={`px-5 py-3 font-medium transition-colors ${activeTab === 'all' ? 'border-b-2' : ''}`}
-          style={{ 
-            color: activeTab === 'all' ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
-            borderColor: 'var(--apple-blue)'
-          }}
-          onClick={() => setActiveTab('all')}
-        >
-          All Sizes
-        </button>
-        <button 
-          className={`px-5 py-3 font-medium transition-colors ${activeTab === 'joist' ? 'border-b-2' : ''}`}
-          style={{ 
-            color: activeTab === 'joist' ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
-            borderColor: 'var(--apple-blue)'
-          }}
-          onClick={() => setActiveTab('joist')}
-        >
-          Joists
-        </button>
-        <button 
-          className={`px-5 py-3 font-medium transition-colors ${activeTab === 'beam' ? 'border-b-2' : ''}`}
-          style={{ 
-            color: activeTab === 'beam' ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
-            borderColor: 'var(--apple-blue)'
-          }}
-          onClick={() => setActiveTab('beam')}
-        >
-          Beams
-        </button>
-        <button 
-          className={`px-5 py-3 font-medium transition-colors ${activeTab === 'column' ? 'border-b-2' : ''}`}
-          style={{ 
-            color: activeTab === 'column' ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
-            borderColor: 'var(--apple-blue)'
-          }}
-          onClick={() => setActiveTab('column')}
-        >
-          Columns
-        </button>
-      </div>
+      {!compact && (
+        <div className="flex border-b mb-6" style={{ borderColor: 'var(--apple-border)' }}>
+          <button 
+            className={`px-5 py-3 font-medium transition-colors ${activeTab === 'all' ? 'border-b-2' : ''}`}
+            style={{ 
+              color: activeTab === 'all' ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
+              borderColor: 'var(--apple-blue)'
+            }}
+            onClick={() => setActiveTab('all')}
+          >
+            All Sizes
+          </button>
+          <button 
+            className={`px-5 py-3 font-medium transition-colors ${activeTab === 'joist' ? 'border-b-2' : ''}`}
+            style={{ 
+              color: activeTab === 'joist' ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
+              borderColor: 'var(--apple-blue)'
+            }}
+            onClick={() => setActiveTab('joist')}
+          >
+            Joists
+          </button>
+          <button 
+            className={`px-5 py-3 font-medium transition-colors ${activeTab === 'beam' ? 'border-b-2' : ''}`}
+            style={{ 
+              color: activeTab === 'beam' ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
+              borderColor: 'var(--apple-blue)'
+            }}
+            onClick={() => setActiveTab('beam')}
+          >
+            Beams
+          </button>
+          <button 
+            className={`px-5 py-3 font-medium transition-colors ${activeTab === 'column' ? 'border-b-2' : ''}`}
+            style={{ 
+              color: activeTab === 'column' ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
+              borderColor: 'var(--apple-blue)'
+            }}
+            onClick={() => setActiveTab('column')}
+          >
+            Columns
+          </button>
+        </div>
+      )}
       
       <div className="overflow-x-auto">
         <table className="min-w-full">
           <thead>
             <tr style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
-              <th scope="col" className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--apple-text-secondary)' }}>
+              <th scope="col" className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} text-left text-xs font-medium uppercase tracking-wider`} style={{ color: 'var(--apple-text-secondary)' }}>
                 Type
               </th>
-              <th scope="col" className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--apple-text-secondary)' }}>
-                Width (mm)
+              <th scope="col" className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} text-left text-xs font-medium uppercase tracking-wider`} style={{ color: 'var(--apple-text-secondary)' }}>
+                Width
               </th>
-              <th scope="col" className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--apple-text-secondary)' }}>
-                Depth (mm)
+              <th scope="col" className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} text-left text-xs font-medium uppercase tracking-wider`} style={{ color: 'var(--apple-text-secondary)' }}>
+                Depth
               </th>
-              <th scope="col" className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--apple-text-secondary)' }}>
+              <th scope="col" className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} text-left text-xs font-medium uppercase tracking-wider`} style={{ color: 'var(--apple-text-secondary)' }}>
                 Grade
               </th>
-              <th scope="col" className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--apple-text-secondary)' }}>
-                Span (m)
+              <th scope="col" className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} text-left text-xs font-medium uppercase tracking-wider`} style={{ color: 'var(--apple-text-secondary)' }}>
+                Span
               </th>
             </tr>
           </thead>
@@ -121,19 +124,19 @@ export default function TimberSizesTable({ results }) {
                   borderBottom: '1px solid var(--apple-border)'
                 }}
               >
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" style={{ color: 'var(--apple-text)' }}>
+                <td className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} whitespace-nowrap text-sm font-medium`} style={{ color: 'var(--apple-text)' }}>
                   {item.type}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--apple-text)' }}>
+                <td className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} whitespace-nowrap text-sm`} style={{ color: 'var(--apple-text)' }}>
                   {item.width}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--apple-text)' }}>
+                <td className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} whitespace-nowrap text-sm`} style={{ color: 'var(--apple-text)' }}>
                   {item.depth}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--apple-text)' }}>
+                <td className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} whitespace-nowrap text-sm`} style={{ color: 'var(--apple-text)' }}>
                   {item.grade}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: 'var(--apple-text)' }}>
+                <td className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} whitespace-nowrap text-sm`} style={{ color: 'var(--apple-text)' }}>
                   {item.span}
                 </td>
               </tr>
@@ -142,16 +145,18 @@ export default function TimberSizesTable({ results }) {
         </table>
       </div>
       
-      <div className="mt-6 text-sm" style={{ color: 'var(--apple-text-secondary)' }}>
-        <p className="mb-2">All sizes are in millimeters (mm) except spans which are in meters (m).</p>
-        <p className="mb-2">These sizes are selected from the standard MASSLAM timber sections catalog.</p>
-        <p className="mb-2"><strong>Note:</strong> Joists are spaced at fixed 800mm centers.</p>
-        <p className="mt-4 text-xs">
-          <a href="/masslam-sizes" style={{ color: 'var(--apple-blue)', textDecoration: 'none' }}>
-            View all available MASSLAM sizes →
-          </a>
-        </p>
-      </div>
+      {!compact && (
+        <div className="mt-6 text-sm" style={{ color: 'var(--apple-text-secondary)' }}>
+          <p className="mb-2">All sizes are in millimeters (mm) except spans which are in meters (m).</p>
+          <p className="mb-2">These sizes are selected from the standard MASSLAM timber sections catalog.</p>
+          <p className="mb-2"><strong>Note:</strong> Joists are spaced at fixed 800mm centers.</p>
+          <p className="mt-4 text-xs">
+            <a href="/masslam-sizes" style={{ color: 'var(--apple-blue)', textDecoration: 'none' }}>
+              View all available MASSLAM sizes →
+            </a>
+          </p>
+        </div>
+      )}
     </div>
   );
 } 

@@ -308,7 +308,7 @@ export default function TimberCalculator() {
       
       <div className="apple-grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Config Panel */}
-        <div className="lg:col-span-5 xl:col-span-5 2xl:col-span-4">
+        <div className="lg:col-span-8 xl:col-span-7 2xl:col-span-6">
           <div className="apple-card">
             <div className="apple-card-header flex justify-between items-center">
               <h2 className="text-xl font-semibold m-0">Configuration</h2>
@@ -602,7 +602,7 @@ export default function TimberCalculator() {
         </div>
         
         {/* Results Panel */}
-        <div className="lg:col-span-7 xl:col-span-7 2xl:col-span-8">
+        <div className="lg:col-span-4 xl:col-span-5 2xl:col-span-6">
           {results ? (
             <div className="apple-results">
               <div className="apple-results-header">
@@ -630,6 +630,14 @@ export default function TimberCalculator() {
                       <p className="text-sm mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Load:</p>
                       <p className="font-medium">{results.load} kPa ({results.load === 1.5 ? 'Residential' : 'Commercial'})</p>
                     </div>
+                  </div>
+                </div>
+                
+                {/* Timber Sizes Table - Moved above visualizations */}
+                <div className="apple-results-section">
+                  <h3 className="text-lg font-semibold mb-4">Selected Timber Sizes</h3>
+                  <div className="overflow-x-auto">
+                    <TimberSizesTable results={results} compact={true} />
                   </div>
                 </div>
                 
@@ -778,12 +786,6 @@ export default function TimberCalculator() {
                       <div>Floors: {results.numFloors}</div>
                     </div>
                   </div>
-                </div>
-                
-                {/* Timber Sizes Table */}
-                <div className="apple-results-section">
-                  <h3 className="text-lg font-semibold mb-5">Selected Timber Sizes</h3>
-                  <TimberSizesTable results={results} />
                 </div>
                 
                 {/* Environmental Impact */}
