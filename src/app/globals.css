@@ -113,9 +113,16 @@ h3 {
 
 /* Layout components */
 .apple-container {
+  width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .apple-container {
+    padding: 0 2rem;
+  }
 }
 
 .apple-section {
@@ -136,6 +143,7 @@ h3 {
   position: sticky;
   top: 0;
   z-index: 100;
+  width: 100%;
 }
 
 .apple-nav {
@@ -143,6 +151,7 @@ h3 {
   flex-direction: column;
   padding-top: 1rem;
   padding-bottom: 1rem;
+  width: 100%;
 }
 
 .mobile-menu-button {
@@ -161,6 +170,7 @@ h3 {
 
 .mobile-nav.active {
   display: block;
+  width: 100%;
 }
 
 .apple-nav-list {
@@ -209,6 +219,7 @@ h3 {
   
   .apple-nav-list {
     flex-direction: row;
+    width: auto;
   }
   
   .apple-nav-link {
