@@ -1217,7 +1217,7 @@ export default function TimberCalculator() {
                         <div>Custom grid cell sizes applied</div>
                       )}
                       <div className="mt-2">
-                        <strong style={{ color: '#4B5563' }}>↔ / ↕ Arrows indicate joist span direction</strong> (click to change direction)
+                        <strong style={{ color: '#4B5563' }}>↔ {' / '} ↕ Arrows indicate joist span direction</strong> (click to change direction)
                       </div>
                     </div>
                   </div>
