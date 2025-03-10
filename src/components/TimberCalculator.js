@@ -110,6 +110,16 @@ export default function TimberCalculator() {
   // Maximum allowed span for a single bay (in meters)
   const MAX_BAY_SPAN = 9.0;
   
+  // Add state variable for global joist direction
+  const [joistsRunLengthwise, setJoistsRunLengthwise] = useState(false);
+  
+  // Set initial joist direction based on building dimensions
+  useEffect(() => {
+    // By default, joists should span the shorter distance
+    // This is just for initial setup - after that, the user can toggle
+    setJoistsRunLengthwise(buildingWidth > buildingLength);
+  }, [buildingLength, buildingWidth]);
+  
   // Load saved project if available
   useEffect(() => {
     const loadSavedProject = () => {
@@ -131,6 +141,11 @@ export default function TimberCalculator() {
           // Load other settings
           setFireRating(project.fireRating);
           setLoad(project.load);
+          
+          // Load joist direction if available
+          if (project.joistsRunLengthwise !== undefined) {
+            setJoistsRunLengthwise(project.joistsRunLengthwise);
+          }
           
           // Clear the current project from localStorage
           localStorage.removeItem('currentProject');
@@ -197,6 +212,7 @@ export default function TimberCalculator() {
         structureType,
         timberGrade,
         results,
+        joistsRunLengthwise, // Save joist direction
         savedAt: new Date().toISOString()
       };
       
@@ -316,14 +332,15 @@ export default function TimberCalculator() {
         let maxLengthwiseSpan = Math.max(...lengthwiseBayWidths);
         let maxWidthwiseSpan = Math.max(...widthwiseBayWidths);
         
-        // Determine joist span (joists span the shorter distance)
-        const joistSpan = Math.min(maxLengthwiseSpan, maxWidthwiseSpan);
+        // Determine joist span based on global direction setting
+        // instead of automatically using the shorter distance
+        const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
         
         // Calculate joist size based on span and load
         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
         
-        // Calculate beam span (beams span the longer distance)
-        const beamSpan = Math.max(maxLengthwiseSpan, maxWidthwiseSpan);
+        // Calculate beam span (beams span perpendicular to joists)
+        const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
         
         // Calculate beam size based on span, load, and number of floors
         const beamSize = calculateBeamSize(beamSpan, load, numFloors, fireRating);
@@ -383,7 +400,7 @@ export default function TimberCalculator() {
     }, 100);
     
     return () => clearTimeout(timer);
-  }, [buildingLength, buildingWidth, lengthwiseBays, widthwiseBays, load, numFloors, timberGrade, fireRating, useCustomBayDimensions, customLengthwiseBayWidths, customWidthwiseBayWidths]);
+  }, [buildingLength, buildingWidth, lengthwiseBays, widthwiseBays, load, numFloors, timberGrade, fireRating, useCustomBayDimensions, customLengthwiseBayWidths, customWidthwiseBayWidths, joistsRunLengthwise]);
 
   // Handle input changes
   const handleBuildingLengthChange = (value) => {
@@ -529,6 +546,11 @@ export default function TimberCalculator() {
       // Update the state
       setCustomWidthwiseBayWidths(newWidths);
     }
+  };
+  
+  // Toggle joist direction globally
+  const toggleJoistDirection = () => {
+    setJoistsRunLengthwise(!joistsRunLengthwise);
   };
   
   // Example of a component section converted to use Tailwind classes
@@ -1100,8 +1122,8 @@ export default function TimberCalculator() {
                               const bayWidth = lengthwiseBayWidths[col];
                               const bayHeight = widthwiseBayWidths[row];
                               
-                              // Joists span the shorter distance for this specific bay
-                              const joistsSpanLengthwise = bayWidth < bayHeight;
+                              // Use global joist direction instead of calculating per bay
+                              const joistsSpanLengthwise = joistsRunLengthwise;
                               
                               // Calculate position based on cumulative widths
                               const leftPosition = lengthwiseBayWidths.slice(0, col).reduce((sum, w) => sum + w, 0) + bayWidth / 2;
@@ -1119,7 +1141,8 @@ export default function TimberCalculator() {
                                 color: '#4B5563', // Dark gray color
                                 fontWeight: 'bold',
                                 fontSize: '1.2rem',
-                                zIndex: 10
+                                zIndex: 10,
+                                cursor: 'pointer' // Add cursor pointer to indicate clickable
                               };
                               
                               if (joistsSpanLengthwise) {
@@ -1135,6 +1158,7 @@ export default function TimberCalculator() {
                                       width: `${(bayWidth / buildingLength) * 70}%`,
                                       height: '20%'
                                     }}
+                                    onClick={toggleJoistDirection}
                                   >
                                     <span>↔</span>
                                   </div>
@@ -1153,6 +1177,7 @@ export default function TimberCalculator() {
                                       width: '20%',
                                       flexDirection: 'column'
                                     }}
+                                    onClick={toggleJoistDirection}
                                   >
                                     <span>↕</span>
                                   </div>
@@ -1170,7 +1195,7 @@ export default function TimberCalculator() {
                         <div>Custom grid cell sizes applied</div>
                       )}
                       <div className="mt-2">
-                        <strong style={{ color: '#4B5563' }}>↔ &#47; ↕ Arrows indicate joist span direction</strong> (click to change direction)
+                        <strong style={{ color: '#4B5563' }}>↔ &#47; ↕ Arrows indicate joist span direction</strong> (click to change direction for all bays)
                       </div>
                     </div>
                   </div>
@@ -1209,8 +1234,8 @@ export default function TimberCalculator() {
                                       const bayWidth = lengthwiseBayWidths[col];
                                       const bayHeight = widthwiseBayWidths[row];
                                       
-                                      // Joists span the shorter distance
-                                      const joistsSpanLengthwise = bayWidth < bayHeight;
+                                      // Use global joist direction instead of calculating per bay
+                                      const joistsSpanLengthwise = joistsRunLengthwise;
                                       const joistSpan = joistsSpanLengthwise ? bayWidth : bayHeight;
                                       
                                       // Calculate joist size for this specific span
