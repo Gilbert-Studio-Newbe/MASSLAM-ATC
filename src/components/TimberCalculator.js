@@ -1118,7 +1118,7 @@ export default function TimberCalculator() {
                                 justifyContent: 'center',
                                 color: '#4B5563', // Dark gray color
                                 fontWeight: 'bold',
-                                fontSize: '1rem',
+                                fontSize: '1.2rem',
                                 zIndex: 10
                               };
                               
@@ -1136,7 +1136,7 @@ export default function TimberCalculator() {
                                       height: '20%'
                                     }}
                                   >
-                                    <span>⟷</span>
+                                    <span>↔</span>
                                   </div>
                                 );
                               } else {
@@ -1154,7 +1154,7 @@ export default function TimberCalculator() {
                                       flexDirection: 'column'
                                     }}
                                   >
-                                    <span>⟷</span>
+                                    <span>↕</span>
                                   </div>
                                 );
                               }
@@ -1170,7 +1170,7 @@ export default function TimberCalculator() {
                         <div>Custom bay sizes applied</div>
                       )}
                       <div className="mt-2">
-                        <strong style={{ color: '#4B5563' }}>↔ Arrows indicate joist span direction</strong> (joists span the shorter distance in each bay)
+                        <strong style={{ color: '#4B5563' }}>↔ / ↕ Arrows indicate joist span direction</strong> (joists span the shorter distance in each bay)
                       </div>
                     </div>
                   </div>
