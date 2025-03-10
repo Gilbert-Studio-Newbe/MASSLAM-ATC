@@ -6,6 +6,7 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
+        <link rel="stylesheet" href="/styles/tailwind-base.css" />
         <link rel="stylesheet" href="/styles/apple-inspired.css" />
       </Head>
       <Component {...pageProps} />
