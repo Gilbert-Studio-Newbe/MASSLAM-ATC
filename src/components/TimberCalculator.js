@@ -1002,49 +1002,6 @@ export default function TimberCalculator() {
                   <div className="apple-section mt-4">
                     <h3 className="apple-section-title">Calculated Timber Sizes</h3>
                     <div className="apple-section-content">
-                      {/* Bay Sizes Row */}
-                      <div className="bg-white p-4 rounded-lg shadow mb-4">
-                        <h4 className="font-semibold mb-2">Bay Sizes</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            {useCustomBayDimensions ? (
-                              <div>
-                                <p><strong>Custom Bay Dimensions:</strong> Enabled</p>
-                                <p className="mt-2"><strong>Lengthwise Bays:</strong></p>
-                                <ul className="list-disc pl-5 text-sm">
-                                  {calculateBayDimensions().lengthwiseBayWidths.map((width, index) => (
-                                    <li key={`length-${index}`}>Bay {index + 1}: {width.toFixed(2)}m</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ) : (
-                              <div>
-                                <p><strong>Uniform Bay Size:</strong></p>
-                                <p>{(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</p>
-                                <p className="mt-2"><strong>Lengthwise Bays:</strong> {results.lengthwiseBays} × {(results.buildingLength / results.lengthwiseBays).toFixed(2)}m</p>
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            {useCustomBayDimensions ? (
-                              <div>
-                                <p className="mt-2"><strong>Widthwise Bays:</strong></p>
-                                <ul className="list-disc pl-5 text-sm">
-                                  {calculateBayDimensions().widthwiseBayWidths.map((width, index) => (
-                                    <li key={`width-${index}`}>Bay {index + 1}: {width.toFixed(2)}m</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ) : (
-                              <div>
-                                <p className="mt-2"><strong>Widthwise Bays:</strong> {results.widthwiseBays} × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</p>
-                                <p className="mt-2"><strong>Total Bays:</strong> {results.lengthwiseBays * results.widthwiseBays}</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {/* Joist Results */}
                         <div className="bg-white p-4 rounded-lg shadow">
@@ -1057,7 +1014,58 @@ export default function TimberCalculator() {
                               <strong>Fire Allowance:</strong> {results.joists.fireAllowance.toFixed(1)}mm per face
                             </p>
                           )}
-              </div>
+                          
+                          {/* Display different joist sizes for different bays if using custom bay dimensions */}
+                          {useCustomBayDimensions && (
+                            <div className="mt-3 pt-3 border-t border-gray-200">
+                              <p className="text-sm font-medium mb-1">Bay-specific sizes:</p>
+                              <div className="text-xs space-y-1">
+                                {(() => {
+                                  const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
+                                  const uniqueBaySizes = [];
+                                  
+                                  // Calculate unique bay combinations
+                                  for (let row = 0; row < results.widthwiseBays; row++) {
+                                    for (let col = 0; col < results.lengthwiseBays; col++) {
+                                      const bayWidth = lengthwiseBayWidths[col];
+                                      const bayHeight = widthwiseBayWidths[row];
+                                      
+                                      // Joists span the shorter distance
+                                      const joistsSpanLengthwise = bayWidth < bayHeight;
+                                      const joistSpan = joistsSpanLengthwise ? bayWidth : bayHeight;
+                                      
+                                      // Find if this span already exists in our unique list
+                                      const existingSize = uniqueBaySizes.find(item => 
+                                        Math.abs(item.span - joistSpan) < 0.01
+                                      );
+                                      
+                                      if (!existingSize) {
+                                        uniqueBaySizes.push({
+                                          span: joistSpan,
+                                          count: 1,
+                                          locations: [`R${row+1}C${col+1}`]
+                                        });
+                                      } else {
+                                        existingSize.count++;
+                                        existingSize.locations.push(`R${row+1}C${col+1}`);
+                                      }
+                                    }
+                                  }
+                                  
+                                  // Sort by span
+                                  uniqueBaySizes.sort((a, b) => b.span - a.span);
+                                  
+                                  return uniqueBaySizes.map((item, index) => (
+                                    <div key={`joist-size-${index}`}>
+                                      <strong>{item.span.toFixed(2)}m span:</strong> {results.joists.width}mm × {results.joists.depth}mm
+                                      <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'bay' : 'bays'})</span>
+                                    </div>
+                                  ));
+                                })()}
+                              </div>
+                            </div>
+                          )}
+                        </div>
               
                         {/* Beam Results */}
                         <div className="bg-white p-4 rounded-lg shadow">
@@ -1074,8 +1082,59 @@ export default function TimberCalculator() {
                               <strong>✓</strong> Width matched with columns
                             </p>
                           )}
-              </div>
-              
+                          
+                          {/* Display different beam sizes for different bays if using custom bay dimensions */}
+                          {useCustomBayDimensions && (
+                            <div className="mt-3 pt-3 border-t border-gray-200">
+                              <p className="text-sm font-medium mb-1">Bay-specific sizes:</p>
+                              <div className="text-xs space-y-1">
+                                {(() => {
+                                  const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
+                                  const uniqueBaySizes = [];
+                                  
+                                  // Calculate unique bay combinations
+                                  for (let row = 0; row < results.widthwiseBays; row++) {
+                                    for (let col = 0; col < results.lengthwiseBays; col++) {
+                                      const bayWidth = lengthwiseBayWidths[col];
+                                      const bayHeight = widthwiseBayWidths[row];
+                                      
+                                      // Beams span the longer distance
+                                      const beamsSpanLengthwise = bayWidth > bayHeight;
+                                      const beamSpan = beamsSpanLengthwise ? bayWidth : bayHeight;
+                                      
+                                      // Find if this span already exists in our unique list
+                                      const existingSize = uniqueBaySizes.find(item => 
+                                        Math.abs(item.span - beamSpan) < 0.01
+                                      );
+                                      
+                                      if (!existingSize) {
+                                        uniqueBaySizes.push({
+                                          span: beamSpan,
+                                          count: 1,
+                                          locations: [`R${row+1}C${col+1}`]
+                                        });
+                                      } else {
+                                        existingSize.count++;
+                                        existingSize.locations.push(`R${row+1}C${col+1}`);
+                                      }
+                                    }
+                                  }
+                                  
+                                  // Sort by span
+                                  uniqueBaySizes.sort((a, b) => b.span - a.span);
+                                  
+                                  return uniqueBaySizes.map((item, index) => (
+                                    <div key={`beam-size-${index}`}>
+                                      <strong>{item.span.toFixed(2)}m span:</strong> {results.beams.width}mm × {results.beams.depth}mm
+                                      <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'bay' : 'bays'})</span>
+                                    </div>
+                                  ));
+                                })()}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
                         {/* Column Results */}
                         <div className="bg-white p-4 rounded-lg shadow">
                           <h4 className="font-semibold mb-2">Columns</h4>
@@ -1092,9 +1151,9 @@ export default function TimberCalculator() {
                               <strong>✓</strong> Width matched with beams
                             </p>
                           )}
-              </div>
-            </div>
-            
+                        </div>
+                      </div>
+                      
                       {/* Environmental Impact */}
                       <div className="mt-4 bg-white p-4 rounded-lg shadow">
                         <h4 className="font-semibold mb-2">Environmental Impact</h4>
