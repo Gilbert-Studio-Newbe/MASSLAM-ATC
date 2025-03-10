@@ -103,6 +103,9 @@ export default function TimberCalculator() {
   // Add a new state variable for number of floors
   const [numFloors, setNumFloors] = useState(6); // Default to 6 floors
   
+  // Add a new state variable for floor height
+  const [floorHeight, setFloorHeight] = useState(3.2); // Default to 3.2m
+  
   // Custom bay dimensions state variables
   const [customLengthwiseBayWidths, setCustomLengthwiseBayWidths] = useState([]);
   const [customWidthwiseBayWidths, setCustomWidthwiseBayWidths] = useState([]);
@@ -138,6 +141,11 @@ export default function TimberCalculator() {
           setLengthwiseBays(project.lengthwiseBays);
           setWidthwiseBays(project.widthwiseBays);
           setNumFloors(project.numFloors);
+          
+          // Load floor height if available
+          if (project.floorHeight !== undefined) {
+            setFloorHeight(project.floorHeight);
+          }
           
           // Load other settings
           setFireRating(project.fireRating);
@@ -199,22 +207,22 @@ export default function TimberCalculator() {
   // Save the current project
   const saveProject = () => {
     try {
-      // Create a project object with all the current settings
+      // Create project object
       const project = {
-        id: Date.now().toString(), // Use timestamp as unique ID
         details: projectDetails,
         buildingLength,
         buildingWidth,
         lengthwiseBays,
         widthwiseBays,
         numFloors,
-        fireRating,
+        floorHeight,
         load,
-        structureType,
-        timberGrade,
-        results,
-        joistsRunLengthwise, // Save joist direction
-        savedAt: new Date().toISOString()
+        fireRating,
+        joistsRunLengthwise,
+        customBayDimensions: useCustomBayDimensions ? {
+          lengthwiseBayWidths: customLengthwiseBayWidths,
+          widthwiseBayWidths: customWidthwiseBayWidths
+        } : null
       };
       
       // Get existing projects from localStorage
@@ -346,8 +354,8 @@ export default function TimberCalculator() {
         // Calculate beam size based on span, load, and number of floors
         const beamSize = calculateBeamSize(beamSpan, load, numFloors, fireRating);
         
-        // Calculate column size based on beam width, load, and number of floors
-        const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, 3.0, numFloors, fireRating);
+        // Calculate column size based on beam width, load, floor height, and number of floors
+        const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating);
         
         // Calculate timber weight and volumes
         const timberResult = calculateTimberWeight(
@@ -384,6 +392,7 @@ export default function TimberCalculator() {
           lengthwiseBays,
           widthwiseBays,
           numFloors,
+          floorHeight,
           load,
           fireRating,
           joistSpan,
@@ -469,17 +478,21 @@ export default function TimberCalculator() {
   };
 
   const handleNumFloorsChange = (value) => {
-    // Parse the input value as an integer to avoid issues with leading zeros
-    const parsedValue = parseInt(value, 10);
-    
-    // Check if the parsed value is a valid number
-    if (!isNaN(parsedValue)) {
-      setNumFloors(parsedValue);
+    const floors = parseInt(value);
+    if (!isNaN(floors) && floors >= 1 && floors <= 10) {
+      setNumFloors(floors);
+    }
+  };
+
+  const handleFloorHeightChange = (value) => {
+    const height = parseFloat(value);
+    if (!isNaN(height) && height >= 2.4 && height <= 8.0) {
+      setFloorHeight(height);
     }
   };
 
   const handleLoadChange = (value) => {
-    setLoad(Number(value));
+    setLoad(value);
   };
 
   const handleFireRatingChange = (value) => {
@@ -766,13 +779,34 @@ export default function TimberCalculator() {
                 <div className="apple-specs-row">
                   <div className="apple-specs-label">Number of Floors</div>
                   <div className="apple-specs-value">
-              <input 
-                type="number" 
+                    <input 
+                      type="number" 
                       className="apple-input mb-0"
                       min="1" 
-                max="10"
+                      max="10"
                       value={numFloors} 
                       onChange={(e) => handleNumFloorsChange(e.target.value)} 
+                      onInput={(e) => {
+                        // Remove any leading zeros
+                        if (e.target.value.startsWith('0')) {
+                          e.target.value = e.target.value.replace(/^0+/, '');
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="apple-specs-row">
+                  <div className="apple-specs-label">Floor Height (m)</div>
+                  <div className="apple-specs-value">
+                    <input 
+                      type="number" 
+                      className="apple-input mb-0"
+                      min="2.4" 
+                      max="8.0"
+                      step="0.1"
+                      value={floorHeight} 
+                      onChange={(e) => handleFloorHeightChange(e.target.value)} 
                       onInput={(e) => {
                         // Remove any leading zeros
                         if (e.target.value.startsWith('0')) {
