@@ -348,18 +348,20 @@ export default function TimberCalculator() {
         // Calculate column size based on beam width, load, and number of floors
         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, 3.0, numFloors, fireRating);
         
-        // Calculate timber weight
-        const timberWeight = calculateTimberWeight(
+        // Calculate timber weight and volumes
+        const timberResult = calculateTimberWeight(
           joistSize, 
           beamSize, 
           columnSize, 
           buildingLength, 
           buildingWidth, 
-          numFloors
+          numFloors,
+          lengthwiseBays,
+          widthwiseBays
         );
         
         // Calculate carbon savings
-        const carbonSavings = calculateCarbonSavings(timberWeight);
+        const carbonSavings = calculateCarbonSavings(timberResult);
         
         // Validate the structure
         const validationResult = validateStructure(joistSize, beamSize, columnSize, joistSpan, beamSpan);
@@ -378,7 +380,18 @@ export default function TimberCalculator() {
           joists: joistSize,
           beams: beamSize,
           columns: columnSize,
-          timberWeight,
+          timberWeight: timberResult.weight,
+          timberVolume: timberResult.totalVolume,
+          elementCounts: {
+            joists: timberResult.elements.joists.count,
+            beams: timberResult.elements.beams.count,
+            columns: timberResult.elements.columns.count
+          },
+          elementVolumes: {
+            joists: timberResult.elements.joists.volume,
+            beams: timberResult.elements.beams.volume,
+            columns: timberResult.elements.columns.volume
+          },
           carbonSavings,
           validationResult,
           customBayDimensions: useCustomBayDimensions ? {
@@ -1391,11 +1404,6 @@ export default function TimberCalculator() {
                               <strong>Fire Allowance:</strong> {results.columns.fireAllowance.toFixed(1)}mm per face
                             </p>
                           )}
-                          {results.beams.width === results.columns.width && (
-                            <p className="text-green-600 mt-2">
-                              <strong>✓</strong> Width matched with beams
-                            </p>
-                          )}
                         </div>
                       </div>
                       
@@ -1405,9 +1413,29 @@ export default function TimberCalculator() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <p><strong>Timber Weight:</strong> {results.timberWeight.toFixed(2)} kg</p>
+                            <p><strong>Timber Volume:</strong> {results.timberVolume.toFixed(2)} m³</p>
                           </div>
                           <div>
                             <p><strong>Carbon Savings:</strong> {results.carbonSavings.toFixed(2)} tonnes CO₂e</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Timber Elements Count (for QA and debugging) */}
+                      <div className="mt-4 bg-white p-4 rounded-lg shadow">
+                        <h4 className="font-semibold mb-2">Timber Elements</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <p><strong>Joists:</strong> {results.elementCounts.joists} pieces</p>
+                            <p className="text-sm text-gray-600">Volume: {results.elementVolumes.joists.toFixed(2)} m³</p>
+                          </div>
+                          <div>
+                            <p><strong>Beams:</strong> {results.elementCounts.beams} pieces</p>
+                            <p className="text-sm text-gray-600">Volume: {results.elementVolumes.beams.toFixed(2)} m³</p>
+                          </div>
+                          <div>
+                            <p><strong>Columns:</strong> {results.elementCounts.columns} pieces</p>
+                            <p className="text-sm text-gray-600">Volume: {results.elementVolumes.columns.toFixed(2)} m³</p>
                           </div>
                         </div>
                       </div>

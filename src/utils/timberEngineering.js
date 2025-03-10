@@ -184,7 +184,7 @@ export function calculateColumnSize(height, load, timberGrade, fireRating = 'non
   };
 }
 
-export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingLength, buildingWidth, numFloors, timberGrade = 'GL18') {
+export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingLength, buildingWidth, numFloors, lengthwiseBays = 3, widthwiseBays = 2, timberGrade = 'GL18') {
   // If called with just volume and timberGrade (for testing or simple cases)
   if (typeof joistSize === 'number' && (typeof beamSize === 'string' || beamSize === undefined)) {
     const volume = joistSize;
@@ -193,26 +193,68 @@ export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingL
     return volume * density; // kg
   }
   
+  // Calculate the number of structural elements
+  const joistSpacing = 0.8; // 800mm spacing in meters
+  
+  // Calculate bay dimensions
+  const bayLengthWidth = buildingLength / lengthwiseBays; // Width of each bay in the length direction
+  const bayWidthWidth = buildingWidth / widthwiseBays; // Width of each bay in the width direction
+  
+  // Calculate number of joists
+  // Joists run perpendicular to beams
+  // If joists run lengthwise, they span across the width of each bay
+  // If joists run widthwise, they span across the length of each bay
+  const joistsRunLengthwise = true; // Assuming joists run lengthwise by default
+  
+  let numJoistsPerBay;
+  let joistLength;
+  
+  if (joistsRunLengthwise) {
+    // Joists run lengthwise, spanning across the width of each bay
+    numJoistsPerBay = Math.ceil(bayWidthWidth / joistSpacing) + 1; // Add 1 for the end joist
+    joistLength = bayLengthWidth;
+  } else {
+    // Joists run widthwise, spanning across the length of each bay
+    numJoistsPerBay = Math.ceil(bayLengthWidth / joistSpacing) + 1; // Add 1 for the end joist
+    joistLength = bayWidthWidth;
+  }
+  
+  // Total number of joists = joists per bay * number of bays * number of floors
+  const totalJoists = numJoistsPerBay * lengthwiseBays * widthwiseBays * numFloors;
+  
   // Calculate joist volume
   const joistWidth = joistSize.width / 1000; // Convert mm to m
   const joistDepth = joistSize.depth / 1000; // Convert mm to m
-  const joistSpacing = 0.8; // 800mm spacing
-  const numJoistsPerBay = Math.ceil(buildingLength / joistSpacing);
-  const totalJoistLength = buildingWidth * numJoistsPerBay;
-  const joistVolume = joistWidth * joistDepth * totalJoistLength * numFloors;
+  const joistVolume = joistWidth * joistDepth * joistLength * totalJoists;
+  
+  // Calculate number of beams
+  // Beams run along the grid lines
+  // Lengthwise beams: (widthwiseBays + 1) * lengthwiseBays
+  // Widthwise beams: (lengthwiseBays + 1) * widthwiseBays
+  const numLengthwiseBeams = (widthwiseBays + 1) * lengthwiseBays;
+  const numWidthwiseBeams = (lengthwiseBays + 1) * widthwiseBays;
+  
+  // Total number of beams
+  const totalBeams = (numLengthwiseBeams + numWidthwiseBeams) * numFloors;
   
   // Calculate beam volume
   const beamWidth = beamSize.width / 1000; // Convert mm to m
   const beamDepth = beamSize.depth / 1000; // Convert mm to m
-  const totalBeamLength = buildingLength; // Simplified
-  const beamVolume = beamWidth * beamDepth * totalBeamLength * numFloors;
+  const lengthwiseBeamLength = bayLengthWidth;
+  const widthwiseBeamLength = bayWidthWidth;
+  const beamVolume = beamWidth * beamDepth * 
+    ((numLengthwiseBeams * lengthwiseBeamLength) + (numWidthwiseBeams * widthwiseBeamLength)) * numFloors;
+  
+  // Calculate number of columns
+  // Columns are at the intersections of grid lines
+  // Number of columns = (lengthwiseBays + 1) * (widthwiseBays + 1)
+  const totalColumns = (lengthwiseBays + 1) * (widthwiseBays + 1);
   
   // Calculate column volume
   const columnWidth = columnSize.width / 1000; // Convert mm to m
   const columnDepth = columnSize.depth / 1000; // Convert mm to m
   const columnHeight = columnSize.height; // Already in m
-  const numColumns = 4; // Simplified
-  const columnVolume = columnWidth * columnDepth * columnHeight * numColumns;
+  const columnVolume = columnWidth * columnDepth * columnHeight * totalColumns;
   
   // Total volume
   const totalVolume = joistVolume + beamVolume + columnVolume;
@@ -221,13 +263,38 @@ export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingL
   const density = TIMBER_PROPERTIES[timberGrade]?.density || 600; // kg/m³
   const weight = totalVolume * density;
   
-  return weight;
+  // Return an object with detailed information
+  return {
+    weight,
+    totalVolume,
+    elements: {
+      joists: {
+        count: totalJoists,
+        volume: joistVolume
+      },
+      beams: {
+        count: totalBeams,
+        volume: beamVolume
+      },
+      columns: {
+        count: totalColumns,
+        volume: columnVolume
+      }
+    }
+  };
 }
 
-export function calculateCarbonSavings(weight) {
-  // If weight is provided directly (in kg), convert to volume (m³) using average density
-  const averageDensity = 600; // kg/m³
-  const volume = weight / averageDensity;
+export function calculateCarbonSavings(weightOrResult) {
+  let volume;
+  
+  // Check if we received the full result object from calculateTimberWeight
+  if (typeof weightOrResult === 'object' && weightOrResult !== null && weightOrResult.totalVolume) {
+    volume = weightOrResult.totalVolume;
+  } else {
+    // If we received just the weight (in kg), convert to volume (m³) using average density
+    const averageDensity = 600; // kg/m³
+    volume = weightOrResult / averageDensity;
+  }
   
   // Placeholder implementation - approx 0.9 tonnes CO2e per m³ of timber
   return volume * 0.9; // tonnes CO2e
