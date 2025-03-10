@@ -1194,8 +1194,35 @@ export default function TimberCalculator() {
                       ) : (
                         <div>Custom grid cell sizes applied</div>
                       )}
+                      
+                      {/* Joist Direction Toggle UI */}
+                      <div className="mt-3 mb-3">
+                        <div className="flex items-center justify-center">
+                          <div className="flex items-center bg-gray-100 rounded-lg p-1" style={{ border: '1px solid var(--apple-border)' }}>
+                            <button 
+                              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${joistsRunLengthwise ? 'bg-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+                              style={{ 
+                                color: joistsRunLengthwise ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
+                              }}
+                              onClick={() => setJoistsRunLengthwise(true)}
+                            >
+                              Horizontal Joists ↔
+                            </button>
+                            <button 
+                              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${!joistsRunLengthwise ? 'bg-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+                              style={{ 
+                                color: !joistsRunLengthwise ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
+                              }}
+                              onClick={() => setJoistsRunLengthwise(false)}
+                            >
+                              Vertical Joists ↕
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      
                       <div className="mt-2">
-                        <strong style={{ color: '#4B5563' }}>↔ &#47; ↕ Arrows indicate joist span direction</strong> (click to change direction for all bays)
+                        <span style={{ color: '#4B5563' }}>↔ &#47; ↕ Arrows indicate joist span direction</span> <span className="text-xs">(click arrows or use toggle above to change direction)</span>
                       </div>
                     </div>
                   </div>
