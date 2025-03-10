@@ -1583,7 +1583,7 @@ export default function TimberCalculator() {
           ) : (
             <div className="apple-card p-6 text-center">
               <h2 className="text-xl font-semibold mb-4">Results</h2>
-              <p style={{ color: 'var(--apple-text-secondary)' }}>Configure your timber structure and click "Calculate Structure" to see results.</p>
+              <p style={{ color: 'var(--apple-text-secondary)' }}>Configure your timber structure parameters to see calculation results.</p>
           </div>
         )}
         </div>
