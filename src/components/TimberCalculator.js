@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { 
   calculateJoistSize, 
@@ -25,6 +25,7 @@ import {
 } from '@/utils/timberSizes';
 import { calculateFireResistanceAllowance } from '@/utils/masslamProperties';
 import TimberSizesTable from './TimberSizesTable';
+import TimberVisualizer3D from './TimberVisualizer3D';
 // ... other imports as before
 
 // Rename the custom function to avoid naming conflict
@@ -1411,7 +1412,12 @@ export default function TimberCalculator() {
                           </div>
                         </div>
                       </div>
-            
+                      
+                      {/* 3D Visualization */}
+                      <div className="mt-4 bg-white p-4 rounded-lg shadow">
+                        <TimberVisualizer3D results={results} />
+                      </div>
+
                       {/* Additional Resources */}
                       <div className="mt-4 bg-white p-4 rounded-lg shadow">
                         <h4 className="font-semibold mb-2">Additional Resources</h4>
