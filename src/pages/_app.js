@@ -1,6 +1,5 @@
 // src/pages/_app.js
-import '../styles/globals.css';
-import '../styles/apple-inspired.css';
+import '../../styles/tailwind-base.css';
 import Head from 'next/head';
 
 function MyApp({ Component, pageProps }) {

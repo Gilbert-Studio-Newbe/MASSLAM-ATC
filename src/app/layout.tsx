@@ -1,4 +1,4 @@
-import "./global.css";
+import "./tailwind-base.css";
 import { ReactNode } from 'react';
 import Link from 'next/link';
 
