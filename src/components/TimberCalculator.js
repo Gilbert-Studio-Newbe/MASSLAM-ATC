@@ -861,11 +861,11 @@ export default function TimberCalculator() {
                         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Lengthwise Bay Controls */}
                           <div>
-                            <h4 className="text-sm font-medium mb-2">Lengthwise Bay Widths (m)</h4>
+                            <h4 className="text-sm font-medium mb-2">Column Widths (m)</h4>
                             <div className="space-y-2">
                               {customLengthwiseBayWidths.map((width, index) => (
                                 <div key={`length-${index}`} className="flex items-center">
-                                  <span className="text-xs w-16">Bay {index + 1}:</span>
+                                  <span className="text-xs w-16">Column {index + 1}:</span>
                                   <input
                                     type="number"
                                     className="apple-input mb-0 text-sm"
@@ -894,11 +894,11 @@ export default function TimberCalculator() {
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span>Building Length:</span>
+                                  <span>Total Building Length:</span>
                                   <span>{buildingLength.toFixed(2)}m</span>
                                 </div>
                                 <div className="text-xs mt-1 italic">
-                                  Adjusting one bay will automatically resize others to maintain the total building length.
+                                  Adjusting one column width will automatically resize others to maintain the total building length.
                                 </div>
                               </div>
                             </div>
@@ -906,11 +906,11 @@ export default function TimberCalculator() {
                           
                           {/* Widthwise Bay Controls */}
                           <div>
-                            <h4 className="text-sm font-medium mb-2">Widthwise Bay Widths (m)</h4>
+                            <h4 className="text-sm font-medium mb-2">Row Heights (m)</h4>
                             <div className="space-y-2">
                               {customWidthwiseBayWidths.map((width, index) => (
                                 <div key={`width-${index}`} className="flex items-center">
-                                  <span className="text-xs w-16">Bay {index + 1}:</span>
+                                  <span className="text-xs w-16">Row {index + 1}:</span>
                                   <input
                                     type="number"
                                     className="apple-input mb-0 text-sm"
@@ -939,11 +939,11 @@ export default function TimberCalculator() {
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span>Building Width:</span>
+                                  <span>Total Building Width:</span>
                                   <span>{buildingWidth.toFixed(2)}m</span>
                                 </div>
                                 <div className="text-xs mt-1 italic">
-                                  Adjusting one bay will automatically resize others to maintain the total building width.
+                                  Adjusting one row height will automatically resize others to maintain the total building width.
                                 </div>
                               </div>
                             </div>
@@ -1165,9 +1165,9 @@ export default function TimberCalculator() {
                     </div>
                     <div className="text-center text-sm" style={{ color: 'var(--apple-text-secondary)' }}>
                       {!useCustomBayDimensions ? (
-                        <div>Bay Size: {(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</div>
+                        <div>Grid Cell Size: {(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</div>
                       ) : (
-                        <div>Custom bay sizes applied</div>
+                        <div>Custom grid cell sizes applied</div>
                       )}
                       <div className="mt-2">
                         <strong style={{ color: '#4B5563' }}>↔ &#47; ↕ Arrows indicate joist span direction</strong> (click to change direction)
@@ -1197,7 +1197,7 @@ export default function TimberCalculator() {
                           {/* Display different joist sizes for different bays if using custom bay dimensions */}
                           {useCustomBayDimensions && (
                             <div className="mt-3 pt-3 border-t border-gray-200">
-                              <p className="text-sm font-medium mb-1">Bay-specific sizes:</p>
+                              <p className="text-sm font-medium mb-1">Grid cell-specific sizes:</p>
                               <div className="text-xs space-y-1">
                                 {(() => {
                                   const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
@@ -1244,7 +1244,7 @@ export default function TimberCalculator() {
                                   return uniqueBaySizes.map((item, index) => (
                                     <div key={`joist-size-${index}`}>
                                       <strong>{item.span.toFixed(2)}m span:</strong> {item.width}mm × {item.depth}mm
-                                      <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'bay' : 'bays'})</span>
+                                      <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'grid cell' : 'grid cells'})</span>
                                     </div>
                                   ));
                                 })()}
@@ -1272,7 +1272,7 @@ export default function TimberCalculator() {
                           {/* Display different beam sizes for different bays if using custom bay dimensions */}
                           {useCustomBayDimensions && (
                             <div className="mt-3 pt-3 border-t border-gray-200">
-                              <p className="text-sm font-medium mb-1">Bay-specific sizes:</p>
+                              <p className="text-sm font-medium mb-1">Grid cell-specific sizes:</p>
                               <div className="text-xs space-y-1">
                                 {(() => {
                                   const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
@@ -1319,7 +1319,7 @@ export default function TimberCalculator() {
                                   return uniqueBaySizes.map((item, index) => (
                                     <div key={`beam-size-${index}`}>
                                       <strong>{item.span.toFixed(2)}m span:</strong> {item.width}mm × {item.depth}mm
-                                      <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'bay' : 'bays'})</span>
+                                      <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'grid cell' : 'grid cells'})</span>
                                     </div>
                                   ));
                                 })()}
