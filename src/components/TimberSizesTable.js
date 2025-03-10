@@ -23,21 +23,18 @@ export default function TimberSizesTable({ results, compact = false }) {
       type: 'Joist', 
       width: joists.width, 
       depth: joists.depth, 
-      grade: joists.grade,
       span: joistSpan.toFixed(2)
     },
     { 
       type: 'Beam', 
       width: beams.width, 
       depth: beams.depth, 
-      grade: beams.grade,
       span: beamSpan.toFixed(2)
     },
     { 
       type: 'Column', 
       width: columns.width, 
       depth: columns.depth, 
-      grade: columns.grade,
       span: '3.00' // Fixed height
     }
   ];
@@ -108,9 +105,6 @@ export default function TimberSizesTable({ results, compact = false }) {
                 Depth
               </th>
               <th scope="col" className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} text-left text-xs font-medium uppercase tracking-wider`} style={{ color: 'var(--apple-text-secondary)' }}>
-                Grade
-              </th>
-              <th scope="col" className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} text-left text-xs font-medium uppercase tracking-wider`} style={{ color: 'var(--apple-text-secondary)' }}>
                 Span
               </th>
             </tr>
@@ -132,9 +126,6 @@ export default function TimberSizesTable({ results, compact = false }) {
                 </td>
                 <td className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} whitespace-nowrap text-sm`} style={{ color: 'var(--apple-text)' }}>
                   {item.depth}
-                </td>
-                <td className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} whitespace-nowrap text-sm`} style={{ color: 'var(--apple-text)' }}>
-                  {item.grade}
                 </td>
                 <td className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} whitespace-nowrap text-sm`} style={{ color: 'var(--apple-text)' }}>
                   {item.span}
