@@ -1068,7 +1068,7 @@ export default function TimberCalculator() {
                                           {bayLabel}
                                         </div>
                                         
-                                        {useCustomBayDimensions && (
+                                        {useCustomBayDimensions && bayWidth !== undefined && bayHeight !== undefined && (
                                           <div className="text-xs" style={{ 
                                             position: 'relative', 
                                             top: '-20px', 
