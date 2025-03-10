@@ -697,17 +697,17 @@ export default function TimberCalculator() {
         </div>
       )}
       
-      <div className="apple-grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="apple-grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8">
         {/* Config Panel */}
-        <div className="lg:col-span-6 xl:col-span-5">
+        <div className="lg:col-span-6 xl:col-span-5 w-full">
           <div className="apple-card">
             <div className="apple-card-header flex justify-between items-center">
-              <h2 className="text-xl font-semibold m-0">Configuration</h2>
+              <h2 className="text-lg md:text-xl font-semibold m-0">Configuration</h2>
             </div>
             
             <div className="apple-card-body">
-              <div className="apple-specs-table mb-8">
-                <h3 className="text-lg font-semibold mb-6">Structure Configuration</h3>
+              <div className="apple-specs-table mb-6 md:mb-8">
+                <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Structure Configuration</h3>
                 
                 <div className="apple-specs-row">
                   <div className="apple-specs-label">Load Type</div>
@@ -757,15 +757,15 @@ export default function TimberCalculator() {
           </div>
         </div>
         
-              <div className="apple-specs-table mb-8">
-                <h3 className="text-lg font-semibold mb-6">Dimensions</h3>
+              <div className="apple-specs-table mb-6 md:mb-8">
+                <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Dimensions</h3>
                 
                 <div className="apple-specs-row">
                   <div className="apple-specs-label">Building Length (m)</div>
                   <div className="apple-specs-value">
-              <input 
-                type="number" 
-                      className="apple-input mb-0"
+                    <input 
+                      type="number" 
+                      className="apple-input mb-0 w-full"
                       min="1" 
                       max="50" 
                       value={buildingLength} 
@@ -775,8 +775,8 @@ export default function TimberCalculator() {
                           e.target.value = e.target.value.replace(/^0+/, '');
                         }
                       }}
-              />
-            </div>
+                    />
+                  </div>
                 </div>
 
                 <div className="apple-specs-row">
@@ -902,9 +902,9 @@ export default function TimberCalculator() {
               </div>
               
               {/* Calculated Bay Sizes */}
-              <div className="mb-8 p-6 rounded-lg" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
-                <h4 className="text-md font-medium mb-4">Calculated Bay Sizes</h4>
-                <div className="grid grid-cols-1 gap-3">
+              <div className="mb-6 md:mb-8 p-4 md:p-6 rounded-lg" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
+                <h4 className="text-sm md:text-md font-medium mb-3 md:mb-4">Calculated Bay Sizes</h4>
+                <div className="grid grid-cols-1 gap-2 md:gap-3">
                   <p className="text-sm"><strong>Bay Size (Length):</strong> {(buildingLength / lengthwiseBays).toFixed(2)} m</p>
                   <p className="text-sm"><strong>Bay Size (Width):</strong> {(buildingWidth / widthwiseBays).toFixed(2)} m</p>
                   <p className="text-sm"><strong>Joist Spacing:</strong> 800 mm (fixed)</p>
@@ -915,18 +915,18 @@ export default function TimberCalculator() {
         </div>
         
         {/* Results Panel */}
-        <div className="lg:col-span-6 xl:col-span-7">
+        <div className="lg:col-span-6 xl:col-span-7 w-full">
           {results ? (
             <div className="apple-results">
               <div className="apple-results-header">
-                <h2 className="text-xl font-semibold">Calculation Results</h2>
+                <h2 className="text-lg md:text-xl font-semibold">Calculation Results</h2>
               </div>
               
               <div className="apple-results-body">
                 {/* Building Information */}
-                <div className="apple-results-section p-6 rounded-lg" style={{ backgroundColor: 'rgba(0, 113, 227, 0.05)' }}>
-                  <h3 className="font-medium mb-4">Building Information</h3>
-                  <div className="grid grid-cols-2 gap-6">
+                <div className="apple-results-section p-4 md:p-6 rounded-lg" style={{ backgroundColor: 'rgba(0, 113, 227, 0.05)' }}>
+                  <h3 className="font-medium mb-3 md:mb-4">Building Information</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                     <div>
                       <p className="text-sm mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Dimensions:</p>
                       <p className="font-medium">{results.buildingLength}m × {results.buildingWidth}m</p>
@@ -948,25 +948,25 @@ export default function TimberCalculator() {
                 
                 {/* Timber Sizes Table - Moved above visualizations */}
                 <div className="apple-results-section">
-                  <h3 className="text-lg font-semibold mb-4">Selected Timber Sizes</h3>
-                  <div className="overflow-x-auto">
+                  <h3 className="text-md md:text-lg font-semibold mb-3 md:mb-4">Selected Timber Sizes</h3>
+                  <div className="overflow-x-auto max-w-full">
                     <TimberSizesTable results={results} compact={true} />
                   </div>
                 </div>
                 
                 {/* Visualizations - Side by side */}
-                <div className="apple-results-section grid grid-cols-1 gap-8">
+                <div className="apple-results-section grid grid-cols-1 gap-4 md:gap-8">
                   {/* Bay Layout Visualization - Now spans full width */}
                   <div>
                     <div className="apple-visualization mb-3">
-                      <h3 className="apple-visualization-title">Bay Layout</h3>
+                      <h3 className="apple-visualization-title text-md md:text-lg font-semibold mb-3">Bay Layout</h3>
                       
                       {/* Custom Bay Dimensions Toggle */}
                       <div className="mb-4 flex items-center">
                         <label className="inline-flex items-center cursor-pointer">
                           <input 
                             type="checkbox" 
-                            className="form-checkbox h-5 w-5" 
+                            className="form-checkbox h-4 w-4 md:h-5 md:w-5" 
                             style={{ accentColor: 'var(--apple-blue)' }}
                             checked={useCustomBayDimensions} 
                             onChange={handleToggleCustomBayDimensions}
@@ -977,17 +977,17 @@ export default function TimberCalculator() {
                       
                       {/* Custom Bay Dimensions Controls */}
                       {useCustomBayDimensions && (
-                        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                           {/* Lengthwise Bay Controls */}
                           <div>
                             <h4 className="text-sm font-medium mb-2">Column Widths (m)</h4>
                             <div className="space-y-2">
                               {customLengthwiseBayWidths.map((width, index) => (
                                 <div key={`length-${index}`} className="flex items-center">
-                                  <span className="text-xs w-24">{String.fromCharCode(65 + index)}:</span>
+                                  <span className="text-xs w-16 md:w-24">{String.fromCharCode(65 + index)}:</span>
                                   <input
                                     type="number"
-                                    className="apple-input mb-0 text-sm"
+                                    className="apple-input mb-0 text-sm w-full"
                                     min="0.5"
                                     max={MAX_BAY_SPAN}
                                     step="0.1"
@@ -1026,10 +1026,10 @@ export default function TimberCalculator() {
                             <div className="space-y-2">
                               {customWidthwiseBayWidths.map((width, index) => (
                                 <div key={`width-${index}`} className="flex items-center">
-                                  <span className="text-xs w-24">{index + 1}:</span>
+                                  <span className="text-xs w-16 md:w-24">{index + 1}:</span>
                                   <input
                                     type="number"
-                                    className="apple-input mb-0 text-sm"
+                                    className="apple-input mb-0 text-sm w-full"
                                     min="0.5"
                                     max={MAX_BAY_SPAN}
                                     step="0.1"
@@ -1065,8 +1065,7 @@ export default function TimberCalculator() {
                       )}
                       
                       <div className="flex justify-center">
-                        <div className="relative" style={{ 
-                          width: '100%',
+                        <div className="relative w-full" style={{ 
                           maxWidth: '600px',
                           aspectRatio: `${buildingLength} / ${buildingWidth}`,
                           maxHeight: '400px'
@@ -1280,11 +1279,11 @@ export default function TimberCalculator() {
                         </div>
                       </div>
                     </div>
-                    <div className="text-center text-sm" style={{ color: 'var(--apple-text-secondary)' }}>
+                    <div className="text-center text-sm mt-4" style={{ color: 'var(--apple-text-secondary)' }}>
                       {!useCustomBayDimensions ? (
-                        <div>Grid Cell Size: {(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</div>
+                        <div className="text-xs md:text-sm">Grid Cell Size: {(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</div>
                       ) : (
-                        <div>Custom grid cell sizes applied</div>
+                        <div className="text-xs md:text-sm">Custom grid cell sizes applied</div>
                       )}
                       
                       {/* Joist Direction Toggle UI */}
@@ -1292,7 +1291,7 @@ export default function TimberCalculator() {
                         <div className="flex items-center justify-center">
                           <div className="flex items-center bg-gray-100 rounded-lg p-1" style={{ border: '1px solid var(--apple-border)' }}>
                             <button 
-                              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${joistsRunLengthwise ? 'bg-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+                              className={`px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-medium transition-colors ${joistsRunLengthwise ? 'bg-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
                               style={{ 
                                 color: joistsRunLengthwise ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
                               }}
@@ -1301,7 +1300,7 @@ export default function TimberCalculator() {
                               Horizontal Joists ↔
                             </button>
                             <button 
-                              className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${!joistsRunLengthwise ? 'bg-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+                              className={`px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-medium transition-colors ${!joistsRunLengthwise ? 'bg-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
                               style={{ 
                                 color: !joistsRunLengthwise ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
                               }}
@@ -1323,17 +1322,17 @@ export default function TimberCalculator() {
                 {/* Results Section */}
                 {results && (
                   <div className="apple-section mt-4">
-                    <h3 className="apple-section-title">Calculated Timber Sizes</h3>
+                    <h3 className="apple-section-title text-lg md:text-xl font-semibold mb-3 md:mb-4">Calculated Timber Sizes</h3>
                     <div className="apple-section-content">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {/* Joist Results */}
-                        <div className="bg-white p-4 rounded-lg shadow">
-                          <h4 className="font-semibold mb-2">Joists</h4>
-                          <p><strong>Size:</strong> {results.joists.width}mm × {results.joists.depth}mm</p>
-                          <p><strong>Span:</strong> {results.joistSpan?.toFixed(2) || '0.00'}m</p>
-                          <p><strong>Spacing:</strong> 800mm</p>
+                        <div className="bg-white p-3 md:p-4 rounded-lg shadow">
+                          <h4 className="font-semibold mb-2 text-sm md:text-base">Joists</h4>
+                          <p className="text-sm md:text-base"><strong>Size:</strong> {results.joists.width}mm × {results.joists.depth}mm</p>
+                          <p className="text-sm md:text-base"><strong>Span:</strong> {results.joistSpan?.toFixed(2) || '0.00'}m</p>
+                          <p className="text-sm md:text-base"><strong>Spacing:</strong> 800mm</p>
                           {results.joists.fireAllowance > 0 && (
-                            <p className="text-blue-600">
+                            <p className="text-sm md:text-base text-blue-600">
                               <strong>Fire Allowance:</strong> {results.joists.fireAllowance.toFixed(1)}mm per face
                             </p>
                           )}
@@ -1341,8 +1340,8 @@ export default function TimberCalculator() {
                           {/* Display different joist sizes for different bays if using custom bay dimensions */}
                           {useCustomBayDimensions && (
                             <div className="mt-3 pt-3 border-t border-gray-200">
-                              <p className="text-sm font-medium mb-1">Grid cell-specific sizes:</p>
-                              <div className="text-xs space-y-1">
+                              <p className="text-xs md:text-sm font-medium mb-1">Grid cell-specific sizes:</p>
+                              <div className="text-xs space-y-1 overflow-auto max-h-32 md:max-h-none">
                                 {(() => {
                                   const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
                                   const uniqueBaySizes = [];
@@ -1398,17 +1397,17 @@ export default function TimberCalculator() {
                         </div>
               
                         {/* Beam Results */}
-                        <div className="bg-white p-4 rounded-lg shadow">
-                          <h4 className="font-semibold mb-2">Beams</h4>
-                          <p><strong>Size:</strong> {results.beams.width}mm × {results.beams.depth}mm</p>
-                          <p><strong>Span:</strong> {results.beamSpan?.toFixed(2) || '0.00'}m</p>
+                        <div className="bg-white p-3 md:p-4 rounded-lg shadow">
+                          <h4 className="font-semibold mb-2 text-sm md:text-base">Beams</h4>
+                          <p className="text-sm md:text-base"><strong>Size:</strong> {results.beams.width}mm × {results.beams.depth}mm</p>
+                          <p className="text-sm md:text-base"><strong>Span:</strong> {results.beamSpan?.toFixed(2) || '0.00'}m</p>
                           {results.beams.fireAllowance > 0 && (
-                            <p className="text-blue-600">
+                            <p className="text-sm md:text-base text-blue-600">
                               <strong>Fire Allowance:</strong> {results.beams.fireAllowance.toFixed(1)}mm per face
                             </p>
                           )}
                           {results.beams.width === results.columns.width && (
-                            <p className="text-green-600 mt-2">
+                            <p className="text-sm md:text-base text-green-600 mt-2">
                               <strong>✓</strong> Width matched with columns
                             </p>
                           )}
@@ -1416,8 +1415,8 @@ export default function TimberCalculator() {
                           {/* Display different beam sizes for different bays if using custom bay dimensions */}
                           {useCustomBayDimensions && (
                             <div className="mt-3 pt-3 border-t border-gray-200">
-                              <p className="text-sm font-medium mb-1">Grid cell-specific sizes:</p>
-                              <div className="text-xs space-y-1">
+                              <p className="text-xs md:text-sm font-medium mb-1">Grid cell-specific sizes:</p>
+                              <div className="text-xs space-y-1 overflow-auto max-h-32 md:max-h-none">
                                 {(() => {
                                   const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
                                   const uniqueBaySizes = [];
@@ -1473,100 +1472,82 @@ export default function TimberCalculator() {
                         </div>
 
                         {/* Column Results */}
-                        <div className="bg-white p-4 rounded-lg shadow">
-                          <h4 className="font-semibold mb-2">Columns</h4>
-                          <p><strong>Size:</strong> {results.columns.width}mm × {results.columns.depth}mm</p>
-                          <p><strong>Height:</strong> {results.columns.height}m</p>
-                          <p><strong>Floors:</strong> {results.numFloors}</p>
+                        <div className="bg-white p-3 md:p-4 rounded-lg shadow">
+                          <h4 className="font-semibold mb-2 text-sm md:text-base">Columns</h4>
+                          <p className="text-sm md:text-base"><strong>Size:</strong> {results.columns.width}mm × {results.columns.depth}mm</p>
+                          <p className="text-sm md:text-base"><strong>Height:</strong> {results.columns.height}m</p>
+                          <p className="text-sm md:text-base"><strong>Floors:</strong> {results.numFloors}</p>
                           {results.columns.fireAllowance > 0 && (
-                            <p className="text-blue-600">
+                            <p className="text-sm md:text-base text-blue-600">
                               <strong>Fire Allowance:</strong> {results.columns.fireAllowance.toFixed(1)}mm per face
                             </p>
                           )}
                         </div>
                       </div>
                       
-                      {/* Environmental Impact */}
+                      {/* Timber Weight and Carbon Calculation */}
                       <div className="mt-4 bg-white p-4 rounded-lg shadow">
-                        <h4 className="font-semibold mb-2">Environmental Impact</h4>
+                        <h4 className="font-semibold mb-2">Material Estimates</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <p><strong>Timber Weight:</strong> {results.timberWeight.toFixed(2)} kg</p>
-                            <p><strong>Timber Volume:</strong> {results.timberVolume.toFixed(2)} m³</p>
+                          <div className="bg-white p-3 md:p-4 rounded-lg shadow">
+                            <h5 className="font-semibold mb-2 text-sm md:text-base">Timber Volume</h5>
+                            <div className="space-y-2">
+                              <p className="text-sm md:text-base"><strong>Total Volume:</strong> {results.timberVolume?.toFixed(2) || '0.00'} m³</p>
+                              <p className="text-sm md:text-base"><strong>Mass:</strong> {results.timberWeight?.toFixed(2) || '0.00'} tonnes</p>
+                              <p className="text-sm md:text-base"><strong>Density:</strong> 600 kg/m³ (MASSLAM GL18)</p>
+                              
+                              <div className="mt-3 pt-3 border-t border-gray-200 grid grid-cols-1 gap-1">
+                                <p className="text-xs md:text-sm"><strong>Joists:</strong> {results.joistsVolume?.toFixed(2) || '0.00'} m³</p>
+                                <p className="text-xs md:text-sm"><strong>Beams:</strong> {results.beamsVolume?.toFixed(2) || '0.00'} m³</p>
+                                <p className="text-xs md:text-sm"><strong>Columns:</strong> {results.columnsVolume?.toFixed(2) || '0.00'} m³</p>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <p><strong>Carbon Savings:</strong> {results.carbonSavings.toFixed(2)} tonnes CO₂e</p>
+                          
+                          <div className="bg-white p-3 md:p-4 rounded-lg shadow">
+                            <h5 className="font-semibold mb-2 text-sm md:text-base">Carbon Benefits</h5>
+                            <div className="space-y-2">
+                              <p className="text-sm md:text-base"><strong>Carbon Storage:</strong> {results.carbonStorage?.toFixed(2) || '0.00'} tonnes CO₂e</p>
+                              <p className="text-sm md:text-base"><strong>Embodied Carbon:</strong> {results.embodiedCarbon?.toFixed(2) || '0.00'} tonnes CO₂e</p>
+                              
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <p className="text-sm text-green-700"><strong>Compared to Steel/Concrete:</strong></p>
+                                <p className="text-sm md:text-base text-green-700">
+                                  <strong>Carbon Saving:</strong> {results.carbonSavings?.toFixed(2) || '0.00'} tonnes CO₂e
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Based on average embodied carbon differential between mass timber and conventional structural systems.
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Timber Elements Count (for QA and debugging) */}
+                      {/* Project Estimate */}
                       <div className="mt-4 bg-white p-4 rounded-lg shadow">
-                        <h4 className="font-semibold mb-2">Timber Elements</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <p><strong>Joists:</strong> {results.elementCounts.joists} pieces</p>
-                            <p className="text-sm text-gray-600">Volume: {results.elementVolumes.joists.toFixed(2)} m³</p>
-                            <p className="text-sm text-gray-600">Direction: {results.joistsRunLengthwise ? 'Lengthwise' : 'Widthwise'}</p>
+                        <h4 className="font-semibold mb-2">Project Estimate</h4>
+                        <div className="grid grid-cols-1 bg-white p-3 md:p-4 rounded-lg shadow">
+                          <div className="border-b pb-3 mb-3">
+                            <h5 className="font-semibold mb-2 text-sm md:text-base">Total Cost Estimate</h5>
+                            <p className="text-xl md:text-2xl font-bold text-green-700">{formatCurrency(results.totalCost || 0)}</p>
+                            <p className="text-xs md:text-sm text-gray-500 mt-1">Excluding GST and installation</p>
                           </div>
-                          <div>
-                            <p><strong>Beams:</strong> {results.elementCounts.beams} pieces</p>
-                            <p className="text-sm text-gray-600">Volume: {results.elementVolumes.beams.toFixed(2)} m³</p>
-                            <p className="text-sm text-gray-600">Direction: {!results.joistsRunLengthwise ? 'Lengthwise' : 'Widthwise'}</p>
-                          </div>
-                          <div>
-                            <p><strong>Columns:</strong> {results.elementCounts.columns} pieces</p>
-                            <p className="text-sm text-gray-600">Volume: {results.elementVolumes.columns.toFixed(2)} m³</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Cost Breakdown */}
-                      <div className="mt-4 bg-white p-4 rounded-lg shadow">
-                        <h4 className="font-semibold mb-2">Cost Breakdown</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                          <div>
-                            <p><strong>Joists:</strong> {formatCurrency(results.costs.joists)}</p>
-                            <p className="text-sm text-gray-600">Rate: {formatCurrency(results.rates.joists)}/m²</p>
-                            <p className="text-sm text-gray-600">Floor Area: {results.floorArea.toFixed(2)} m²</p>
-                          </div>
-                          <div>
-                            <p><strong>Beams:</strong> {formatCurrency(results.costs.beams)}</p>
-                            <p className="text-sm text-gray-600">Rate: {formatCurrency(results.rates.beams)}/m³</p>
-                            <p className="text-sm text-gray-600">Volume: {results.elementVolumes.beams.toFixed(2)} m³</p>
-                          </div>
-                          <div>
-                            <p><strong>Columns:</strong> {formatCurrency(results.costs.columns)}</p>
-                            <p className="text-sm text-gray-600">Rate: {formatCurrency(results.rates.columns)}/m³</p>
-                            <p className="text-sm text-gray-600">Volume: {results.elementVolumes.columns.toFixed(2)} m³</p>
-                          </div>
-                        </div>
-                        <div className="pt-3 border-t border-gray-200">
-                          <p className="text-lg font-semibold">Total Cost: {formatCurrency(results.costs.total)}</p>
-                          <p className="text-sm text-gray-600">
-                            <Link href="/timber-rates" className="text-blue-600 hover:text-blue-800">
-                              Edit Timber Rates
-                            </Link>
-                          </p>
-                        </div>
-                      </div>
-            
-                      {/* Additional Resources */}
-                      <div className="mt-4 bg-white p-4 rounded-lg shadow">
-                        <h4 className="font-semibold mb-2">Additional Resources</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <Link href="/fire-resistance" className="text-blue-600 hover:text-blue-800">
-                            <div className="border border-blue-200 rounded-lg p-4 hover:bg-blue-50 transition-colors">
-                              <h5 className="font-semibold">Fire Resistance Analysis</h5>
-                              <p className="text-sm text-gray-600">Analyze fire resistance for specific timber sizes</p>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                              <p className="text-xs md:text-sm text-gray-600">Joists</p>
+                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.joistsCost || 0)}</p>
                             </div>
-                          </Link>
-                          <Link href="/calculation-methodology" className="text-blue-600 hover:text-blue-800">
-                            <div className="border border-blue-200 rounded-lg p-4 hover:bg-blue-50 transition-colors">
-                              <h5 className="font-semibold">Calculation Methodology</h5>
-                              <p className="text-sm text-gray-600">Learn about design constraints and calculation methods</p>
+                            <div>
+                              <p className="text-xs md:text-sm text-gray-600">Beams</p>
+                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.beamsCost || 0)}</p>
                             </div>
-                          </Link>
+                            <div>
+                              <p className="text-xs md:text-sm text-gray-600">Columns</p>
+                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.columnsCost || 0)}</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

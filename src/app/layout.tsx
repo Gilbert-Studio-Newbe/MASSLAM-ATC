@@ -32,10 +32,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 2rem;
+            padding: 0 1rem;
+          }
+          @media (min-width: 768px) {
+            .apple-container {
+              padding: 0 2rem;
+            }
           }
           .apple-header {
             background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -46,6 +53,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 100%;
           }
           .apple-nav-list {
             display: flex;
@@ -54,14 +62,21 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             list-style: none;
             padding: 0;
             margin: 0;
+            width: 100%;
           }
           .apple-nav-link {
             color: #1d1d1f;
             text-decoration: none;
             margin: 0 0.75rem;
+            padding: 0.5rem 0;
+            display: block;
           }
           .mobile-menu-button {
             display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
           }
           @media (max-width: 768px) {
             .mobile-menu-button {
@@ -69,13 +84,31 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             }
             .mobile-nav {
               display: none;
+              width: 100%;
+              padding-top: 1rem;
             }
             .mobile-nav.active {
               display: block;
+              animation: slideDown 0.3s ease-out;
             }
             .apple-nav-list {
               flex-direction: column;
               align-items: flex-start;
+            }
+            .apple-nav-link {
+              width: 100%;
+              padding: 0.75rem 0;
+              border-bottom: 1px solid #f2f2f2;
+            }
+            @keyframes slideDown {
+              from {
+                opacity: 0;
+                transform: translateY(-10px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
             }
           }
         ` }} />
@@ -86,10 +119,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <div className="apple-container"> 
               <div className="apple-nav">
                 <div className="flex items-center justify-between w-full"> 
-                  <h1 className="text-2xl font-semibold" style={{ color: 'var(--apple-text)' }}> 
+                  <h1 className="text-xl md:text-2xl font-semibold" style={{ color: 'var(--apple-text)' }}> 
                     ATC by ASH 
                   </h1>
-                  <button className="mobile-menu-button" aria-label="Toggle menu">
+                  <button className="mobile-menu-button" aria-label="Toggle menu" id="mobile-menu-toggle">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="3" y1="12" x2="21" y2="12"></line>
                       <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -97,27 +130,27 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     </svg>
                   </button>
                 </div> 
-                <nav className="mobile-nav w-full"> 
+                <nav className="mobile-nav w-full" id="mobile-nav"> 
                   <ul className="apple-nav-list w-full"> 
-                    <li> 
+                    <li className="w-full md:w-auto"> 
                       <Link href="/" className="apple-nav-link">Member Calculator</Link> 
                     </li>
-                    <li> 
+                    <li className="w-full md:w-auto"> 
                       <Link href="/saved-projects" className="apple-nav-link">Saved Projects</Link> 
                     </li>
-                    <li> 
+                    <li className="w-full md:w-auto"> 
                       <Link href="/masslam-sizes" className="apple-nav-link">MASSLAM Sizes</Link> 
                     </li>
-                    <li> 
+                    <li className="w-full md:w-auto"> 
                       <Link href="/timber-rates" className="apple-nav-link">Timber Rates</Link> 
                     </li>
-                    <li> 
+                    <li className="w-full md:w-auto"> 
                       <Link href="/calculation-methodology" className="apple-nav-link">Calculation Methodology</Link> 
                     </li>
-                    <li> 
+                    <li className="w-full md:w-auto"> 
                       <Link href="/fire-resistance" className="apple-nav-link">Fire Resistance</Link> 
                     </li> 
-                    <li> 
+                    <li className="w-full md:w-auto"> 
                       <Link href="#" className="apple-nav-link">About</Link> 
                     </li> 
                   </ul> 
@@ -125,11 +158,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </div>
             </div> 
           </header> 
-          <main className="apple-container py-8"> 
+          <main className="apple-container py-4 md:py-8"> 
             {children}
           </main>
-          <footer className="apple-footer"> 
-            <div className="apple-container"> 
+          <footer className="apple-footer py-4 mt-8 border-t border-gray-200"> 
+            <div className="apple-container text-center text-sm text-gray-600"> 
               <p> 
                 ATC by ASH - Parametric Design Tool 
               </p> 
@@ -138,8 +171,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </div>
         <script dangerouslySetInnerHTML={{ __html: `
           document.addEventListener('DOMContentLoaded', function() {
-            const menuButton = document.querySelector('.mobile-menu-button');
-            const mobileNav = document.querySelector('.mobile-nav');
+            const menuButton = document.getElementById('mobile-menu-toggle');
+            const mobileNav = document.getElementById('mobile-nav');
             
             if (menuButton && mobileNav) {
               menuButton.addEventListener('click', function() {

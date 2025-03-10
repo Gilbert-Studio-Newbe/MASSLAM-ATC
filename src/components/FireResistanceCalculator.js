@@ -45,13 +45,13 @@ export default function FireResistanceCalculator({ charringRate = CHARRING_RATES
   // If no FRL is selected or dimensions are invalid, show a message
   if (!results) {
     return (
-      <div className="apple-message">
-        <p className="apple-message-text">
+      <div className="apple-message p-4 text-center">
+        <p className="apple-message-text text-lg">
           {selectedFRL === '0' || selectedFRL === 'none' 
             ? 'No fire resistance level (FRL) selected.' 
             : 'Calculating fire resistance...'}
         </p>
-        <p className="apple-message-subtext">
+        <p className="apple-message-subtext text-sm text-gray-500 mt-2">
           Using MASSLAM SL33 charring rate: {actualCharringRate} mm/min
         </p>
       </div>
@@ -60,40 +60,40 @@ export default function FireResistanceCalculator({ charringRate = CHARRING_RATES
 
   // Display the fire resistance results
   return (
-    <div className="apple-fire-results">
-      <div className="apple-fire-results-grid">
-        <div className="apple-fire-results-col">
-          <div className="apple-fire-results-item">
-            <div className="apple-fire-results-label">Charring Rate:</div>
+    <div className="apple-fire-results p-4 bg-white rounded-lg shadow">
+      <div className="apple-fire-results-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="apple-fire-results-col space-y-3">
+          <div className="apple-fire-results-item flex justify-between items-center border-b pb-2">
+            <div className="apple-fire-results-label font-medium">Charring Rate:</div>
             <div className="apple-fire-results-value">{actualCharringRate} mm/min</div>
           </div>
-          <div className="apple-fire-results-item">
-            <div className="apple-fire-results-label">Required FRL:</div>
+          <div className="apple-fire-results-item flex justify-between items-center border-b pb-2">
+            <div className="apple-fire-results-label font-medium">Required FRL:</div>
             <div className="apple-fire-results-value">{selectedFRL}</div>
           </div>
-          <div className="apple-fire-results-item">
-            <div className="apple-fire-results-label">Char Depth:</div>
+          <div className="apple-fire-results-item flex justify-between items-center border-b pb-2">
+            <div className="apple-fire-results-label font-medium">Char Depth:</div>
             <div className="apple-fire-results-value">{results.charDepth.toFixed(1)} mm</div>
           </div>
         </div>
         
-        <div className="apple-fire-results-col">
-          <div className="apple-fire-results-item">
-            <div className="apple-fire-results-label">Effective Width:</div>
+        <div className="apple-fire-results-col space-y-3">
+          <div className="apple-fire-results-item flex justify-between items-center border-b pb-2">
+            <div className="apple-fire-results-label font-medium">Effective Width:</div>
             <div className="apple-fire-results-value">{results.effectiveWidth.toFixed(1)} mm</div>
           </div>
-          <div className="apple-fire-results-item">
-            <div className="apple-fire-results-label">Effective Depth:</div>
+          <div className="apple-fire-results-item flex justify-between items-center border-b pb-2">
+            <div className="apple-fire-results-label font-medium">Effective Depth:</div>
             <div className="apple-fire-results-value">{results.effectiveDepth.toFixed(1)} mm</div>
           </div>
-          <div className="apple-fire-results-item">
-            <div className="apple-fire-results-label">Residual Area:</div>
+          <div className="apple-fire-results-item flex justify-between items-center border-b pb-2">
+            <div className="apple-fire-results-label font-medium">Residual Area:</div>
             <div className="apple-fire-results-value">{results.residualPercentage.toFixed(1)}%</div>
           </div>
         </div>
       </div>
       
-      <div className={`apple-fire-results-status ${results.passes ? 'apple-fire-results-status-pass' : 'apple-fire-results-status-fail'}`}>
+      <div className={`apple-fire-results-status mt-4 p-3 text-center rounded ${results.passes ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
         {results.passes 
           ? `✓ Passes ${selectedFRL} fire resistance requirement` 
           : `✗ Does not meet ${selectedFRL} fire resistance requirement`}
