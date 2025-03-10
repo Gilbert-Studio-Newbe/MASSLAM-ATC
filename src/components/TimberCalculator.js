@@ -997,10 +997,15 @@ export default function TimberCalculator() {
                                         style={{ 
                                           left: leftPosition,
                                           transform: 'translateX(-50%)',
-                                          color: 'var(--apple-text-secondary)'
+                                          color: 'var(--apple-text-secondary)',
+                                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                          padding: '2px 6px',
+                                          borderRadius: '3px',
+                                          fontWeight: '600',
+                                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
                                         }}
                                       >
-                                        {label}
+                                        Column {label}
                                       </div>
                                     );
                                   })}
@@ -1026,10 +1031,15 @@ export default function TimberCalculator() {
                                         style={{ 
                                           top: topPosition,
                                           transform: 'translateY(-50%)',
-                                          color: 'var(--apple-text-secondary)'
+                                          color: 'var(--apple-text-secondary)',
+                                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                          padding: '2px 6px',
+                                          borderRadius: '3px',
+                                          fontWeight: '600',
+                                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
                                         }}
                                       >
-                                        {index + 1}
+                                        Row {index + 1}
                                       </div>
                                     );
                                   })}
@@ -1064,8 +1074,14 @@ export default function TimberCalculator() {
                                         borderRadius: '0'
                                       }}>
                                         {/* Bay Label */}
-                                        <div className="absolute top-1 left-1 text-xs font-medium text-gray-600">
-                                          {bayLabel}
+                                        <div className="absolute top-1 left-1 text-xs font-medium text-gray-600" style={{
+                                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                          padding: '2px 4px',
+                                          borderRadius: '3px',
+                                          fontWeight: '600',
+                                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                        }}>
+                                          Bay {bayLabel}
                                         </div>
                                         
                                         {useCustomBayDimensions && bayWidth !== undefined && bayHeight !== undefined && (
