@@ -893,8 +893,7 @@ export default function TimberCalculator() {
                                       {useCustomBayDimensions && (
                                         <div className="text-xs" style={{ 
                                           position: 'relative', 
-                                          top: '-10px', 
-                                          backgroundColor: 'rgba(255,255,255,0.7)',
+                                          top: '-20px', 
                                           padding: '2px 4px',
                                           borderRadius: '2px'
                                         }}>
