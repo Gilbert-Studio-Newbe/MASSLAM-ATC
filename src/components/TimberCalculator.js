@@ -25,6 +25,7 @@ import {
 } from '@/utils/timberSizes';
 import { calculateFireResistanceAllowance } from '@/utils/masslamProperties';
 import TimberSizesTable from './TimberSizesTable';
+import { calculateCost, formatCurrency } from '../utils/costEstimator';
 // ... other imports as before
 
 // Rename the custom function to avoid naming conflict
@@ -364,6 +365,15 @@ export default function TimberCalculator() {
         // Calculate carbon savings
         const carbonSavings = calculateCarbonSavings(timberResult);
         
+        // Calculate cost
+        const costResult = calculateCost(
+          timberResult,
+          joistSize,
+          buildingLength,
+          buildingWidth,
+          numFloors
+        );
+        
         // Validate the structure
         const validationResult = validateStructure(joistSize, beamSize, columnSize, joistSpan, beamSpan);
         
@@ -378,11 +388,13 @@ export default function TimberCalculator() {
           fireRating,
           joistSpan,
           beamSpan,
+          joistsRunLengthwise,
           joists: joistSize,
           beams: beamSize,
           columns: columnSize,
           timberWeight: timberResult.weight,
           timberVolume: timberResult.totalVolume,
+          carbonSavings,
           elementCounts: {
             joists: timberResult.elements.joists.count,
             beams: timberResult.elements.beams.count,
@@ -393,7 +405,18 @@ export default function TimberCalculator() {
             beams: timberResult.elements.beams.volume,
             columns: timberResult.elements.columns.volume
           },
-          carbonSavings,
+          costs: {
+            joists: costResult.elements.joists.cost,
+            beams: costResult.elements.beams.cost,
+            columns: costResult.elements.columns.cost,
+            total: costResult.totalCost
+          },
+          rates: {
+            joists: costResult.elements.joists.rate,
+            beams: costResult.elements.beams.rate,
+            columns: costResult.elements.columns.rate
+          },
+          floorArea: costResult.elements.joists.area,
           validationResult,
           customBayDimensions: useCustomBayDimensions ? {
             lengthwiseBayWidths,
@@ -930,11 +953,8 @@ export default function TimberCalculator() {
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span>Total Building Length:</span>
+                                  <span>Target:</span>
                                   <span>{buildingLength.toFixed(2)}m</span>
-                                </div>
-                                <div className="text-xs mt-1 italic">
-                                  Adjusting one column width will automatically resize others to maintain the total building length.
                                 </div>
                               </div>
                             </div>
@@ -975,11 +995,8 @@ export default function TimberCalculator() {
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span>Total Building Width:</span>
+                                  <span>Target:</span>
                                   <span>{buildingWidth.toFixed(2)}m</span>
-                                </div>
-                                <div className="text-xs mt-1 italic">
-                                  Adjusting one row height will automatically resize others to maintain the total building width.
                                 </div>
                               </div>
                             </div>
@@ -1440,6 +1457,36 @@ export default function TimberCalculator() {
                             <p><strong>Columns:</strong> {results.elementCounts.columns} pieces</p>
                             <p className="text-sm text-gray-600">Volume: {results.elementVolumes.columns.toFixed(2)} m³</p>
                           </div>
+                        </div>
+                      </div>
+                      
+                      {/* Cost Breakdown */}
+                      <div className="mt-4 bg-white p-4 rounded-lg shadow">
+                        <h4 className="font-semibold mb-2">Cost Breakdown</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div>
+                            <p><strong>Joists:</strong> {formatCurrency(results.costs.joists)}</p>
+                            <p className="text-sm text-gray-600">Rate: {formatCurrency(results.rates.joists)}/m²</p>
+                            <p className="text-sm text-gray-600">Floor Area: {results.floorArea.toFixed(2)} m²</p>
+                          </div>
+                          <div>
+                            <p><strong>Beams:</strong> {formatCurrency(results.costs.beams)}</p>
+                            <p className="text-sm text-gray-600">Rate: {formatCurrency(results.rates.beams)}/m³</p>
+                            <p className="text-sm text-gray-600">Volume: {results.elementVolumes.beams.toFixed(2)} m³</p>
+                          </div>
+                          <div>
+                            <p><strong>Columns:</strong> {formatCurrency(results.costs.columns)}</p>
+                            <p className="text-sm text-gray-600">Rate: {formatCurrency(results.rates.columns)}/m³</p>
+                            <p className="text-sm text-gray-600">Volume: {results.elementVolumes.columns.toFixed(2)} m³</p>
+                          </div>
+                        </div>
+                        <div className="pt-3 border-t border-gray-200">
+                          <p className="text-lg font-semibold">Total Cost: {formatCurrency(results.costs.total)}</p>
+                          <p className="text-sm text-gray-600">
+                            <Link href="/timber-rates" className="text-blue-600 hover:text-blue-800">
+                              Edit Timber Rates
+                            </Link>
+                          </p>
                         </div>
                       </div>
             

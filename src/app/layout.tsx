@@ -49,6 +49,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <Link href="/masslam-sizes" className="apple-nav-link">MASSLAM Sizes</Link> 
                     </li>
                     <li> 
+                      <Link href="/timber-rates" className="apple-nav-link">Timber Rates</Link> 
+                    </li>
+                    <li> 
                       <Link href="/calculation-methodology" className="apple-nav-link">Calculation Methodology</Link> 
                     </li>
                     <li> 
