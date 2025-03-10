@@ -1,6 +1,5 @@
 // src/pages/_app.js
-import '../../styles/globals.css';
-import '../../styles/apple-inspired.css';
+import '../styles/globals.css';
 
 function MyApp({ Component, pageProps }) {
   return <Component {...pageProps} />;

@@ -3,6 +3,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Apple-inspired styles */
+@import url('./apple-inspired.css');
+
 @layer base {
   html {
     @apply text-gray-900;

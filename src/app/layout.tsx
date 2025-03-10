@@ -1,4 +1,4 @@
-import "../../styles/globals.css";
+import "./globals.css";
 import "../../styles/apple-inspired.css";
 import { ReactNode } from 'react';
 import Link from 'next/link';

@@ -4,6 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Apple-inspired styles */
+@import url('../../styles/apple-inspired.css');
+
 /* Apple-inspired styling for MASSLAM ATC by ASH */
 
 /* Base font and colors */
