@@ -859,43 +859,7 @@ export default function TimberCalculator() {
                     </div>
       </div>
       
-                  {/* Structure Visualization */}
-                  <div>
-                    <div className="apple-visualization mb-3">
-                      <h3 className="apple-visualization-title">Structure Visualization</h3>
-                      <div className="flex justify-center">
-                        <div className="relative" style={{ 
-                          height: `${Math.max(180, results.numFloors * 60)}px`,
-                          width: '100%',
-                          maxWidth: '300px'
-                        }}>
-                          {Array.from({ length: results.numFloors }).map((_, index) => {
-                            const floorIndex = results.numFloors - 1 - index; // Start from top floor
-                            
-                            return (
-                              <div 
-                                key={floorIndex}
-                                className="absolute left-0 right-0"
-                                style={{ 
-                                  height: '50px',
-                                  bottom: `${floorIndex * 60}px`,
-                                  zIndex: results.numFloors - floorIndex,
-                                  backgroundColor: '#e0e0e0',
-                                  border: '1px solid #999',
-                                  borderRadius: '0'
-                                }}
-                              >
-                                <div className="text-center text-xs mt-1">Floor {floorIndex + 1}</div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-center text-sm" style={{ color: 'var(--apple-text-secondary)' }}>
-                      <div>Floors: {results.numFloors}</div>
-                    </div>
-                  </div>
+                  {/* Structure Visualization section removed */}
               </div>
               
                 {/* Results Section */}
