@@ -1,5 +1,4 @@
-import "./globals.css";
-import "../../styles/apple-inspired.css";
+import "./global.css";
 import { ReactNode } from 'react';
 import Link from 'next/link';
 
@@ -18,6 +17,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return ( 
     <html lang="en"> 
       <head>
+        <link rel="stylesheet" href="/styles/apple-inspired.css" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
       </head>
       <body> 
