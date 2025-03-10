@@ -296,6 +296,7 @@ h3 {
 @media (max-width: 768px) {
   .apple-grid {
     grid-template-columns: 1fr;
+    width: 100%;
   }
   
   .apple-specs-row {
@@ -308,5 +309,39 @@ h3 {
   
   .apple-specs-value {
     padding-top: 0.25rem;
+  }
+  
+  .apple-card, .apple-results {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  .apple-card-body, .apple-results-body {
+    padding: 1rem;
+  }
+  
+  .apple-container {
+    padding: 0 1rem;
+    width: 100%;
+  }
+}
+
+/* Add additional breakpoint for smaller screens */
+@media (max-width: 480px) {
+  .apple-card-body, .apple-results-body {
+    padding: 0.75rem;
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  h3 {
+    font-size: 1.25rem;
   }
 } 

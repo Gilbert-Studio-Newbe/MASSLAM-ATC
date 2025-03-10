@@ -402,23 +402,41 @@ export default function TimberCalculator() {
 
   // Handle input changes
   const handleBuildingLengthChange = (value) => {
-    setBuildingLength(Number(value));
+    const parsedValue = parseFloat(value);
+    if (!isNaN(parsedValue)) {
+      setBuildingLength(parsedValue);
+    }
   };
 
   const handleBuildingWidthChange = (value) => {
-    setBuildingWidth(Number(value));
+    const parsedValue = parseFloat(value);
+    if (!isNaN(parsedValue)) {
+      setBuildingWidth(parsedValue);
+    }
   };
 
   const handleLengthwiseBaysChange = (value) => {
-    setLengthwiseBays(Number(value));
+    const parsedValue = parseInt(value, 10);
+    if (!isNaN(parsedValue)) {
+      setLengthwiseBays(parsedValue);
+    }
   };
 
   const handleWidthwiseBaysChange = (value) => {
-    setWidthwiseBays(Number(value));
+    const parsedValue = parseInt(value, 10);
+    if (!isNaN(parsedValue)) {
+      setWidthwiseBays(parsedValue);
+    }
   };
 
   const handleNumFloorsChange = (value) => {
-    setNumFloors(Number(value));
+    // Parse the input value as an integer to avoid issues with leading zeros
+    const parsedValue = parseInt(value, 10);
+    
+    // Check if the parsed value is a valid number
+    if (!isNaN(parsedValue)) {
+      setNumFloors(parsedValue);
+    }
   };
 
   const handleLoadChange = (value) => {
@@ -574,6 +592,11 @@ export default function TimberCalculator() {
                       max="50" 
                       value={buildingLength} 
                       onChange={(e) => handleBuildingLengthChange(e.target.value)} 
+                      onInput={(e) => {
+                        if (e.target.value.startsWith('0')) {
+                          e.target.value = e.target.value.replace(/^0+/, '');
+                        }
+                      }}
               />
             </div>
                 </div>
@@ -588,6 +611,11 @@ export default function TimberCalculator() {
                       max="50" 
                       value={buildingWidth} 
                       onChange={(e) => handleBuildingWidthChange(e.target.value)} 
+                      onInput={(e) => {
+                        if (e.target.value.startsWith('0')) {
+                          e.target.value = e.target.value.replace(/^0+/, '');
+                        }
+                      }}
               />
             </div>
                 </div>
@@ -602,6 +630,12 @@ export default function TimberCalculator() {
                 max="10"
                       value={numFloors} 
                       onChange={(e) => handleNumFloorsChange(e.target.value)} 
+                      onInput={(e) => {
+                        // Remove any leading zeros
+                        if (e.target.value.startsWith('0')) {
+                          e.target.value = e.target.value.replace(/^0+/, '');
+                        }
+                      }}
                     />
                   </div>
                 </div>
@@ -616,6 +650,11 @@ export default function TimberCalculator() {
                       max="20" 
                       value={lengthwiseBays} 
                       onChange={(e) => handleLengthwiseBaysChange(e.target.value)} 
+                      onInput={(e) => {
+                        if (e.target.value.startsWith('0')) {
+                          e.target.value = e.target.value.replace(/^0+/, '');
+                        }
+                      }}
                     />
                     <p className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
                       Auto-adjusts when bay span exceeds {MAX_BAY_SPAN}m
@@ -633,6 +672,11 @@ export default function TimberCalculator() {
                       max="20" 
                       value={widthwiseBays} 
                       onChange={(e) => handleWidthwiseBaysChange(e.target.value)} 
+                      onInput={(e) => {
+                        if (e.target.value.startsWith('0')) {
+                          e.target.value = e.target.value.replace(/^0+/, '');
+                        }
+                      }}
                     />
                     <p className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
                       Auto-adjusts when bay span exceeds {MAX_BAY_SPAN}m
