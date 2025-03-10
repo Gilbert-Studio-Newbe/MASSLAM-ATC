@@ -996,17 +996,8 @@ export default function TimberCalculator() {
                                         className="absolute text-xs font-semibold"
                                         style={{ 
                                           left: leftPosition,
-                                          top: '-10px',
                                           transform: 'translateX(-50%)',
-                                          color: 'var(--apple-text-secondary)',
-                                          backgroundColor: '#f5f5f5',
-                                          width: '20px',
-                                          height: '20px',
-                                          borderRadius: '50%',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          border: '1px solid #e0e0e0'
+                                          color: 'var(--apple-text-secondary)'
                                         }}
                                       >
                                         {label}
@@ -1034,17 +1025,8 @@ export default function TimberCalculator() {
                                         className="absolute text-xs font-semibold"
                                         style={{ 
                                           top: topPosition,
-                                          left: '-5px',
                                           transform: 'translateY(-50%)',
-                                          color: 'var(--apple-text-secondary)',
-                                          backgroundColor: '#f5f5f5',
-                                          width: '20px',
-                                          height: '20px',
-                                          borderRadius: '50%',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          border: '1px solid #e0e0e0'
+                                          color: 'var(--apple-text-secondary)'
                                         }}
                                       >
                                         {index + 1}
@@ -1345,32 +1327,90 @@ export default function TimberCalculator() {
                             </div>
                           )}
                         </div>
-              
+
                         {/* Column Results */}
                         <div className="bg-white p-4 rounded-lg shadow">
                           <h4 className="font-semibold mb-2">Columns</h4>
                           <p><strong>Size:</strong> {results.columns.width}mm × {results.columns.depth}mm</p>
-                          <p><strong>Span:</strong> {results.beamSpan.toFixed(2)}m</p>
+                          <p><strong>Height:</strong> {results.columns.height}m</p>
+                          <p><strong>Floors:</strong> {results.numFloors}</p>
                           {results.columns.fireAllowance > 0 && (
                             <p className="text-blue-600">
                               <strong>Fire Allowance:</strong> {results.columns.fireAllowance.toFixed(1)}mm per face
                             </p>
                           )}
-                          {results.columns.width === results.beams.width && (
+                          {results.beams.width === results.columns.width && (
                             <p className="text-green-600 mt-2">
                               <strong>✓</strong> Width matched with beams
                             </p>
                           )}
                         </div>
                       </div>
+                      
+                      {/* Environmental Impact */}
+                      <div className="mt-4 bg-white p-4 rounded-lg shadow">
+                        <h4 className="font-semibold mb-2">Environmental Impact</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p><strong>Timber Weight:</strong> {results.timberWeight.toFixed(2)} kg</p>
+                          </div>
+                          <div>
+                            <p><strong>Carbon Savings:</strong> {results.carbonSavings.toFixed(2)} tonnes CO₂e</p>
+                          </div>
+                        </div>
+                      </div>
+            
+                      {/* Additional Resources */}
+                      <div className="mt-4 bg-white p-4 rounded-lg shadow">
+                        <h4 className="font-semibold mb-2">Additional Resources</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Link href="/fire-resistance" className="text-blue-600 hover:text-blue-800">
+                            <div className="border border-blue-200 rounded-lg p-4 hover:bg-blue-50 transition-colors">
+                              <h5 className="font-semibold">Fire Resistance Analysis</h5>
+                              <p className="text-sm text-gray-600">Analyze fire resistance for specific timber sizes</p>
+                            </div>
+                          </Link>
+                          <Link href="/calculation-methodology" className="text-blue-600 hover:text-blue-800">
+                            <div className="border border-blue-200 rounded-lg p-4 hover:bg-blue-50 transition-colors">
+                              <h5 className="font-semibold">Calculation Methodology</h5>
+                              <p className="text-sm text-gray-600">Learn about design constraints and calculation methods</p>
+                            </div>
+                          </Link>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
-              </div>
+                
+                {/* Save Project Button */}
+                <div className="flex justify-end mt-8">
+                  <button 
+                    className="apple-button apple-button-primary"
+                    onClick={() => setShowSaveModal(true)}
+                  >
+                    Save Project
+              </button>
             </div>
           </div>
+            </div>
+          ) : (
+            <div className="apple-card p-6 text-center">
+              <h2 className="text-xl font-semibold mb-4">Results</h2>
+              <p style={{ color: 'var(--apple-text-secondary)' }}>Configure your timber structure and click "Calculate Structure" to see results.</p>
+          </div>
+        )}
         </div>
       </div>
+      
+      {/* Error Display */}
+      {error && (
+        <div className="apple-section mt-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Error: </strong>
+            <span className="block sm:inline">{error}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
