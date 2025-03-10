@@ -840,7 +840,9 @@ export default function TimberCalculator() {
                 </div>
 
                 <div className="apple-specs-row">
-                  <div className="apple-specs-label">Bays (Length)</div>
+                  <div className="apple-specs-label">Bays Wide
+                    <div className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>(Columns)</div>
+                  </div>
                   <div className="apple-specs-value">
                     <input 
                       type="number" 
@@ -862,7 +864,9 @@ export default function TimberCalculator() {
                 </div>
 
                 <div className="apple-specs-row">
-                  <div className="apple-specs-label">Bays (Width)</div>
+                  <div className="apple-specs-label">Bays Deep
+                    <div className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>(Rows)</div>
+                  </div>
                   <div className="apple-specs-value">
                     <input 
                       type="number" 
