@@ -440,8 +440,46 @@ export default function TimberCalculator() {
   const handleLengthwiseBayWidthChange = (index, value) => {
     const parsedValue = parseFloat(value);
     if (!isNaN(parsedValue) && parsedValue > 0) {
+      // Calculate the difference between the new value and the old value
+      const oldValue = customLengthwiseBayWidths[index];
+      const difference = parsedValue - oldValue;
+      
+      // Create a copy of the current widths
       const newWidths = [...customLengthwiseBayWidths];
+      
+      // Update the changed bay width
       newWidths[index] = parsedValue;
+      
+      // If the difference would make the total exceed or fall below the building length,
+      // distribute the difference among other bays proportionally
+      const newTotal = newWidths.reduce((sum, width) => sum + width, 0);
+      
+      if (Math.abs(newTotal - buildingLength) > 0.01) {
+        // Calculate how much we need to adjust other bays
+        const adjustment = buildingLength - newTotal;
+        
+        // Get the sum of all other bay widths
+        const otherBaysSum = newWidths.reduce((sum, width, i) => 
+          i === index ? sum : sum + width, 0);
+        
+        if (otherBaysSum > 0) {
+          // Distribute the adjustment proportionally among other bays
+          newWidths.forEach((width, i) => {
+            if (i !== index) {
+              // Calculate the proportion of this bay to all other bays
+              const proportion = width / otherBaysSum;
+              // Apply the adjustment proportionally
+              newWidths[i] += adjustment * proportion;
+              // Ensure the bay width is not less than the minimum
+              if (newWidths[i] < 0.5) {
+                newWidths[i] = 0.5;
+              }
+            }
+          });
+        }
+      }
+      
+      // Update the state
       setCustomLengthwiseBayWidths(newWidths);
     }
   };
@@ -449,8 +487,46 @@ export default function TimberCalculator() {
   const handleWidthwiseBayWidthChange = (index, value) => {
     const parsedValue = parseFloat(value);
     if (!isNaN(parsedValue) && parsedValue > 0) {
+      // Calculate the difference between the new value and the old value
+      const oldValue = customWidthwiseBayWidths[index];
+      const difference = parsedValue - oldValue;
+      
+      // Create a copy of the current widths
       const newWidths = [...customWidthwiseBayWidths];
+      
+      // Update the changed bay width
       newWidths[index] = parsedValue;
+      
+      // If the difference would make the total exceed or fall below the building width,
+      // distribute the difference among other bays proportionally
+      const newTotal = newWidths.reduce((sum, width) => sum + width, 0);
+      
+      if (Math.abs(newTotal - buildingWidth) > 0.01) {
+        // Calculate how much we need to adjust other bays
+        const adjustment = buildingWidth - newTotal;
+        
+        // Get the sum of all other bay widths
+        const otherBaysSum = newWidths.reduce((sum, width, i) => 
+          i === index ? sum : sum + width, 0);
+        
+        if (otherBaysSum > 0) {
+          // Distribute the adjustment proportionally among other bays
+          newWidths.forEach((width, i) => {
+            if (i !== index) {
+              // Calculate the proportion of this bay to all other bays
+              const proportion = width / otherBaysSum;
+              // Apply the adjustment proportionally
+              newWidths[i] += adjustment * proportion;
+              // Ensure the bay width is not less than the minimum
+              if (newWidths[i] < 0.5) {
+                newWidths[i] = 0.5;
+              }
+            }
+          });
+        }
+      }
+      
+      // Update the state
       setCustomWidthwiseBayWidths(newWidths);
     }
   };
@@ -807,8 +883,23 @@ export default function TimberCalculator() {
                                   <span className="text-xs ml-2">m</span>
                                 </div>
                               ))}
-                              <div className="text-xs text-right mt-1" style={{ color: 'var(--apple-text-secondary)' }}>
-                                Total: {customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0).toFixed(2)}m / {buildingLength.toFixed(2)}m
+                              <div className="text-xs mt-3 p-2 rounded" style={{ 
+                                backgroundColor: 'rgba(0, 113, 227, 0.05)',
+                                color: 'var(--apple-text-secondary)'
+                              }}>
+                                <div className="flex justify-between mb-1">
+                                  <span>Total:</span>
+                                  <span className={Math.abs(customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0) - buildingLength) > 0.01 ? 'text-red-500' : ''}>
+                                    {customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0).toFixed(2)}m
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Building Length:</span>
+                                  <span>{buildingLength.toFixed(2)}m</span>
+                                </div>
+                                <div className="text-xs mt-1 italic">
+                                  Adjusting one bay will automatically resize others to maintain the total building length.
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -837,8 +928,23 @@ export default function TimberCalculator() {
                                   <span className="text-xs ml-2">m</span>
                                 </div>
                               ))}
-                              <div className="text-xs text-right mt-1" style={{ color: 'var(--apple-text-secondary)' }}>
-                                Total: {customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0).toFixed(2)}m / {buildingWidth.toFixed(2)}m
+                              <div className="text-xs mt-3 p-2 rounded" style={{ 
+                                backgroundColor: 'rgba(0, 113, 227, 0.05)',
+                                color: 'var(--apple-text-secondary)'
+                              }}>
+                                <div className="flex justify-between mb-1">
+                                  <span>Total:</span>
+                                  <span className={Math.abs(customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0) - buildingWidth) > 0.01 ? 'text-red-500' : ''}>
+                                    {customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0).toFixed(2)}m
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Building Width:</span>
+                                  <span>{buildingWidth.toFixed(2)}m</span>
+                                </div>
+                                <div className="text-xs mt-1 italic">
+                                  Adjusting one bay will automatically resize others to maintain the total building width.
+                                </div>
                               </div>
                             </div>
                           </div>
