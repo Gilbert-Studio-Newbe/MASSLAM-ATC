@@ -1,11 +1,17 @@
-import "./globals.css";
+import "../../styles/globals.css";
+import "../../styles/apple-inspired.css";
 import { ReactNode } from 'react';
 import Link from 'next/link';
 
 export const metadata = { 
   title: "ATC by ASH", 
-  description: "Parametric design tool for timber structures using MASSLAM sections",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1"
+  description: "Parametric design tool for timber structures using MASSLAM sections"
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) { 
