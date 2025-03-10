@@ -357,7 +357,8 @@ export default function TimberCalculator() {
           buildingWidth, 
           numFloors,
           lengthwiseBays,
-          widthwiseBays
+          widthwiseBays,
+          joistsRunLengthwise
         );
         
         // Calculate carbon savings
@@ -1428,10 +1429,12 @@ export default function TimberCalculator() {
                           <div>
                             <p><strong>Joists:</strong> {results.elementCounts.joists} pieces</p>
                             <p className="text-sm text-gray-600">Volume: {results.elementVolumes.joists.toFixed(2)} m³</p>
+                            <p className="text-sm text-gray-600">Direction: {results.joistsRunLengthwise ? 'Lengthwise' : 'Widthwise'}</p>
                           </div>
                           <div>
                             <p><strong>Beams:</strong> {results.elementCounts.beams} pieces</p>
                             <p className="text-sm text-gray-600">Volume: {results.elementVolumes.beams.toFixed(2)} m³</p>
+                            <p className="text-sm text-gray-600">Direction: {!results.joistsRunLengthwise ? 'Lengthwise' : 'Widthwise'}</p>
                           </div>
                           <div>
                             <p><strong>Columns:</strong> {results.elementCounts.columns} pieces</p>

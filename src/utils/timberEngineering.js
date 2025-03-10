@@ -184,7 +184,7 @@ export function calculateColumnSize(height, load, timberGrade, fireRating = 'non
   };
 }
 
-export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingLength, buildingWidth, numFloors, lengthwiseBays = 3, widthwiseBays = 2, timberGrade = 'GL18') {
+export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingLength, buildingWidth, numFloors, lengthwiseBays = 3, widthwiseBays = 2, joistsRunLengthwise = true, timberGrade = 'GL18') {
   // If called with just volume and timberGrade (for testing or simple cases)
   if (typeof joistSize === 'number' && (typeof beamSize === 'string' || beamSize === undefined)) {
     const volume = joistSize;
@@ -200,12 +200,7 @@ export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingL
   const bayLengthWidth = buildingLength / lengthwiseBays; // Width of each bay in the length direction
   const bayWidthWidth = buildingWidth / widthwiseBays; // Width of each bay in the width direction
   
-  // Calculate number of joists
-  // Joists run perpendicular to beams
-  // If joists run lengthwise, they span across the width of each bay
-  // If joists run widthwise, they span across the length of each bay
-  const joistsRunLengthwise = true; // Assuming joists run lengthwise by default
-  
+  // Calculate number of joists based on joist direction
   let numJoistsPerBay;
   let joistLength;
   
@@ -228,22 +223,29 @@ export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingL
   const joistVolume = joistWidth * joistDepth * joistLength * totalJoists;
   
   // Calculate number of beams
-  // Beams run along the grid lines
-  // Lengthwise beams: (widthwiseBays + 1) * lengthwiseBays
-  // Widthwise beams: (lengthwiseBays + 1) * widthwiseBays
-  const numLengthwiseBeams = (widthwiseBays + 1) * lengthwiseBays;
-  const numWidthwiseBeams = (lengthwiseBays + 1) * widthwiseBays;
+  // Beams run perpendicular to joists
+  let numBeamsPerFloor;
+  let beamLength;
+  
+  if (joistsRunLengthwise) {
+    // Joists run lengthwise, so beams run widthwise
+    // Number of beams = (lengthwiseBays + 1) * widthwiseBays
+    numBeamsPerFloor = (lengthwiseBays + 1) * widthwiseBays;
+    beamLength = bayWidthWidth;
+  } else {
+    // Joists run widthwise, so beams run lengthwise
+    // Number of beams = (widthwiseBays + 1) * lengthwiseBays
+    numBeamsPerFloor = (widthwiseBays + 1) * lengthwiseBays;
+    beamLength = bayLengthWidth;
+  }
   
   // Total number of beams
-  const totalBeams = (numLengthwiseBeams + numWidthwiseBeams) * numFloors;
+  const totalBeams = numBeamsPerFloor * numFloors;
   
   // Calculate beam volume
   const beamWidth = beamSize.width / 1000; // Convert mm to m
   const beamDepth = beamSize.depth / 1000; // Convert mm to m
-  const lengthwiseBeamLength = bayLengthWidth;
-  const widthwiseBeamLength = bayWidthWidth;
-  const beamVolume = beamWidth * beamDepth * 
-    ((numLengthwiseBeams * lengthwiseBeamLength) + (numWidthwiseBeams * widthwiseBeamLength)) * numFloors;
+  const beamVolume = beamWidth * beamDepth * beamLength * totalBeams;
   
   // Calculate number of columns
   // Columns are at the intersections of grid lines
@@ -270,11 +272,13 @@ export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingL
     elements: {
       joists: {
         count: totalJoists,
-        volume: joistVolume
+        volume: joistVolume,
+        direction: joistsRunLengthwise ? 'lengthwise' : 'widthwise'
       },
       beams: {
         count: totalBeams,
-        volume: beamVolume
+        volume: beamVolume,
+        direction: joistsRunLengthwise ? 'widthwise' : 'lengthwise'
       },
       columns: {
         count: totalColumns,
