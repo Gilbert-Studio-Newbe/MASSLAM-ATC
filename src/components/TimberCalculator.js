@@ -865,7 +865,7 @@ export default function TimberCalculator() {
                             <div className="space-y-2">
                               {customLengthwiseBayWidths.map((width, index) => (
                                 <div key={`length-${index}`} className="flex items-center">
-                                  <span className="text-xs w-24">Column {String.fromCharCode(65 + index)}:</span>
+                                  <span className="text-xs w-24">{String.fromCharCode(65 + index)}:</span>
                                   <input
                                     type="number"
                                     className="apple-input mb-0 text-sm"
@@ -910,7 +910,7 @@ export default function TimberCalculator() {
                             <div className="space-y-2">
                               {customWidthwiseBayWidths.map((width, index) => (
                                 <div key={`width-${index}`} className="flex items-center">
-                                  <span className="text-xs w-24">Row {index + 1}:</span>
+                                  <span className="text-xs w-24">{index + 1}:</span>
                                   <input
                                     type="number"
                                     className="apple-input mb-0 text-sm"
