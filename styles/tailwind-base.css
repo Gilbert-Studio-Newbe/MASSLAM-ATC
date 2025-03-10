@@ -52,6 +52,38 @@
   .masslam-logo {
     @apply bg-orange-500 text-white p-2 rounded font-bold text-center;
   }
+  
+  /* Mobile menu styling */
+  .mobile-menu-button {
+    @apply hidden;
+  }
+  
+  .mobile-nav {
+    @apply block w-full;
+  }
+  
+  .apple-nav-list {
+    @apply flex flex-row items-center space-x-6;
+  }
+  
+  /* Mobile styles */
+  @media (max-width: 768px) {
+    .mobile-menu-button {
+      @apply block;
+    }
+    
+    .mobile-nav {
+      @apply hidden;
+    }
+    
+    .mobile-nav.active {
+      @apply block;
+    }
+    
+    .apple-nav-list {
+      @apply flex-col items-start space-x-0 space-y-4 pt-4;
+    }
+  }
 }
 
 /* Custom animation classes */
