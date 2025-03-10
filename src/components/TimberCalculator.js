@@ -1050,18 +1050,15 @@ export default function TimberCalculator() {
                       {/* Environmental Impact */}
                       <div className="mt-4 bg-white p-4 rounded-lg shadow">
                         <h4 className="font-semibold mb-2">Environmental Impact</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <p><strong>Total Timber Volume:</strong> {results.volume.toFixed(2)} m³</p>
-                          </div>
-                          <div>
-                            <p><strong>Timber Weight:</strong> {results.weight.toFixed(2)} kg</p>
+                            <p><strong>Timber Weight:</strong> {results.timberWeight.toFixed(2)} kg</p>
                           </div>
                           <div>
                             <p><strong>Carbon Savings:</strong> {results.carbonSavings.toFixed(2)} tonnes CO₂e</p>
                           </div>
                         </div>
-            </div>
+                      </div>
             
                       {/* Additional Resources */}
                       <div className="mt-4 bg-white p-4 rounded-lg shadow">
