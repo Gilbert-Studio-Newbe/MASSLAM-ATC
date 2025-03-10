@@ -184,13 +184,51 @@ export function calculateColumnSize(height, load, timberGrade, fireRating = 'non
   };
 }
 
-export function calculateTimberWeight(volume, timberGrade) {
-  // Placeholder implementation
+export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingLength, buildingWidth, numFloors, timberGrade = 'GL18') {
+  // If called with just volume and timberGrade (for testing or simple cases)
+  if (typeof joistSize === 'number' && (typeof beamSize === 'string' || beamSize === undefined)) {
+    const volume = joistSize;
+    const grade = beamSize || timberGrade;
+    const density = TIMBER_PROPERTIES[grade]?.density || 600; // kg/m³
+    return volume * density; // kg
+  }
+  
+  // Calculate joist volume
+  const joistWidth = joistSize.width / 1000; // Convert mm to m
+  const joistDepth = joistSize.depth / 1000; // Convert mm to m
+  const joistSpacing = 0.8; // 800mm spacing
+  const numJoistsPerBay = Math.ceil(buildingLength / joistSpacing);
+  const totalJoistLength = buildingWidth * numJoistsPerBay;
+  const joistVolume = joistWidth * joistDepth * totalJoistLength * numFloors;
+  
+  // Calculate beam volume
+  const beamWidth = beamSize.width / 1000; // Convert mm to m
+  const beamDepth = beamSize.depth / 1000; // Convert mm to m
+  const totalBeamLength = buildingLength; // Simplified
+  const beamVolume = beamWidth * beamDepth * totalBeamLength * numFloors;
+  
+  // Calculate column volume
+  const columnWidth = columnSize.width / 1000; // Convert mm to m
+  const columnDepth = columnSize.depth / 1000; // Convert mm to m
+  const columnHeight = columnSize.height; // Already in m
+  const numColumns = 4; // Simplified
+  const columnVolume = columnWidth * columnDepth * columnHeight * numColumns;
+  
+  // Total volume
+  const totalVolume = joistVolume + beamVolume + columnVolume;
+  
+  // Calculate weight using density
   const density = TIMBER_PROPERTIES[timberGrade]?.density || 600; // kg/m³
-  return volume * density; // kg
+  const weight = totalVolume * density;
+  
+  return weight;
 }
 
-export function calculateCarbonSavings(volume) {
+export function calculateCarbonSavings(weight) {
+  // If weight is provided directly (in kg), convert to volume (m³) using average density
+  const averageDensity = 600; // kg/m³
+  const volume = weight / averageDensity;
+  
   // Placeholder implementation - approx 0.9 tonnes CO2e per m³ of timber
   return volume * 0.9; // tonnes CO2e
 }
