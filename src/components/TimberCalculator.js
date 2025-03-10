@@ -891,7 +891,13 @@ export default function TimberCalculator() {
                                       borderRadius: '0'
                                     }}>
                                       {useCustomBayDimensions && (
-                                        <div className="text-xs">
+                                        <div className="text-xs" style={{ 
+                                          position: 'relative', 
+                                          top: '-10px', 
+                                          backgroundColor: 'rgba(255,255,255,0.7)',
+                                          padding: '2px 4px',
+                                          borderRadius: '2px'
+                                        }}>
                                           {bayWidth.toFixed(1)}m × {bayHeight.toFixed(1)}m
                                         </div>
                                       )}
@@ -997,6 +1003,49 @@ export default function TimberCalculator() {
                   <div className="apple-section mt-4">
                     <h3 className="apple-section-title">Calculated Timber Sizes</h3>
                     <div className="apple-section-content">
+                      {/* Bay Sizes Row */}
+                      <div className="bg-white p-4 rounded-lg shadow mb-4">
+                        <h4 className="font-semibold mb-2">Bay Sizes</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            {useCustomBayDimensions ? (
+                              <div>
+                                <p><strong>Custom Bay Dimensions:</strong> Enabled</p>
+                                <p className="mt-2"><strong>Lengthwise Bays:</strong></p>
+                                <ul className="list-disc pl-5 text-sm">
+                                  {calculateBayDimensions().lengthwiseBayWidths.map((width, index) => (
+                                    <li key={`length-${index}`}>Bay {index + 1}: {width.toFixed(2)}m</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : (
+                              <div>
+                                <p><strong>Uniform Bay Size:</strong></p>
+                                <p>{(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</p>
+                                <p className="mt-2"><strong>Lengthwise Bays:</strong> {results.lengthwiseBays} × {(results.buildingLength / results.lengthwiseBays).toFixed(2)}m</p>
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            {useCustomBayDimensions ? (
+                              <div>
+                                <p className="mt-2"><strong>Widthwise Bays:</strong></p>
+                                <ul className="list-disc pl-5 text-sm">
+                                  {calculateBayDimensions().widthwiseBayWidths.map((width, index) => (
+                                    <li key={`width-${index}`}>Bay {index + 1}: {width.toFixed(2)}m</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : (
+                              <div>
+                                <p className="mt-2"><strong>Widthwise Bays:</strong> {results.widthwiseBays} × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</p>
+                                <p className="mt-2"><strong>Total Bays:</strong> {results.lengthwiseBays * results.widthwiseBays}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {/* Joist Results */}
                         <div className="bg-white p-4 rounded-lg shadow">
