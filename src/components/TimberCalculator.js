@@ -1062,9 +1062,10 @@ export default function TimberCalculator() {
                       
                       <div className="flex justify-center">
                         <div className="relative" style={{ 
-                          height: `${Math.max(250, results.numFloors * 60)}px`,
                           width: '100%',
-                          maxWidth: '600px'
+                          maxWidth: '600px',
+                          aspectRatio: `${buildingLength} / ${buildingWidth}`,
+                          maxHeight: '400px'
                         }}>
                           {/* Calculate bay dimensions */}
                           {(() => {
