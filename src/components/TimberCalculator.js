@@ -466,14 +466,36 @@ export default function TimberCalculator() {
   const handleLengthwiseBaysChange = (value) => {
     const parsedValue = parseInt(value, 10);
     if (!isNaN(parsedValue)) {
-      setLengthwiseBays(parsedValue);
+      // Calculate minimum required bays based on MAX_BAY_SPAN
+      const minRequiredBays = Math.ceil(buildingLength / MAX_BAY_SPAN);
+      
+      // Ensure the number of bays doesn't go below the minimum required
+      const validBayCount = Math.max(parsedValue, minRequiredBays);
+      
+      setLengthwiseBays(validBayCount);
+      
+      // If the value was adjusted, show a notification or alert
+      if (validBayCount !== parsedValue) {
+        alert(`The minimum number of bays required for this building length is ${minRequiredBays} to maintain a maximum span of ${MAX_BAY_SPAN}m.`);
+      }
     }
   };
 
   const handleWidthwiseBaysChange = (value) => {
     const parsedValue = parseInt(value, 10);
     if (!isNaN(parsedValue)) {
-      setWidthwiseBays(parsedValue);
+      // Calculate minimum required bays based on MAX_BAY_SPAN
+      const minRequiredBays = Math.ceil(buildingWidth / MAX_BAY_SPAN);
+      
+      // Ensure the number of bays doesn't go below the minimum required
+      const validBayCount = Math.max(parsedValue, minRequiredBays);
+      
+      setWidthwiseBays(validBayCount);
+      
+      // If the value was adjusted, show a notification or alert
+      if (validBayCount !== parsedValue) {
+        alert(`The minimum number of bays required for this building width is ${minRequiredBays} to maintain a maximum span of ${MAX_BAY_SPAN}m.`);
+      }
     }
   };
 
@@ -1303,7 +1325,7 @@ export default function TimberCalculator() {
                         <div className="bg-white p-4 rounded-lg shadow">
                           <h4 className="font-semibold mb-2">Joists</h4>
                           <p><strong>Size:</strong> {results.joists.width}mm × {results.joists.depth}mm</p>
-                          <p><strong>Span:</strong> {results.joistSpan.toFixed(2)}m</p>
+                          <p><strong>Span:</strong> {results.joistSpan?.toFixed(2) || '0.00'}m</p>
                           <p><strong>Spacing:</strong> 800mm</p>
                           {results.joists.fireAllowance > 0 && (
                             <p className="text-blue-600">
@@ -1360,7 +1382,7 @@ export default function TimberCalculator() {
                                   
                                   return uniqueBaySizes.map((item, index) => (
                                     <div key={`joist-size-${index}`}>
-                                      <strong>{item.span.toFixed(2)}m span:</strong> {item.width}mm × {item.depth}mm
+                                      <strong>{item.span?.toFixed(2) || '0.00'}m span:</strong> {item.width}mm × {item.depth}mm
                                       <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'grid cell' : 'grid cells'})</span>
                                     </div>
                                   ));
@@ -1374,7 +1396,7 @@ export default function TimberCalculator() {
                         <div className="bg-white p-4 rounded-lg shadow">
                           <h4 className="font-semibold mb-2">Beams</h4>
                           <p><strong>Size:</strong> {results.beams.width}mm × {results.beams.depth}mm</p>
-                          <p><strong>Span:</strong> {results.beamSpan.toFixed(2)}m</p>
+                          <p><strong>Span:</strong> {results.beamSpan?.toFixed(2) || '0.00'}m</p>
                           {results.beams.fireAllowance > 0 && (
                             <p className="text-blue-600">
                               <strong>Fire Allowance:</strong> {results.beams.fireAllowance.toFixed(1)}mm per face
@@ -1435,7 +1457,7 @@ export default function TimberCalculator() {
                                   
                                   return uniqueBaySizes.map((item, index) => (
                                     <div key={`beam-size-${index}`}>
-                                      <strong>{item.span.toFixed(2)}m span:</strong> {item.width}mm × {item.depth}mm
+                                      <strong>{item.span?.toFixed(2) || '0.00'}m span:</strong> {item.width}mm × {item.depth}mm
                                       <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'grid cell' : 'grid cells'})</span>
                                     </div>
                                   ));

@@ -17,8 +17,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return ( 
     <html lang="en"> 
       <head>
-        <link rel="stylesheet" href="/styles/tailwind-base.css" />
-        <link rel="stylesheet" href="/styles/apple-inspired.css" />
+        <link rel="stylesheet" href="/styles/combined-styles.css" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
       </head>
       <body> 
