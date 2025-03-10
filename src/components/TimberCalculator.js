@@ -102,6 +102,11 @@ export default function TimberCalculator() {
   // Add a new state variable for number of floors
   const [numFloors, setNumFloors] = useState(6); // Default to 6 floors
   
+  // Custom bay dimensions state variables
+  const [customLengthwiseBayWidths, setCustomLengthwiseBayWidths] = useState([]);
+  const [customWidthwiseBayWidths, setCustomWidthwiseBayWidths] = useState([]);
+  const [useCustomBayDimensions, setUseCustomBayDimensions] = useState(false);
+  
   // Maximum allowed span for a single bay (in meters)
   const MAX_BAY_SPAN = 9.0;
   
@@ -254,151 +259,131 @@ export default function TimberCalculator() {
     loadSizes();
   }, []);
   
+  // Initialize custom bay dimensions when the number of bays changes
+  useEffect(() => {
+    // Initialize lengthwise bay widths with equal distribution
+    const defaultLengthwiseBayWidth = buildingLength / lengthwiseBays;
+    setCustomLengthwiseBayWidths(Array(lengthwiseBays).fill(defaultLengthwiseBayWidth));
+    
+    // Initialize widthwise bay widths with equal distribution
+    const defaultWidthwiseBayWidth = buildingWidth / widthwiseBays;
+    setCustomWidthwiseBayWidths(Array(widthwiseBays).fill(defaultWidthwiseBayWidth));
+    
+  }, [lengthwiseBays, widthwiseBays, buildingLength, buildingWidth]);
+
+  // Calculate bay dimensions based on whether custom dimensions are used
+  const calculateBayDimensions = () => {
+    if (!useCustomBayDimensions) {
+      // Use equal distribution
+      return {
+        lengthwiseBayWidths: Array(lengthwiseBays).fill(buildingLength / lengthwiseBays),
+        widthwiseBayWidths: Array(widthwiseBays).fill(buildingWidth / widthwiseBays)
+      };
+    }
+    
+    // Ensure the sum of custom dimensions matches the building dimensions
+    const totalLengthwise = customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0);
+    const totalWidthwise = customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0);
+    
+    // Normalize if needed
+    let normalizedLengthwiseBayWidths = [...customLengthwiseBayWidths];
+    let normalizedWidthwiseBayWidths = [...customWidthwiseBayWidths];
+    
+    if (Math.abs(totalLengthwise - buildingLength) > 0.01) {
+      const scaleFactor = buildingLength / totalLengthwise;
+      normalizedLengthwiseBayWidths = customLengthwiseBayWidths.map(width => width * scaleFactor);
+    }
+    
+    if (Math.abs(totalWidthwise - buildingWidth) > 0.01) {
+      const scaleFactor = buildingWidth / totalWidthwise;
+      normalizedWidthwiseBayWidths = customWidthwiseBayWidths.map(width => width * scaleFactor);
+    }
+    
+    return {
+      lengthwiseBayWidths: normalizedLengthwiseBayWidths,
+      widthwiseBayWidths: normalizedWidthwiseBayWidths
+    };
+  };
+  
   // Calculate results based on inputs
   useEffect(() => {
-    // Skip calculation if any required input is missing
-    if (!buildingLength || !buildingWidth || !lengthwiseBays || !widthwiseBays || !load || !numFloors) {
-      return;
-    }
+    const calculateResults = () => {
+      try {
+        // Get bay dimensions
+        const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
+        
+        // Find the maximum bay span (for joists)
+        let maxLengthwiseSpan = Math.max(...lengthwiseBayWidths);
+        let maxWidthwiseSpan = Math.max(...widthwiseBayWidths);
+        
+        // Determine joist span (joists span the shorter distance)
+        const joistSpan = Math.min(maxLengthwiseSpan, maxWidthwiseSpan);
+        
+        // Calculate joist size based on span and load
+        const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+        
+        // Calculate beam span (beams span the longer distance)
+        const beamSpan = Math.max(maxLengthwiseSpan, maxWidthwiseSpan);
+        
+        // Calculate beam size based on span, load, and number of floors
+        const beamSize = calculateBeamSize(beamSpan, load, numFloors, fireRating);
+        
+        // Calculate column size based on beam width, load, and number of floors
+        const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, 3.0, numFloors, fireRating);
+        
+        // Calculate timber weight
+        const timberWeight = calculateTimberWeight(
+          joistSize, 
+          beamSize, 
+          columnSize, 
+          buildingLength, 
+          buildingWidth, 
+          numFloors
+        );
+        
+        // Calculate carbon savings
+        const carbonSavings = calculateCarbonSavings(timberWeight);
+        
+        // Validate the structure
+        const validationResult = validateStructure(joistSize, beamSize, columnSize, joistSpan, beamSpan);
+        
+        // Set results
+        setResults({
+          buildingLength,
+          buildingWidth,
+          lengthwiseBays,
+          widthwiseBays,
+          numFloors,
+          load,
+          fireRating,
+          joistSpan,
+          beamSpan,
+          joists: joistSize,
+          beams: beamSize,
+          columns: columnSize,
+          timberWeight,
+          carbonSavings,
+          validationResult,
+          customBayDimensions: useCustomBayDimensions ? {
+            lengthwiseBayWidths,
+            widthwiseBayWidths
+          } : null
+        });
+        
+        setError(null);
+      } catch (err) {
+        console.error('Calculation error:', err);
+        setError(err.message || 'An error occurred during calculations');
+      }
+    };
     
-    // Calculate spans
-    const lengthwiseSpan = buildingLength / lengthwiseBays;
-    const widthwiseSpan = buildingWidth / widthwiseBays;
-    
-    // Validate spans
-    if (lengthwiseSpan > MAX_BAY_SPAN || widthwiseSpan > MAX_BAY_SPAN) {
-      setError(`Maximum span exceeded. Please add more bays or reduce building dimensions.`);
-      return;
-    } else {
-      setError(null);
-    }
-    
-    // Determine which direction joists and beams run
-    // Joists span the shorter distance, beams span the longer distance
-    const joistSpan = Math.min(lengthwiseSpan, widthwiseSpan);
-    const beamSpan = Math.max(lengthwiseSpan, widthwiseSpan);
-    
-    console.log('Calculated spans:', { joistSpan, beamSpan });
-    
-    // Calculate initial results based on inputs
-    const joistResult = calculateJoistSize(joistSpan, 0.8, load, timberGrade, fireRating);
-    const beamResult = calculateBeamSize(beamSpan, load, timberGrade, fireRating);
-    
-    // Find nearest available sizes from MASSLAM catalog (rounding up)
-    // For joists
-    const joistType = 'joist';
-    const adjustedJoistWidth = findNearestWidth(joistResult.width);
-    const adjustedJoistDepth = findNearestDepth(adjustedJoistWidth, joistResult.depth);
-    
-    // For beams - initial calculation
-    const beamType = 'beam';
-    let adjustedBeamWidth = findNearestWidth(beamResult.width);
-    let adjustedBeamDepth = findNearestDepth(adjustedBeamWidth, beamResult.depth);
-    
-    // For columns - initial calculation
-    const columnType = 'column';
-    const columnHeight = 3; // Standard floor height in meters
-    const initialColumnResult = calculateMultiFloorColumnSize(adjustedBeamWidth, load * joistSpan * 0.8, columnHeight, numFloors, fireRating);
-    
-    // Apply the constraint: beam and column widths must match
-    // Use the wider of the two to determine the width of both
-    const commonWidth = Math.max(adjustedBeamWidth, initialColumnResult.width);
-    
-    // If the common width is different from the beam width, recalculate beam depth
-    if (commonWidth !== adjustedBeamWidth) {
-      console.log(`Adjusting beam width from ${adjustedBeamWidth}mm to ${commonWidth}mm to match column width`);
-      adjustedBeamWidth = commonWidth;
-      adjustedBeamDepth = findNearestDepth(adjustedBeamWidth, beamResult.depth);
-    }
-    
-    // Recalculate column with the common width
-    const columnResult = calculateMultiFloorColumnSize(commonWidth, load * joistSpan * 0.8, columnHeight, numFloors, fireRating);
-    
-    console.log('Calculation results after width matching:', { 
-      joists: { width: adjustedJoistWidth, depth: adjustedJoistDepth },
-      beams: { width: adjustedBeamWidth, depth: adjustedBeamDepth },
-      columns: { width: columnResult.width, depth: columnResult.depth }
-    });
-    
-    // Verify that the adjusted sizes exist in the MASSLAM catalog
-    const sizes = getMasslamSizes();
-    const joistExists = sizes.some(size => 
-      size.width === adjustedJoistWidth && 
-      size.depth === adjustedJoistDepth && 
-      size.type === joistType
-    );
-    
-    const beamExists = sizes.some(size => 
-      size.width === adjustedBeamWidth && 
-      size.depth === adjustedBeamDepth && 
-      size.type === beamType
-    );
-    
-    const columnExists = sizes.some(size => 
-      size.width === columnResult.width && 
-      size.depth === columnResult.depth && 
-      size.type === columnType
-    );
-    
-    console.log('Size verification:', {
-      joist: { width: adjustedJoistWidth, depth: adjustedJoistDepth, exists: joistExists },
-      beam: { width: adjustedBeamWidth, depth: adjustedBeamDepth, exists: beamExists },
-      column: { width: columnResult.width, depth: columnResult.depth, exists: columnExists }
-    });
-    
-    if (!joistExists || !beamExists || !columnExists) {
-      console.warn('WARNING: Some selected sizes do not exist in the MASSLAM catalog!', {
-        joist: { width: adjustedJoistWidth, depth: adjustedJoistDepth, exists: joistExists },
-        beam: { width: adjustedBeamWidth, depth: adjustedBeamDepth, exists: beamExists },
-        column: { width: columnResult.width, depth: columnResult.depth, exists: columnExists }
-      });
-    } else {
-      console.log('All selected sizes exist in the MASSLAM catalog.');
-    }
-    
-    // Update the results with the adjusted sizes
-    joistResult.width = adjustedJoistWidth;
-    joistResult.depth = adjustedJoistDepth;
-    
-    beamResult.width = adjustedBeamWidth;
-    beamResult.depth = adjustedBeamDepth;
-    
-    columnResult.width = columnResult.width;
-    columnResult.depth = columnResult.depth;
-    
-    // Calculate volume and environmental impact
-    const joistVolume = (joistResult.width / 1000) * (joistResult.depth / 1000) * joistSpan;
-    const beamVolume = (beamResult.width / 1000) * (beamResult.depth / 1000) * beamSpan;
-    const columnVolume = (columnResult.width / 1000) * (columnResult.depth / 1000) * columnHeight * 4; // 4 columns
-    
-    const totalVolume = joistVolume + beamVolume + columnVolume;
-    const weight = calculateTimberWeight(totalVolume, timberGrade);
-    const carbonSavings = calculateCarbonSavings(totalVolume);
-    
-    setResults({
-      joists: joistResult,
-      beams: beamResult,
-      columns: columnResult,
-      joistSpan,
-      beamSpan,
-      buildingLength,
-      buildingWidth,
-      lengthwiseBays,
-      widthwiseBays,
-      load,
-      numFloors,
-      volume: totalVolume,
-      weight,
-      carbonSavings,
-      valid: true
-    });
-
-    // Validate that all sizes are from the MASSLAM catalog
-    setTimeout(() => {
-      const allSizesValid = verifyLoadedSizes();
-      console.log('All sizes valid:', allSizesValid);
+    // Debounce calculations to avoid excessive recalculations
+    const timer = setTimeout(() => {
+      calculateResults();
     }, 100);
-  }, [buildingLength, buildingWidth, lengthwiseBays, widthwiseBays, load, numFloors, timberGrade, fireRating]);
+    
+    return () => clearTimeout(timer);
+  }, [buildingLength, buildingWidth, lengthwiseBays, widthwiseBays, load, numFloors, timberGrade, fireRating, useCustomBayDimensions, customLengthwiseBayWidths, customWidthwiseBayWidths]);
 
   // Handle input changes
   const handleBuildingLengthChange = (value) => {
@@ -445,6 +430,29 @@ export default function TimberCalculator() {
 
   const handleFireRatingChange = (value) => {
     setFireRating(value);
+  };
+  
+  // Handlers for custom bay dimensions
+  const handleToggleCustomBayDimensions = () => {
+    setUseCustomBayDimensions(!useCustomBayDimensions);
+  };
+  
+  const handleLengthwiseBayWidthChange = (index, value) => {
+    const parsedValue = parseFloat(value);
+    if (!isNaN(parsedValue) && parsedValue > 0) {
+      const newWidths = [...customLengthwiseBayWidths];
+      newWidths[index] = parsedValue;
+      setCustomLengthwiseBayWidths(newWidths);
+    }
+  };
+  
+  const handleWidthwiseBayWidthChange = (index, value) => {
+    const parsedValue = parseFloat(value);
+    if (!isNaN(parsedValue) && parsedValue > 0) {
+      const newWidths = [...customWidthwiseBayWidths];
+      newWidths[index] = parsedValue;
+      setCustomWidthwiseBayWidths(newWidths);
+    }
   };
   
   // Example of a component section converted to use Tailwind classes
@@ -752,52 +760,172 @@ export default function TimberCalculator() {
                 </div>
                 
                 {/* Visualizations - Side by side */}
-                <div className="apple-results-section grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Bay Layout Visualization */}
+                <div className="apple-results-section grid grid-cols-1 gap-8">
+                  {/* Bay Layout Visualization - Now spans full width */}
                   <div>
                     <div className="apple-visualization mb-3">
                       <h3 className="apple-visualization-title">Bay Layout</h3>
+                      
+                      {/* Custom Bay Dimensions Toggle */}
+                      <div className="mb-4 flex items-center">
+                        <label className="inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            className="form-checkbox h-5 w-5" 
+                            style={{ accentColor: 'var(--apple-blue)' }}
+                            checked={useCustomBayDimensions} 
+                            onChange={handleToggleCustomBayDimensions}
+                          />
+                          <span className="ml-2 text-sm font-medium">Customize Bay Dimensions</span>
+                        </label>
+                      </div>
+                      
+                      {/* Custom Bay Dimensions Controls */}
+                      {useCustomBayDimensions && (
+                        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Lengthwise Bay Controls */}
+                          <div>
+                            <h4 className="text-sm font-medium mb-2">Lengthwise Bay Widths (m)</h4>
+                            <div className="space-y-2">
+                              {customLengthwiseBayWidths.map((width, index) => (
+                                <div key={`length-${index}`} className="flex items-center">
+                                  <span className="text-xs w-16">Bay {index + 1}:</span>
+                                  <input
+                                    type="number"
+                                    className="apple-input mb-0 text-sm"
+                                    min="0.5"
+                                    max={MAX_BAY_SPAN}
+                                    step="0.1"
+                                    value={width.toFixed(2)}
+                                    onChange={(e) => handleLengthwiseBayWidthChange(index, e.target.value)}
+                                    onInput={(e) => {
+                                      if (e.target.value.startsWith('0')) {
+                                        e.target.value = e.target.value.replace(/^0+/, '');
+                                      }
+                                    }}
+                                  />
+                                  <span className="text-xs ml-2">m</span>
+                                </div>
+                              ))}
+                              <div className="text-xs text-right mt-1" style={{ color: 'var(--apple-text-secondary)' }}>
+                                Total: {customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0).toFixed(2)}m / {buildingLength.toFixed(2)}m
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Widthwise Bay Controls */}
+                          <div>
+                            <h4 className="text-sm font-medium mb-2">Widthwise Bay Widths (m)</h4>
+                            <div className="space-y-2">
+                              {customWidthwiseBayWidths.map((width, index) => (
+                                <div key={`width-${index}`} className="flex items-center">
+                                  <span className="text-xs w-16">Bay {index + 1}:</span>
+                                  <input
+                                    type="number"
+                                    className="apple-input mb-0 text-sm"
+                                    min="0.5"
+                                    max={MAX_BAY_SPAN}
+                                    step="0.1"
+                                    value={width.toFixed(2)}
+                                    onChange={(e) => handleWidthwiseBayWidthChange(index, e.target.value)}
+                                    onInput={(e) => {
+                                      if (e.target.value.startsWith('0')) {
+                                        e.target.value = e.target.value.replace(/^0+/, '');
+                                      }
+                                    }}
+                                  />
+                                  <span className="text-xs ml-2">m</span>
+                                </div>
+                              ))}
+                              <div className="text-xs text-right mt-1" style={{ color: 'var(--apple-text-secondary)' }}>
+                                Total: {customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0).toFixed(2)}m / {buildingWidth.toFixed(2)}m
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="flex justify-center">
                         <div className="relative" style={{ 
-                          height: `${Math.max(180, results.numFloors * 60)}px`,
+                          height: `${Math.max(250, results.numFloors * 60)}px`,
                           width: '100%',
-                          maxWidth: '300px'
+                          maxWidth: '600px'
                         }}>
-                          <div className="bay-grid absolute inset-0" style={{
-                            display: 'grid',
-                            gridTemplateColumns: `repeat(${results.lengthwiseBays}, 1fr)`,
-                            gridTemplateRows: `repeat(${results.widthwiseBays}, 1fr)`,
-                            gap: '2px'
-                          }}>
-                            {Array.from({ length: results.lengthwiseBays * results.widthwiseBays }).map((_, index) => (
-                              <div key={index} className="bay-cell" style={{
-                                backgroundColor: '#e0e0e0',
-                                border: '1px solid #999',
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                fontSize: '0.8rem',
-                                padding: '8px',
-                                borderRadius: '0'
+                          {/* Calculate bay dimensions */}
+                          {(() => {
+                            const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
+                            
+                            // Calculate grid template columns and rows based on custom widths
+                            const gridTemplateColumns = lengthwiseBayWidths.map(width => 
+                              `${(width / buildingLength) * 100}fr`
+                            ).join(' ');
+                            
+                            const gridTemplateRows = widthwiseBayWidths.map(width => 
+                              `${(width / buildingWidth) * 100}fr`
+                            ).join(' ');
+                            
+                            return (
+                              <div className="bay-grid absolute inset-0" style={{
+                                display: 'grid',
+                                gridTemplateColumns: useCustomBayDimensions ? gridTemplateColumns : `repeat(${results.lengthwiseBays}, 1fr)`,
+                                gridTemplateRows: useCustomBayDimensions ? gridTemplateRows : `repeat(${results.widthwiseBays}, 1fr)`,
+                                gap: '2px'
                               }}>
-                                {/* Bay cells are empty now */}
+                                {Array.from({ length: results.lengthwiseBays * results.widthwiseBays }).map((_, index) => {
+                                  const row = Math.floor(index / results.lengthwiseBays);
+                                  const col = index % results.lengthwiseBays;
+                                  
+                                  // Get the dimensions for this specific bay
+                                  const bayWidth = lengthwiseBayWidths[col];
+                                  const bayHeight = widthwiseBayWidths[row];
+                                  
+                                  return (
+                                    <div key={index} className="bay-cell" style={{
+                                      backgroundColor: '#e0e0e0',
+                                      border: '1px solid #999',
+                                      display: 'flex',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                      fontSize: '0.8rem',
+                                      padding: '8px',
+                                      borderRadius: '0'
+                                    }}>
+                                      {useCustomBayDimensions && (
+                                        <div className="text-xs">
+                                          {bayWidth.toFixed(1)}m × {bayHeight.toFixed(1)}m
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
                               </div>
-                            ))}
-                          </div>
+                            );
+                          })()}
                           
                           {/* Joist Direction Arrows */}
                           {(() => {
-                            // Determine if joists span lengthwise or widthwise
-                            const lengthwiseSpan = results.buildingLength / results.lengthwiseBays;
-                            const widthwiseSpan = results.buildingWidth / results.widthwiseBays;
+                            // Calculate bay dimensions
+                            const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
                             
-                            // Joists span the shorter distance
-                            const joistsSpanLengthwise = lengthwiseSpan < widthwiseSpan;
-                            
-                            // Return arrows for each bay
+                            // Determine if joists span lengthwise or widthwise for each bay
                             return Array.from({ length: results.lengthwiseBays * results.widthwiseBays }).map((_, index) => {
                               const row = Math.floor(index / results.lengthwiseBays);
                               const col = index % results.lengthwiseBays;
+                              
+                              // Get the dimensions for this specific bay
+                              const bayWidth = lengthwiseBayWidths[col];
+                              const bayHeight = widthwiseBayWidths[row];
+                              
+                              // Joists span the shorter distance for this specific bay
+                              const joistsSpanLengthwise = bayWidth < bayHeight;
+                              
+                              // Calculate position based on cumulative widths
+                              const leftPosition = lengthwiseBayWidths.slice(0, col).reduce((sum, w) => sum + w, 0) + bayWidth / 2;
+                              const topPosition = widthwiseBayWidths.slice(0, row).reduce((sum, h) => sum + h, 0) + bayHeight / 2;
+                              
+                              // Calculate percentages
+                              const leftPercent = (leftPosition / buildingLength) * 100;
+                              const topPercent = (topPosition / buildingWidth) * 100;
                               
                               const arrowStyle = {
                                 position: 'absolute',
@@ -817,10 +945,10 @@ export default function TimberCalculator() {
                                     key={`arrow-${index}`}
                                     style={{
                                       ...arrowStyle,
-                                      top: `${(row + 0.5) * (100 / results.widthwiseBays)}%`,
-                                      left: `${(col + 0.5) * (100 / results.lengthwiseBays)}%`,
+                                      top: `${topPercent}%`,
+                                      left: `${leftPercent}%`,
                                       transform: 'translate(-50%, -50%)',
-                                      width: `${70 / results.lengthwiseBays}%`,
+                                      width: `${(bayWidth / buildingLength) * 70}%`,
                                       height: '20%'
                                     }}
                                   >
@@ -834,10 +962,10 @@ export default function TimberCalculator() {
                                     key={`arrow-${index}`}
                                     style={{
                                       ...arrowStyle,
-                                      left: `${(col + 0.5) * (100 / results.lengthwiseBays)}%`,
-                                      top: `${(row + 0.5) * (100 / results.widthwiseBays)}%`,
+                                      left: `${leftPercent}%`,
+                                      top: `${topPercent}%`,
                                       transform: 'translate(-50%, -50%)',
-                                      height: `${70 / results.widthwiseBays}%`,
+                                      height: `${(bayHeight / buildingWidth) * 70}%`,
                                       width: '20%',
                                       flexDirection: 'column'
                                     }}
@@ -852,14 +980,16 @@ export default function TimberCalculator() {
                       </div>
                     </div>
                     <div className="text-center text-sm" style={{ color: 'var(--apple-text-secondary)' }}>
-                      <div>Bay Size: {(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</div>
+                      {!useCustomBayDimensions ? (
+                        <div>Bay Size: {(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</div>
+                      ) : (
+                        <div>Custom bay sizes applied</div>
+                      )}
                       <div className="mt-2">
-                        <strong style={{ color: '#4B5563' }}>↔ Arrows indicate joist span direction:</strong> {results.joistSpan.toFixed(2)}m
+                        <strong style={{ color: '#4B5563' }}>↔ Arrows indicate joist span direction</strong> (joists span the shorter distance in each bay)
                       </div>
                     </div>
-      </div>
-      
-                  {/* Structure Visualization section removed */}
+                  </div>
               </div>
               
                 {/* Results Section */}
