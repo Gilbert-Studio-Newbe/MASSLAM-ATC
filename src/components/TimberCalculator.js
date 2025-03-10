@@ -1530,22 +1530,22 @@ export default function TimberCalculator() {
                         <div className="grid grid-cols-1 bg-white p-3 md:p-4 rounded-lg shadow">
                           <div className="border-b pb-3 mb-3">
                             <h5 className="font-semibold mb-2 text-sm md:text-base">Total Cost Estimate</h5>
-                            <p className="text-xl md:text-2xl font-bold text-green-700">{formatCurrency(results.totalCost || 0)}</p>
+                            <p className="text-xl md:text-2xl font-bold text-green-700">{formatCurrency(results.costs?.total || 0)}</p>
                             <p className="text-xs md:text-sm text-gray-500 mt-1">Excluding GST and installation</p>
                           </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div>
                               <p className="text-xs md:text-sm text-gray-600">Joists</p>
-                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.joistsCost || 0)}</p>
+                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.joists || 0)}</p>
                             </div>
                             <div>
                               <p className="text-xs md:text-sm text-gray-600">Beams</p>
-                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.beamsCost || 0)}</p>
+                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.beams || 0)}</p>
                             </div>
                             <div>
                               <p className="text-xs md:text-sm text-gray-600">Columns</p>
-                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.columnsCost || 0)}</p>
+                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.columns || 0)}</p>
                             </div>
                           </div>
                         </div>
