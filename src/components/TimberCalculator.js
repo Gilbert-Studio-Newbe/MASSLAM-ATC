@@ -1034,14 +1034,21 @@ export default function TimberCalculator() {
                                       const joistsSpanLengthwise = bayWidth < bayHeight;
                                       const joistSpan = joistsSpanLengthwise ? bayWidth : bayHeight;
                                       
-                                      // Find if this span already exists in our unique list
+                                      // Calculate joist size for this specific span
+                                      const bayJoistSize = calculateJoistSize(joistSpan, load, fireRating);
+                                      
+                                      // Find if this size already exists in our unique list
                                       const existingSize = uniqueBaySizes.find(item => 
+                                        item.width === bayJoistSize.width && 
+                                        item.depth === bayJoistSize.depth &&
                                         Math.abs(item.span - joistSpan) < 0.01
                                       );
                                       
                                       if (!existingSize) {
                                         uniqueBaySizes.push({
                                           span: joistSpan,
+                                          width: bayJoistSize.width,
+                                          depth: bayJoistSize.depth,
                                           count: 1,
                                           locations: [`R${row+1}C${col+1}`]
                                         });
@@ -1057,7 +1064,7 @@ export default function TimberCalculator() {
                                   
                                   return uniqueBaySizes.map((item, index) => (
                                     <div key={`joist-size-${index}`}>
-                                      <strong>{item.span.toFixed(2)}m span:</strong> {results.joists.width}mm × {results.joists.depth}mm
+                                      <strong>{item.span.toFixed(2)}m span:</strong> {item.width}mm × {item.depth}mm
                                       <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'bay' : 'bays'})</span>
                                     </div>
                                   ));
@@ -1102,14 +1109,21 @@ export default function TimberCalculator() {
                                       const beamsSpanLengthwise = bayWidth > bayHeight;
                                       const beamSpan = beamsSpanLengthwise ? bayWidth : bayHeight;
                                       
-                                      // Find if this span already exists in our unique list
+                                      // Calculate beam size for this specific span
+                                      const bayBeamSize = calculateBeamSize(beamSpan, load, numFloors, fireRating);
+                                      
+                                      // Find if this size already exists in our unique list
                                       const existingSize = uniqueBaySizes.find(item => 
+                                        item.width === bayBeamSize.width && 
+                                        item.depth === bayBeamSize.depth &&
                                         Math.abs(item.span - beamSpan) < 0.01
                                       );
                                       
                                       if (!existingSize) {
                                         uniqueBaySizes.push({
                                           span: beamSpan,
+                                          width: bayBeamSize.width,
+                                          depth: bayBeamSize.depth,
                                           count: 1,
                                           locations: [`R${row+1}C${col+1}`]
                                         });
@@ -1125,7 +1139,7 @@ export default function TimberCalculator() {
                                   
                                   return uniqueBaySizes.map((item, index) => (
                                     <div key={`beam-size-${index}`}>
-                                      <strong>{item.span.toFixed(2)}m span:</strong> {results.beams.width}mm × {results.beams.depth}mm
+                                      <strong>{item.span.toFixed(2)}m span:</strong> {item.width}mm × {item.depth}mm
                                       <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'bay' : 'bays'})</span>
                                     </div>
                                   ));
