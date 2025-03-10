@@ -970,46 +970,119 @@ export default function TimberCalculator() {
                               `${(width / buildingWidth) * 100}fr`
                             ).join(' ');
                             
+                            // Generate column labels (A, B, C, ...)
+                            const columnLabels = Array.from({ length: results.lengthwiseBays }, (_, i) => 
+                              String.fromCharCode(65 + i)
+                            );
+                            
                             return (
-                              <div className="bay-grid absolute inset-0" style={{
-                                display: 'grid',
-                                gridTemplateColumns: useCustomBayDimensions ? gridTemplateColumns : `repeat(${results.lengthwiseBays}, 1fr)`,
-                                gridTemplateRows: useCustomBayDimensions ? gridTemplateRows : `repeat(${results.widthwiseBays}, 1fr)`,
-                                gap: '2px'
-                              }}>
-                                {Array.from({ length: results.lengthwiseBays * results.widthwiseBays }).map((_, index) => {
-                                  const row = Math.floor(index / results.lengthwiseBays);
-                                  const col = index % results.lengthwiseBays;
-                                  
-                                  // Get the dimensions for this specific bay
-                                  const bayWidth = lengthwiseBayWidths[col];
-                                  const bayHeight = widthwiseBayWidths[row];
-                                  
-                                  return (
-                                    <div key={index} className="bay-cell" style={{
-                                      backgroundColor: '#e0e0e0',
-                                      border: '1px solid #999',
-                                      display: 'flex',
-                                      justifyContent: 'center',
-                                      alignItems: 'center',
-                                      fontSize: '0.8rem',
-                                      padding: '8px',
-                                      borderRadius: '0'
-                                    }}>
-                                      {useCustomBayDimensions && (
-                                        <div className="text-xs" style={{ 
-                                          position: 'relative', 
-                                          top: '-20px', 
-                                          padding: '2px 4px',
-                                          borderRadius: '2px'
-                                        }}>
-                                          {bayWidth.toFixed(1)}m × {bayHeight.toFixed(1)}m
+                              <>
+                                {/* Column labels (alphabetical) */}
+                                <div className="absolute top-[-20px] left-0 right-0 flex justify-between px-2">
+                                  {columnLabels.map((label, index) => {
+                                    // Calculate position for custom bay widths
+                                    let leftPosition = '50%';
+                                    if (useCustomBayDimensions) {
+                                      const startPos = lengthwiseBayWidths.slice(0, index).reduce((sum, w) => sum + w, 0);
+                                      const width = lengthwiseBayWidths[index];
+                                      leftPosition = `${((startPos + width/2) / buildingLength) * 100}%`;
+                                    } else {
+                                      leftPosition = `${((index + 0.5) / results.lengthwiseBays) * 100}%`;
+                                    }
+                                    
+                                    return (
+                                      <div 
+                                        key={`col-${label}`} 
+                                        className="absolute text-xs font-semibold"
+                                        style={{ 
+                                          left: leftPosition,
+                                          transform: 'translateX(-50%)',
+                                          color: 'var(--apple-text-secondary)'
+                                        }}
+                                      >
+                                        {label}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                
+                                {/* Row labels (numerical) */}
+                                <div className="absolute top-0 bottom-0 left-[-20px] flex flex-col justify-between py-2">
+                                  {Array.from({ length: results.widthwiseBays }).map((_, index) => {
+                                    // Calculate position for custom bay heights
+                                    let topPosition = '50%';
+                                    if (useCustomBayDimensions) {
+                                      const startPos = widthwiseBayWidths.slice(0, index).reduce((sum, h) => sum + h, 0);
+                                      const height = widthwiseBayWidths[index];
+                                      topPosition = `${((startPos + height/2) / buildingWidth) * 100}%`;
+                                    } else {
+                                      topPosition = `${((index + 0.5) / results.widthwiseBays) * 100}%`;
+                                    }
+                                    
+                                    return (
+                                      <div 
+                                        key={`row-${index+1}`} 
+                                        className="absolute text-xs font-semibold"
+                                        style={{ 
+                                          top: topPosition,
+                                          transform: 'translateY(-50%)',
+                                          color: 'var(--apple-text-secondary)'
+                                        }}
+                                      >
+                                        {index + 1}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                
+                                <div className="bay-grid absolute inset-0" style={{
+                                  display: 'grid',
+                                  gridTemplateColumns: useCustomBayDimensions ? gridTemplateColumns : `repeat(${results.lengthwiseBays}, 1fr)`,
+                                  gridTemplateRows: useCustomBayDimensions ? gridTemplateRows : `repeat(${results.widthwiseBays}, 1fr)`,
+                                  gap: '2px'
+                                }}>
+                                  {Array.from({ length: results.lengthwiseBays * results.widthwiseBays }).map((_, index) => {
+                                    const row = Math.floor(index / results.lengthwiseBays);
+                                    const col = index % results.lengthwiseBays;
+                                    
+                                    // Get the dimensions for this specific bay
+                                    const bayWidth = lengthwiseBayWidths[col];
+                                    const bayHeight = widthwiseBayWidths[row];
+                                    
+                                    // Generate bay label (e.g., "A1", "B2", etc.)
+                                    const bayLabel = `${columnLabels[col]}${row + 1}`;
+                                    
+                                    return (
+                                      <div key={index} className="bay-cell relative" style={{
+                                        backgroundColor: '#e0e0e0',
+                                        border: '1px solid #999',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        fontSize: '0.8rem',
+                                        padding: '8px',
+                                        borderRadius: '0'
+                                      }}>
+                                        {/* Bay Label */}
+                                        <div className="absolute top-1 left-1 text-xs font-medium text-gray-600">
+                                          {bayLabel}
                                         </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
+                                        
+                                        {useCustomBayDimensions && (
+                                          <div className="text-xs" style={{ 
+                                            position: 'relative', 
+                                            top: '-20px', 
+                                            padding: '2px 4px',
+                                            borderRadius: '2px'
+                                          }}>
+                                            {bayWidth.toFixed(1)}m × {bayHeight.toFixed(1)}m
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </>
                             );
                           })()}
                           
