@@ -110,9 +110,6 @@ export default function TimberCalculator() {
   // Maximum allowed span for a single bay (in meters)
   const MAX_BAY_SPAN = 9.0;
   
-  // State variable for joist direction
-  const [joistsSpanLengthwise, setJoistsSpanLengthwise] = useState(false);
-  
   // Load saved project if available
   useEffect(() => {
     const loadSavedProject = () => {
@@ -319,14 +316,14 @@ export default function TimberCalculator() {
         let maxLengthwiseSpan = Math.max(...lengthwiseBayWidths);
         let maxWidthwiseSpan = Math.max(...widthwiseBayWidths);
         
-        // Determine joist span based on user-selected direction
-        const joistSpan = joistsSpanLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+        // Determine joist span (joists span the shorter distance)
+        const joistSpan = Math.min(maxLengthwiseSpan, maxWidthwiseSpan);
         
         // Calculate joist size based on span and load
         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
         
-        // Calculate beam span based on user-selected joist direction (beams span perpendicular to joists)
-        const beamSpan = joistsSpanLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+        // Calculate beam span (beams span the longer distance)
+        const beamSpan = Math.max(maxLengthwiseSpan, maxWidthwiseSpan);
         
         // Calculate beam size based on span, load, and number of floors
         const beamSize = calculateBeamSize(beamSpan, load, numFloors, fireRating);
@@ -380,8 +377,13 @@ export default function TimberCalculator() {
       }
     };
     
-    calculateResults();
-  }, [buildingLength, buildingWidth, lengthwiseBays, widthwiseBays, numFloors, load, fireRating, useCustomBayDimensions, customLengthwiseBayWidths, customWidthwiseBayWidths, joistsSpanLengthwise]);
+    // Debounce calculations to avoid excessive recalculations
+    const timer = setTimeout(() => {
+      calculateResults();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [buildingLength, buildingWidth, lengthwiseBays, widthwiseBays, load, numFloors, timberGrade, fireRating, useCustomBayDimensions, customLengthwiseBayWidths, customWidthwiseBayWidths]);
 
   // Handle input changes
   const handleBuildingLengthChange = (value) => {
@@ -527,11 +529,6 @@ export default function TimberCalculator() {
       // Update the state
       setCustomWidthwiseBayWidths(newWidths);
     }
-  };
-  
-  // Handle toggle joist direction
-  const handleToggleJoistDirection = () => {
-    setJoistsSpanLengthwise(!joistsSpanLengthwise);
   };
   
   // Example of a component section converted to use Tailwind classes
@@ -846,7 +843,7 @@ export default function TimberCalculator() {
                       <h3 className="apple-visualization-title">Bay Layout</h3>
                       
                       {/* Custom Bay Dimensions Toggle */}
-                      <div className="mb-4 flex items-center justify-between">
+                      <div className="mb-4 flex items-center">
                         <label className="inline-flex items-center cursor-pointer">
                           <input 
                             type="checkbox" 
@@ -857,21 +854,6 @@ export default function TimberCalculator() {
                           />
                           <span className="ml-2 text-sm font-medium">Customize Bay Dimensions</span>
                         </label>
-                        
-                        <div className="flex items-center">
-                          <span className="mr-2 text-sm font-medium">Joist Direction:</span>
-                          <button
-                            onClick={handleToggleJoistDirection}
-                            className="px-3 py-1 rounded-md text-sm font-medium"
-                            style={{
-                              backgroundColor: 'rgba(0, 113, 227, 0.1)',
-                              color: 'var(--apple-blue)',
-                              border: '1px solid rgba(0, 113, 227, 0.2)'
-                            }}
-                          >
-                            {joistsSpanLengthwise ? 'Horizontal (↔)' : 'Vertical (↕)'}
-                          </button>
-                        </div>
                       </div>
                       
                       {/* Custom Bay Dimensions Controls */}
@@ -879,11 +861,11 @@ export default function TimberCalculator() {
                         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                           {/* Lengthwise Bay Controls */}
                           <div>
-                            <h4 className="text-sm font-medium mb-2">Column Widths (m)</h4>
+                            <h4 className="text-sm font-medium mb-2">Lengthwise Bay Widths (m)</h4>
                             <div className="space-y-2">
                               {customLengthwiseBayWidths.map((width, index) => (
                                 <div key={`length-${index}`} className="flex items-center">
-                                  <span className="text-xs w-16">Column {String.fromCharCode(65 + index)}:</span>
+                                  <span className="text-xs w-16">Bay {index + 1}:</span>
                                   <input
                                     type="number"
                                     className="apple-input mb-0 text-sm"
@@ -916,7 +898,7 @@ export default function TimberCalculator() {
                                   <span>{buildingLength.toFixed(2)}m</span>
                                 </div>
                                 <div className="text-xs mt-1 italic">
-                                  Adjusting one column will automatically resize others to maintain the total building length.
+                                  Adjusting one bay will automatically resize others to maintain the total building length.
                                 </div>
                               </div>
                             </div>
@@ -924,11 +906,11 @@ export default function TimberCalculator() {
                           
                           {/* Widthwise Bay Controls */}
                           <div>
-                            <h4 className="text-sm font-medium mb-2">Row Widths (m)</h4>
+                            <h4 className="text-sm font-medium mb-2">Widthwise Bay Widths (m)</h4>
                             <div className="space-y-2">
                               {customWidthwiseBayWidths.map((width, index) => (
                                 <div key={`width-${index}`} className="flex items-center">
-                                  <span className="text-xs w-16">Row {index + 1}:</span>
+                                  <span className="text-xs w-16">Bay {index + 1}:</span>
                                   <input
                                     type="number"
                                     className="apple-input mb-0 text-sm"
@@ -961,7 +943,7 @@ export default function TimberCalculator() {
                                   <span>{buildingWidth.toFixed(2)}m</span>
                                 </div>
                                 <div className="text-xs mt-1 italic">
-                                  Adjusting one row will automatically resize others to maintain the total building width.
+                                  Adjusting one bay will automatically resize others to maintain the total building width.
                                 </div>
                               </div>
                             </div>
@@ -1015,22 +997,17 @@ export default function TimberCalculator() {
                                         style={{ 
                                           left: leftPosition,
                                           transform: 'translateX(-50%)',
-                                          color: 'var(--apple-text-secondary)',
-                                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                          padding: '2px 6px',
-                                          borderRadius: '3px',
-                                          fontWeight: '600',
-                                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                          color: 'var(--apple-text-secondary)'
                                         }}
                                       >
-                                        Column {label}
+                                        {label}
                                       </div>
                                     );
                                   })}
                                 </div>
                                 
                                 {/* Row labels (numerical) */}
-                                <div className="absolute top-0 bottom-0 left-[-15px] flex flex-col justify-between py-2">
+                                <div className="absolute top-0 bottom-0 left-[-20px] flex flex-col justify-between py-2">
                                   {Array.from({ length: results.widthwiseBays }).map((_, index) => {
                                     // Calculate position for custom bay heights
                                     let topPosition = '50%';
@@ -1048,18 +1025,11 @@ export default function TimberCalculator() {
                                         className="absolute text-xs font-semibold"
                                         style={{ 
                                           top: topPosition,
-                                          left: '0',
-                                          transform: 'translateY(-50%) rotate(-90deg)',
-                                          transformOrigin: 'right center',
-                                          color: 'var(--apple-text-secondary)',
-                                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                          padding: '2px 6px',
-                                          borderRadius: '3px',
-                                          fontWeight: '600',
-                                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                          transform: 'translateY(-50%)',
+                                          color: 'var(--apple-text-secondary)'
                                         }}
                                       >
-                                        Row {index + 1}
+                                        {index + 1}
                                       </div>
                                     );
                                   })}
@@ -1079,12 +1049,6 @@ export default function TimberCalculator() {
                                     const bayWidth = lengthwiseBayWidths[col];
                                     const bayHeight = widthwiseBayWidths[row];
                                     
-                                    // Joists span based on user-selected direction
-                                    const joistSpan = joistsSpanLengthwise ? bayWidth : bayHeight;
-                                    
-                                    // Calculate joist size for this specific span
-                                    const bayJoistSize = calculateJoistSize(joistSpan, load, fireRating);
-                                    
                                     // Generate bay label (e.g., "A1", "B2", etc.)
                                     const bayLabel = `${columnLabels[col]}${row + 1}`;
                                     
@@ -1100,14 +1064,8 @@ export default function TimberCalculator() {
                                         borderRadius: '0'
                                       }}>
                                         {/* Bay Label */}
-                                        <div className="absolute top-1 left-1 text-xs font-medium text-gray-600" style={{
-                                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                          padding: '2px 4px',
-                                          borderRadius: '3px',
-                                          fontWeight: '600',
-                                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                        }}>
-                                          Bay {bayLabel}
+                                        <div className="absolute top-1 left-1 text-xs font-medium text-gray-600">
+                                          {bayLabel}
                                         </div>
                                         
                                         {useCustomBayDimensions && bayWidth !== undefined && bayHeight !== undefined && (
@@ -1142,6 +1100,9 @@ export default function TimberCalculator() {
                               const bayWidth = lengthwiseBayWidths[col];
                               const bayHeight = widthwiseBayWidths[row];
                               
+                              // Joists span the shorter distance for this specific bay
+                              const joistsSpanLengthwise = bayWidth < bayHeight;
+                              
                               // Calculate position based on cumulative widths
                               const leftPosition = lengthwiseBayWidths.slice(0, col).reduce((sum, w) => sum + w, 0) + bayWidth / 2;
                               const topPosition = widthwiseBayWidths.slice(0, row).reduce((sum, h) => sum + h, 0) + bayHeight / 2;
@@ -1158,11 +1119,7 @@ export default function TimberCalculator() {
                                 color: '#4B5563', // Dark gray color
                                 fontWeight: 'bold',
                                 fontSize: '1.2rem',
-                                zIndex: 10,
-                                cursor: 'pointer',
-                                backgroundColor: 'rgba(255, 255, 255, 0.5)',
-                                borderRadius: '4px',
-                                transition: 'background-color 0.2s ease'
+                                zIndex: 10
                               };
                               
                               if (joistsSpanLengthwise) {
@@ -1170,7 +1127,6 @@ export default function TimberCalculator() {
                                 return (
                                   <div 
                                     key={`arrow-${index}`}
-                                    onClick={handleToggleJoistDirection}
                                     style={{
                                       ...arrowStyle,
                                       top: `${topPercent}%`,
@@ -1179,7 +1135,6 @@ export default function TimberCalculator() {
                                       width: `${(bayWidth / buildingLength) * 70}%`,
                                       height: '20%'
                                     }}
-                                    title="Click to change joist direction"
                                   >
                                     <span>↔</span>
                                   </div>
@@ -1189,7 +1144,6 @@ export default function TimberCalculator() {
                                 return (
                                   <div 
                                     key={`arrow-${index}`}
-                                    onClick={handleToggleJoistDirection}
                                     style={{
                                       ...arrowStyle,
                                       left: `${leftPercent}%`,
@@ -1199,7 +1153,6 @@ export default function TimberCalculator() {
                                       width: '20%',
                                       flexDirection: 'column'
                                     }}
-                                    title="Click to change joist direction"
                                   >
                                     <span>↕</span>
                                   </div>
@@ -1212,12 +1165,12 @@ export default function TimberCalculator() {
                     </div>
                     <div className="text-center text-sm" style={{ color: 'var(--apple-text-secondary)' }}>
                       {!useCustomBayDimensions ? (
-                        <div>Grid Cell Size: {(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</div>
+                        <div>Bay Size: {(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</div>
                       ) : (
-                        <div>Custom grid cell sizes applied</div>
+                        <div>Custom bay sizes applied</div>
                       )}
                       <div className="mt-2">
-                        <strong style={{ color: '#4B5563' }}>↔ {' / '} ↕ Arrows indicate joist span direction</strong> (click to change direction)
+                        <strong style={{ color: '#4B5563' }}>↔ &#47; ↕ Arrows indicate joist span direction</strong> (click to change direction)
                       </div>
                     </div>
                   </div>
@@ -1256,7 +1209,8 @@ export default function TimberCalculator() {
                                       const bayWidth = lengthwiseBayWidths[col];
                                       const bayHeight = widthwiseBayWidths[row];
                                       
-                                      // Joists span based on user-selected direction
+                                      // Joists span the shorter distance
+                                      const joistsSpanLengthwise = bayWidth < bayHeight;
                                       const joistSpan = joistsSpanLengthwise ? bayWidth : bayHeight;
                                       
                                       // Calculate joist size for this specific span
@@ -1330,8 +1284,9 @@ export default function TimberCalculator() {
                                       const bayWidth = lengthwiseBayWidths[col];
                                       const bayHeight = widthwiseBayWidths[row];
                                       
-                                      // Beams span perpendicular to joists
-                                      const beamSpan = joistsSpanLengthwise ? bayHeight : bayWidth;
+                                      // Beams span the longer distance
+                                      const beamsSpanLengthwise = bayWidth > bayHeight;
+                                      const beamSpan = beamsSpanLengthwise ? bayWidth : bayHeight;
                                       
                                       // Calculate beam size for this specific span
                                       const bayBeamSize = calculateBeamSize(beamSpan, load, numFloors, fireRating);
@@ -1372,27 +1327,90 @@ export default function TimberCalculator() {
                             </div>
                           )}
                         </div>
-              
+
                         {/* Column Results */}
                         <div className="bg-white p-4 rounded-lg shadow">
                           <h4 className="font-semibold mb-2">Columns</h4>
                           <p><strong>Size:</strong> {results.columns.width}mm × {results.columns.depth}mm</p>
-                          <p><strong>Span:</strong> {results.beamSpan.toFixed(2)}m</p>
+                          <p><strong>Height:</strong> {results.columns.height}m</p>
+                          <p><strong>Floors:</strong> {results.numFloors}</p>
                           {results.columns.fireAllowance > 0 && (
                             <p className="text-blue-600">
                               <strong>Fire Allowance:</strong> {results.columns.fireAllowance.toFixed(1)}mm per face
                             </p>
                           )}
+                          {results.beams.width === results.columns.width && (
+                            <p className="text-green-600 mt-2">
+                              <strong>✓</strong> Width matched with beams
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Environmental Impact */}
+                      <div className="mt-4 bg-white p-4 rounded-lg shadow">
+                        <h4 className="font-semibold mb-2">Environmental Impact</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p><strong>Timber Weight:</strong> {results.timberWeight.toFixed(2)} kg</p>
+                          </div>
+                          <div>
+                            <p><strong>Carbon Savings:</strong> {results.carbonSavings.toFixed(2)} tonnes CO₂e</p>
+                          </div>
+                        </div>
+                      </div>
+            
+                      {/* Additional Resources */}
+                      <div className="mt-4 bg-white p-4 rounded-lg shadow">
+                        <h4 className="font-semibold mb-2">Additional Resources</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Link href="/fire-resistance" className="text-blue-600 hover:text-blue-800">
+                            <div className="border border-blue-200 rounded-lg p-4 hover:bg-blue-50 transition-colors">
+                              <h5 className="font-semibold">Fire Resistance Analysis</h5>
+                              <p className="text-sm text-gray-600">Analyze fire resistance for specific timber sizes</p>
+                            </div>
+                          </Link>
+                          <Link href="/calculation-methodology" className="text-blue-600 hover:text-blue-800">
+                            <div className="border border-blue-200 rounded-lg p-4 hover:bg-blue-50 transition-colors">
+                              <h5 className="font-semibold">Calculation Methodology</h5>
+                              <p className="text-sm text-gray-600">Learn about design constraints and calculation methods</p>
+                            </div>
+                          </Link>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
-              </div>
+                
+                {/* Save Project Button */}
+                <div className="flex justify-end mt-8">
+                  <button 
+                    className="apple-button apple-button-primary"
+                    onClick={() => setShowSaveModal(true)}
+                  >
+                    Save Project
+              </button>
             </div>
           </div>
+            </div>
+          ) : (
+            <div className="apple-card p-6 text-center">
+              <h2 className="text-xl font-semibold mb-4">Results</h2>
+              <p style={{ color: 'var(--apple-text-secondary)' }}>Configure your timber structure and click "Calculate Structure" to see results.</p>
+          </div>
+        )}
         </div>
       </div>
+      
+      {/* Error Display */}
+      {error && (
+        <div className="apple-section mt-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Error: </strong>
+            <span className="block sm:inline">{error}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
