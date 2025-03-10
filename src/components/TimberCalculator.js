@@ -978,7 +978,7 @@ export default function TimberCalculator() {
                             return (
                               <>
                                 {/* Column labels (alphabetical) */}
-                                <div className="absolute top-[-20px] left-0 right-0 flex justify-between px-2">
+                                <div className="absolute top-[-30px] left-0 right-0 flex justify-between px-2">
                                   {columnLabels.map((label, index) => {
                                     // Calculate position for custom bay widths
                                     let leftPosition = '50%';
@@ -993,16 +993,21 @@ export default function TimberCalculator() {
                                     return (
                                       <div 
                                         key={`col-${label}`} 
-                                        className="absolute text-xs font-semibold"
+                                        className="absolute text-sm font-bold"
                                         style={{ 
                                           left: leftPosition,
                                           transform: 'translateX(-50%)',
-                                          color: 'var(--apple-text-secondary)',
-                                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                          padding: '2px 6px',
-                                          borderRadius: '3px',
-                                          fontWeight: '600',
-                                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                          color: '#333',
+                                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                          padding: '3px 8px',
+                                          borderRadius: '4px',
+                                          boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                                          whiteSpace: 'nowrap',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          zIndex: 10,
+                                          border: '1px solid #ddd'
                                         }}
                                       >
                                         Column {label}
@@ -1012,7 +1017,7 @@ export default function TimberCalculator() {
                                 </div>
                                 
                                 {/* Row labels (numerical) */}
-                                <div className="absolute top-0 bottom-0 left-[-20px] flex flex-col justify-between py-2">
+                                <div className="absolute top-0 bottom-0 left-[-50px] flex flex-col justify-between py-2">
                                   {Array.from({ length: results.widthwiseBays }).map((_, index) => {
                                     // Calculate position for custom bay heights
                                     let topPosition = '50%';
@@ -1027,16 +1032,22 @@ export default function TimberCalculator() {
                                     return (
                                       <div 
                                         key={`row-${index+1}`} 
-                                        className="absolute text-xs font-semibold"
+                                        className="absolute text-sm font-bold"
                                         style={{ 
                                           top: topPosition,
+                                          left: '0px',
                                           transform: 'translateY(-50%)',
-                                          color: 'var(--apple-text-secondary)',
-                                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                          padding: '2px 6px',
-                                          borderRadius: '3px',
-                                          fontWeight: '600',
-                                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                          color: '#333',
+                                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                          padding: '3px 8px',
+                                          borderRadius: '4px',
+                                          boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                                          whiteSpace: 'nowrap',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          zIndex: 10,
+                                          border: '1px solid #ddd'
                                         }}
                                       >
                                         Row {index + 1}
@@ -1075,11 +1086,13 @@ export default function TimberCalculator() {
                                       }}>
                                         {/* Bay Label */}
                                         <div className="absolute top-1 left-1 text-xs font-medium text-gray-600" style={{
-                                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
                                           padding: '2px 4px',
                                           borderRadius: '3px',
                                           fontWeight: '600',
-                                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                          boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
+                                          border: '1px solid #ddd',
+                                          color: '#333'
                                         }}>
                                           Bay {bayLabel}
                                         </div>
