@@ -9,10 +9,24 @@ import {
   getMasslamSizes,
   initializeMasslamSizes
 } from './timberSizes';
-import { calculateFireResistanceAllowance } from './masslamProperties';
+import { 
+  calculateFireResistanceAllowance, 
+  getMasslamSL33Properties,
+  loadMasslamSL33MechanicalProperties
+} from './masslamProperties';
 
-// Constants
-export const TIMBER_PROPERTIES = {
+// Initialize properties object that will be populated from CSV
+export let TIMBER_PROPERTIES = {
+  // Default values that will be replaced with data from CSV
+  MASSLAM_SL33: {
+    bendingStrength: 33, // MPa
+    tensileStrength: 16, // MPa
+    compressiveStrength: 26, // MPa
+    shearStrength: 4.2, // MPa
+    modulusOfElasticity: 13300, // MPa
+    density: 600 // kg/m³
+  },
+  // Keep these for backward compatibility until fully migrated
   GL18: {
     bendingStrength: 18, // MPa
     tensileStrength: 11, // MPa
@@ -39,10 +53,62 @@ export const TIMBER_PROPERTIES = {
   }
 };
 
+/**
+ * Load timber properties from the CSV file
+ * This function should be called when the application starts
+ */
+export async function loadTimberProperties() {
+  try {
+    const properties = await loadMasslamSL33MechanicalProperties();
+    
+    if (!properties) {
+      console.warn('Failed to load MASSLAM SL33 properties from CSV, using default values');
+      return;
+    }
+    
+    // Map CSV properties to the format expected by the application
+    TIMBER_PROPERTIES.MASSLAM_SL33 = {
+      bendingStrength: properties['Bending Strength (f\'b)']?.value || 33,
+      tensileStrength: properties['Tension Strength Parallel (f\'t)']?.value || 16,
+      compressiveStrength: properties['Compression Strength Parallel (f\'c)']?.value || 26,
+      shearStrength: properties['Shear Strength (f\'s)']?.value || 4.2,
+      modulusOfElasticity: properties['Modulus of Elasticity (E_mean)']?.value || 13300,
+      density: properties['Density (ρ_mean)']?.value || 600,
+      // Add additional properties
+      tensileStrengthPerpendicular: properties['Tension Strength Perpendicular (f\'t90)']?.value || 0.5,
+      compressiveStrengthPerpendicular: properties['Compression Strength Perpendicular (f\'c90)']?.value || null,
+      bearingStrengthParallel: properties['Bearing Strength Parallel (f\'j)']?.value || 30,
+      bearingStrengthPerpendicular: properties['Bearing Strength Perpendicular (f\'j90)']?.value || 10,
+      modulusOfElasticity5thPercentile: properties['Modulus of Elasticity 5th Percentile (E_05)']?.value || 9975,
+      modulusOfElasticityPerpendicular: properties['Modulus of Elasticity Perpendicular Mean (E₉₀,mean)']?.value || 890,
+      modulusOfRigidity: properties['Modulus of Rigidity (G)']?.value || 900,
+      jointGroup: properties['Joint Group']?.value || 'JD4',
+      charringRate: properties['Charring Rate']?.value || 0.7
+    };
+    
+    console.log('Loaded MASSLAM SL33 properties from CSV:', TIMBER_PROPERTIES.MASSLAM_SL33);
+    
+    // For backward compatibility, update GL24 to match MASSLAM_SL33
+    // This ensures existing code using GL24 will use the correct values
+    TIMBER_PROPERTIES.GL24 = { ...TIMBER_PROPERTIES.MASSLAM_SL33 };
+    
+    return TIMBER_PROPERTIES.MASSLAM_SL33;
+  } catch (error) {
+    console.error('Error loading timber properties:', error);
+  }
+}
+
 // Initialize the module when this file is imported
 console.log('timberEngineering.js: Initializing MASSLAM sizes module');
 initializeMasslamSizes();
 console.log('timberEngineering.js: Initial MASSLAM sizes:', getMasslamSizes());
+
+// Load timber properties from CSV
+loadTimberProperties().then(() => {
+  console.log('timberEngineering.js: Timber properties loaded from CSV');
+}).catch(error => {
+  console.error('timberEngineering.js: Error loading timber properties:', error);
+});
 
 /**
  * Calculate the required joist size based on span, spacing, and load

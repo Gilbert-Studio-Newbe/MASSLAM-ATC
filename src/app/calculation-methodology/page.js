@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { TIMBER_PROPERTIES } from '@/utils/timberEngineering';
+import { TIMBER_PROPERTIES, loadTimberProperties } from '@/utils/timberEngineering';
+import { getMasslamSL33Properties } from '@/utils/masslamProperties';
 
 export default function CalculationMethodologyPage() {
   // Default values for calculation parameters
@@ -13,10 +14,33 @@ export default function CalculationMethodologyPage() {
   const [liveLoad, setLiveLoad] = useState(1.5); // kPa (residential)
   const [maxSpan, setMaxSpan] = useState(9.0); // meters
   
+  // State for mechanical properties
+  const [mechanicalProperties, setMechanicalProperties] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Load mechanical properties on component mount
+  useEffect(() => {
+    async function loadProperties() {
+      setIsLoading(true);
+      try {
+        // Load properties from CSV
+        await loadTimberProperties();
+        const rawProperties = await getMasslamSL33Properties();
+        setMechanicalProperties(rawProperties);
+      } catch (error) {
+        console.error('Error loading mechanical properties:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    loadProperties();
+  }, []);
+  
   // Calculate example span based on current parameters
   const calculateExampleSpan = () => {
-    // Get timber properties for GL21 (example grade)
-    const timberProps = TIMBER_PROPERTIES.GL21;
+    // Get timber properties for MASSLAM_SL33
+    const timberProps = TIMBER_PROPERTIES.MASSLAM_SL33;
     
     // Example joist: 90mm x 240mm
     const width = 90; // mm
@@ -66,6 +90,59 @@ export default function CalculationMethodologyPage() {
         <Link href="/" className="text-blue-600 hover:text-blue-800 flex items-center">
           &larr; Back to Member Calculator
         </Link>
+      </div>
+      
+      {/* MASSLAM SL33 Mechanical Properties Section */}
+      <div className="bg-white p-6 rounded-lg shadow mb-8">
+        <h2 className="text-xl font-semibold mb-4">MASSLAM SL33 Mechanical Properties</h2>
+        <p className="mb-4">
+          The following mechanical properties are loaded from the MASSLAM_SL33_Mechanical_Properties.csv file and used in all calculations:
+        </p>
+        
+        {isLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
+            <span className="ml-2">Loading properties...</span>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white border border-gray-200 mb-4">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="py-2 px-4 border-b text-left">Property</th>
+                  <th className="py-2 px-4 border-b text-left">Value</th>
+                  <th className="py-2 px-4 border-b text-left">Unit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mechanicalProperties ? (
+                  Object.entries(mechanicalProperties).map(([property, data], index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
+                      <td className="py-2 px-4 border-b">{property}</td>
+                      <td className="py-2 px-4 border-b">{data.value === null ? 'N/A' : data.value}</td>
+                      <td className="py-2 px-4 border-b">{data.unit}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="3" className="py-4 px-4 border-b text-center text-gray-500">
+                      Failed to load mechanical properties. Using default values.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+        
+        <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
+          <h3 className="text-md font-medium text-blue-800 mb-2">How These Properties Are Used</h3>
+          <p className="text-sm text-blue-700">
+            These mechanical properties are used in all structural calculations throughout the application. 
+            The values are loaded directly from the MASSLAM_SL33_Mechanical_Properties.csv file, ensuring 
+            that all calculations use the most up-to-date specifications for MASSLAM SL33 timber.
+          </p>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -220,7 +297,7 @@ depth = max(depth, width) // Ensure minimum square proportion`}
                   </tr>
                   <tr>
                     <td className="py-2 px-4 border-b">Compression Strength Parallel to Grain</td>
-                    <td className="py-2 px-4 border-b">21 MPa (GL21)</td>
+                    <td className="py-2 px-4 border-b">{TIMBER_PROPERTIES.MASSLAM_SL33.compressiveStrength} MPa (MASSLAM SL33)</td>
                     <td className="py-2 px-4 border-b">Characteristic strength value for the timber grade</td>
                   </tr>
                   <tr>
@@ -419,7 +496,7 @@ A = cross-sectional area (mm²)`}
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4">Example Calculation Results</h2>
             <p className="mb-4 text-sm text-gray-600">
-              Based on a 90mm × 240mm GL21 joist with 450mm spacing.
+              Based on a 90mm × 240mm MASSLAM SL33 joist with 450mm spacing.
             </p>
             
             <div className="bg-blue-50 p-4 rounded-lg mb-4">

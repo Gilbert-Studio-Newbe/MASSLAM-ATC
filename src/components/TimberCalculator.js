@@ -9,7 +9,8 @@ import {
   calculateTimberWeight,
   calculateCarbonSavings,
   validateStructure,
-  TIMBER_PROPERTIES
+  TIMBER_PROPERTIES,
+  loadTimberProperties
 } from '@/utils/timberEngineering';
 import { 
   loadMasslamSizes,
@@ -23,7 +24,7 @@ import {
   filterToStandardSizes,
   resetMasslamSizes
 } from '@/utils/timberSizes';
-import { calculateFireResistanceAllowance } from '@/utils/masslamProperties';
+import { calculateFireResistanceAllowance, getMasslamSL33Properties } from '@/utils/masslamProperties';
 import TimberSizesTable from './TimberSizesTable';
 import { calculateCost, formatCurrency } from '../utils/costEstimator';
 // ... other imports as before
@@ -202,7 +203,25 @@ export default function TimberCalculator() {
   
   // Constants
   const structureType = 'floor'; // Fixed to floor
-  const timberGrade = 'GL21'; // Fixed timber grade
+  
+  // Add state for timber properties
+  const [timberGrade, setTimberGrade] = useState('MASSLAM_SL33');
+  const [propertiesLoaded, setPropertiesLoaded] = useState(false);
+  
+  // Load timber properties from CSV when component mounts
+  useEffect(() => {
+    const loadProperties = async () => {
+      try {
+        await loadTimberProperties();
+        setPropertiesLoaded(true);
+        console.log('Timber properties loaded from CSV:', TIMBER_PROPERTIES.MASSLAM_SL33);
+      } catch (error) {
+        console.error('Error loading timber properties:', error);
+      }
+    };
+    
+    loadProperties();
+  }, []);
   
   // Save the current project
   const saveProject = () => {
@@ -623,6 +642,13 @@ export default function TimberCalculator() {
   // Toggle joist direction globally
   const toggleJoistDirection = () => {
     setJoistsRunLengthwise(!joistsRunLengthwise);
+  };
+  
+  // Add a function to handle timber grade change if needed
+  const handleTimberGradeChange = (value) => {
+    setTimberGrade(value);
+    // Recalculate results when timber grade changes
+    calculateResults();
   };
   
   // Example of a component section converted to use Tailwind classes

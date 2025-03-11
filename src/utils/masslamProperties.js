@@ -235,3 +235,70 @@ export const MASSLAM_PRODUCTS = {
 export function getMasslamProductProperties(productCode) {
   return MASSLAM_PRODUCTS[productCode] || null;
 }
+
+/**
+ * Load all mechanical properties from the MASSLAM_SL33_Mechanical_Properties.csv file
+ * @returns {Promise<Object>} The mechanical properties
+ */
+export async function loadMasslamSL33MechanicalProperties() {
+  try {
+    // Fetch the CSV file
+    const response = await fetch('/data/MASSLAM_SL33_Mechanical_Properties.csv');
+    if (!response.ok) {
+      console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
+      return null; // Return null if fetch fails
+    }
+    
+    const csvText = await response.text();
+    const lines = csvText.trim().split('\n');
+    
+    // Skip the header line and process each property line
+    const properties = {};
+    
+    // Process each line after the header
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue; // Skip empty lines
+      
+      const values = line.split(',');
+      if (values.length < 3) continue; // Skip invalid lines
+      
+      const propertyName = values[0].trim();
+      const propertyValue = values[1].trim();
+      const propertyUnit = values[2].trim();
+      
+      // Skip if property name or value is empty
+      if (!propertyName || !propertyValue) continue;
+      
+      // Convert numeric values
+      const numericValue = propertyValue === 'N/A' ? null : parseFloat(propertyValue);
+      
+      // Store the property
+      properties[propertyName] = {
+        value: isNaN(numericValue) ? propertyValue : numericValue,
+        unit: propertyUnit
+      };
+    }
+    
+    console.log('Loaded MASSLAM SL33 mechanical properties:', properties);
+    return properties;
+  } catch (error) {
+    console.error('Error loading MASSLAM SL33 mechanical properties:', error);
+    return null; // Return null if an error occurs
+  }
+}
+
+// Create a singleton to store the loaded properties
+let MASSLAM_SL33_PROPERTIES = null;
+
+/**
+ * Get the MASSLAM SL33 mechanical properties
+ * Loads the properties if they haven't been loaded yet
+ * @returns {Promise<Object>} The mechanical properties
+ */
+export async function getMasslamSL33Properties() {
+  if (MASSLAM_SL33_PROPERTIES === null) {
+    MASSLAM_SL33_PROPERTIES = await loadMasslamSL33MechanicalProperties();
+  }
+  return MASSLAM_SL33_PROPERTIES;
+}
