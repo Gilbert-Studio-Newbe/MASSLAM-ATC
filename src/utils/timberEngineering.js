@@ -168,7 +168,7 @@ export async function calculateJoistSizeAsync(span, spacing, load, timberGrade, 
 
 /**
  * Calculate the required joist size based on span, spacing, and load
- * This synchronous version uses default minimum joist widths
+ * This synchronous version now uses the same minimum joist widths as the async version
  * 
  * @param {number} span - Span in meters
  * @param {number} spacing - Spacing in mm
@@ -177,13 +177,13 @@ export async function calculateJoistSizeAsync(span, spacing, load, timberGrade, 
  * @param {string} fireRating - Fire rating (e.g., "60/60/60", "90/90/90")
  * @returns {Object} Calculated joist size and properties
  */
-export function calculateJoistSize(span, spacing, load, timberGrade, fireRating = 'none') {
-  // Get minimum joist width based on FRL from default values
-  const minJoistWidth = DEFAULT_MIN_JOIST_WIDTHS[fireRating] || DEFAULT_MIN_JOIST_WIDTHS['none'];
-  console.log(`Using default minimum joist width for FRL ${fireRating}: ${minJoistWidth}mm`);
+export async function calculateJoistSize(span, spacing, load, timberGrade, fireRating = 'none') {
+  // Get minimum joist width based on FRL from the CSV file
+  const minJoistWidth = await loadMinJoistWidthForFRL(fireRating);
+  console.log(`Minimum joist width for FRL ${fireRating}: ${minJoistWidth}mm`);
   
   // Calculate theoretical width and depth
-  // For width, use the minimum width from default values
+  // For width, use the minimum width from FRL.csv
   const spanMm = span * 1000; // Convert to mm
   const theoreticalWidth = minJoistWidth;
   const theoreticalDepth = Math.max(140, Math.ceil(spanMm / 15)); // Simplified calculation

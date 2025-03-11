@@ -427,7 +427,7 @@ export default function TimberCalculator() {
       
       // Calculate joist size based on span and load
       // Use the async version to get minimum width from FRL.csv
-      const joistSize = await calculateJoistSizeAsync(joistSpan, load, fireRating);
+      const joistSize = await calculateJoistSizeAsync(joistSpan, 800, load, timberGrade, fireRating);
       
       // Calculate beam span (beams span perpendicular to joists)
       const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
@@ -722,6 +722,61 @@ export default function TimberCalculator() {
     // Recalculate results when timber grade changes
     calculateResults();
   };
+  
+  // State for bay-specific joist sizes
+  const [bayJoistSizes, setBayJoistSizes] = useState([]);
+
+  // Calculate bay-specific joist sizes when relevant parameters change
+  useEffect(() => {
+    const calculateBayJoistSizes = async () => {
+      if (!useCustomBayDimensions || !results) return;
+      
+      const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
+      const uniqueBaySizes = [];
+      
+      // Calculate unique bay combinations
+      for (let row = 0; row < results.widthwiseBays; row++) {
+        for (let col = 0; col < results.lengthwiseBays; col++) {
+          const bayWidth = lengthwiseBayWidths[col];
+          const bayHeight = widthwiseBayWidths[row];
+          
+          // Use global joist direction instead of calculating per bay
+          const joistsSpanLengthwise = joistsRunLengthwise;
+          const joistSpan = joistsSpanLengthwise ? bayWidth : bayHeight;
+          
+          // Calculate joist size for this specific span
+          // Use the async version to get minimum width from FRL.csv
+          const bayJoistSize = await calculateJoistSizeAsync(joistSpan, 800, load, timberGrade, fireRating);
+          
+          // Find if this size already exists in our unique list
+          const existingSize = uniqueBaySizes.find(item => 
+            item.width === bayJoistSize.width && 
+            item.depth === bayJoistSize.depth &&
+            Math.abs(item.span - joistSpan) < 0.01
+          );
+          
+          if (!existingSize) {
+            uniqueBaySizes.push({
+              span: joistSpan,
+              width: bayJoistSize.width,
+              depth: bayJoistSize.depth,
+              count: 1,
+              locations: [`R${row+1}C${col+1}`]
+            });
+          } else {
+            existingSize.count++;
+            existingSize.locations.push(`R${row+1}C${col+1}`);
+          }
+        }
+      }
+      
+      // Sort by span
+      uniqueBaySizes.sort((a, b) => b.span - a.span);
+      setBayJoistSizes(uniqueBaySizes);
+    };
+    
+    calculateBayJoistSizes();
+  }, [useCustomBayDimensions, results, fireRating, load, timberGrade, joistsRunLengthwise]);
   
   // Example of a component section converted to use Tailwind classes
   return (
@@ -1440,55 +1495,12 @@ export default function TimberCalculator() {
                             <div className="mt-3 pt-3 border-t border-gray-200">
                               <p className="text-xs md:text-sm font-medium mb-1">Grid cell-specific sizes:</p>
                               <div className="text-xs space-y-1 overflow-auto max-h-32 md:max-h-none">
-                                {(() => {
-                                  const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
-                                  const uniqueBaySizes = [];
-                                  
-                                  // Calculate unique bay combinations
-                                  for (let row = 0; row < results.widthwiseBays; row++) {
-                                    for (let col = 0; col < results.lengthwiseBays; col++) {
-                                      const bayWidth = lengthwiseBayWidths[col];
-                                      const bayHeight = widthwiseBayWidths[row];
-                                      
-                                      // Use global joist direction instead of calculating per bay
-                                      const joistsSpanLengthwise = joistsRunLengthwise;
-                                      const joistSpan = joistsSpanLengthwise ? bayWidth : bayHeight;
-                                      
-                                      // Calculate joist size for this specific span
-                                      const bayJoistSize = calculateJoistSize(joistSpan, load, fireRating);
-                                      
-                                      // Find if this size already exists in our unique list
-                                      const existingSize = uniqueBaySizes.find(item => 
-                                        item.width === bayJoistSize.width && 
-                                        item.depth === bayJoistSize.depth &&
-                                        Math.abs(item.span - joistSpan) < 0.01
-                                      );
-                                      
-                                      if (!existingSize) {
-                                        uniqueBaySizes.push({
-                                          span: joistSpan,
-                                          width: bayJoistSize.width,
-                                          depth: bayJoistSize.depth,
-                                          count: 1,
-                                          locations: [`R${row+1}C${col+1}`]
-                                        });
-                                      } else {
-                                        existingSize.count++;
-                                        existingSize.locations.push(`R${row+1}C${col+1}`);
-                                      }
-                                    }
-                                  }
-                                  
-                                  // Sort by span
-                                  uniqueBaySizes.sort((a, b) => b.span - a.span);
-                                  
-                                  return uniqueBaySizes.map((item, index) => (
-                                    <div key={`joist-size-${index}`}>
-                                      <strong>{item.span?.toFixed(2) || '0.00'}m span:</strong> {item.width}mm × {item.depth}mm
-                                      <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'grid cell' : 'grid cells'})</span>
-                                    </div>
-                                  ));
-                                })()}
+                                {bayJoistSizes.map((item, index) => (
+                                  <div key={`joist-size-${index}`}>
+                                    <strong>{item.span?.toFixed(2) || '0.00'}m span:</strong> {item.width}mm × {item.depth}mm
+                                    <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'grid cell' : 'grid cells'})</span>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           )}
