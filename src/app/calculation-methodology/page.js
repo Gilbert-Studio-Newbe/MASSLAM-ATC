@@ -231,8 +231,18 @@ export default function CalculationMethodologyPage() {
               </li>
               <li>
                 <strong>Calculate theoretical depth:</strong><br />
-                <code className="bg-gray-100 px-2 py-1 rounded">theoreticalDepth = Math.max(140, Math.ceil(spanMm / 15))</code><br />
-                <span className="text-sm text-gray-600">Example: For a 4.5m span, theoreticalDepth = Math.max(140, Math.ceil(4500 / 15)) = Math.max(140, 300) = 300 mm</span>
+                <code className="bg-gray-100 px-2 py-1 rounded">
+                  // Depth ratio depends on span length
+                  if (span <= 4.0) {
+                    depthRatio = 15; // Smaller spans use span/15
+                  } else if (span <= 6.0) {
+                    depthRatio = 12; // Medium spans use span/12
+                  } else {
+                    depthRatio = 10; // Longer spans need span/10
+                  }
+                  theoreticalDepth = Math.max(140, Math.ceil(spanMm / depthRatio))
+                </code><br />
+                <span className="text-sm text-gray-600">Example: For a 4.5m span, depthRatio = 12, theoreticalDepth = Math.max(140, Math.ceil(4500 / 12)) = Math.max(140, 375) = 375 mm</span>
               </li>
               <li>
                 <strong>Calculate fire resistance allowance (if applicable):</strong><br />
@@ -243,13 +253,13 @@ export default function CalculationMethodologyPage() {
                 <strong>Add fire resistance allowance to depth only (width is already set based on FRL):</strong><br />
                 <code className="bg-gray-100 px-2 py-1 rounded">fireAdjustedWidth = theoreticalWidth</code><br />
                 <code className="bg-gray-100 px-2 py-1 rounded">fireAdjustedDepth = theoreticalDepth + fireAllowance</code><br />
-                <span className="text-sm text-gray-600">Example: For a 165 mm width and 300 mm depth with 42 mm allowance, fireAdjustedWidth = 165 mm, fireAdjustedDepth = 300 + 42 = 342 mm</span>
+                <span className="text-sm text-gray-600">Example: For a 165 mm width and 375 mm depth with 42 mm allowance, fireAdjustedWidth = 165 mm, fireAdjustedDepth = 375 + 42 = 417 mm</span>
               </li>
               <li>
                 <strong>Find nearest available standard size:</strong><br />
                 <code className="bg-gray-100 px-2 py-1 rounded">width = findNearestWidth(fireAdjustedWidth)</code><br />
                 <code className="bg-gray-100 px-2 py-1 rounded">depth = findNearestDepth(width, fireAdjustedDepth)</code><br />
-                <span className="text-sm text-gray-600">Example: For a 165 mm adjusted width and 342 mm adjusted depth, the nearest standard size from masslam_sizes.csv would be 165 mm width and 410 mm depth</span>
+                <span className="text-sm text-gray-600">Example: For a 165 mm adjusted width and 417 mm adjusted depth, the nearest standard size from masslam_sizes.csv would be 165 mm width and 410 mm depth</span>
               </li>
             </ol>
             
@@ -268,10 +278,11 @@ export default function CalculationMethodologyPage() {
                 <li>minJoistWidth = loadMinJoistWidthForFRL(fireRating) = 165 mm</li>
                 <li>spanMm = 4.5 * 1000 = 4500 mm</li>
                 <li>theoreticalWidth = minJoistWidth = 165 mm</li>
-                <li>theoreticalDepth = Math.max(140, Math.ceil(4500 / 15)) = 300 mm</li>
+                <li>depthRatio = 12</li>
+                <li>theoreticalDepth = Math.max(140, Math.ceil(4500 / 12)) = 375 mm</li>
                 <li>fireAllowance = 0.7 * 60 = 42 mm</li>
                 <li>fireAdjustedWidth = 165 mm</li>
-                <li>fireAdjustedDepth = 300 + 42 = 342 mm</li>
+                <li>fireAdjustedDepth = 375 + 42 = 417 mm</li>
                 <li>Final size (from standard sizes): 165 mm × 410 mm</li>
               </ol>
             </div>

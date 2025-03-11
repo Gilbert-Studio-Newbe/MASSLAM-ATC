@@ -134,7 +134,21 @@ export async function calculateJoistSizeAsync(span, spacing, load, timberGrade, 
   // Calculate theoretical width and depth
   // For width, use the minimum width from FRL.csv
   const theoreticalWidth = minJoistWidth;
-  const theoreticalDepth = Math.max(140, Math.ceil(spanMm / 15)); // Simplified calculation
+  
+  // Improved depth calculation based on span
+  // For timber joists, a common rule of thumb is span/12 to span/10 for residential loads
+  // For longer spans, we use a more conservative ratio to ensure adequate stiffness
+  let depthRatio;
+  if (span <= 4.0) {
+    depthRatio = 15; // Smaller spans can use span/15
+  } else if (span <= 6.0) {
+    depthRatio = 12; // Medium spans use span/12
+  } else {
+    depthRatio = 10; // Longer spans need span/10 for adequate stiffness
+  }
+  
+  const theoreticalDepth = Math.max(140, Math.ceil(spanMm / depthRatio));
+  console.log(`Using depth ratio of 1/${depthRatio} for ${span}m span`);
   
   // Calculate fire resistance allowance if needed
   let fireAllowance = 0;
@@ -186,7 +200,21 @@ export async function calculateJoistSize(span, spacing, load, timberGrade, fireR
   // For width, use the minimum width from FRL.csv
   const spanMm = span * 1000; // Convert to mm
   const theoreticalWidth = minJoistWidth;
-  const theoreticalDepth = Math.max(140, Math.ceil(spanMm / 15)); // Simplified calculation
+  
+  // Improved depth calculation based on span
+  // For timber joists, a common rule of thumb is span/12 to span/10 for residential loads
+  // For longer spans, we use a more conservative ratio to ensure adequate stiffness
+  let depthRatio;
+  if (span <= 4.0) {
+    depthRatio = 15; // Smaller spans can use span/15
+  } else if (span <= 6.0) {
+    depthRatio = 12; // Medium spans use span/12
+  } else {
+    depthRatio = 10; // Longer spans need span/10 for adequate stiffness
+  }
+  
+  const theoreticalDepth = Math.max(140, Math.ceil(spanMm / depthRatio));
+  console.log(`Using depth ratio of 1/${depthRatio} for ${span}m span`);
   
   // Calculate fire resistance allowance if needed
   let fireAllowance = 0;
