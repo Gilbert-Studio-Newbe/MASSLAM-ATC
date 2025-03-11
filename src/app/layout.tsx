@@ -151,9 +151,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <Link href="/fire-resistance" className="apple-nav-link">Fire Resistance</Link> 
                     </li> 
                     <li className="w-full md:w-auto"> 
-                      <Link href="/optimal-solver" className="apple-nav-link">Optimal Solver</Link> 
-                    </li>
-                    <li className="w-full md:w-auto"> 
                       <Link href="#" className="apple-nav-link">About</Link> 
                     </li> 
                   </ul> 
