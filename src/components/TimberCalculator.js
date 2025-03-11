@@ -101,24 +101,32 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
   // Calculate minimum depth based on load and height
   // Start with a base size that depends on the load
   // This ensures columns resize properly when floors are added or removed
-  const baseSize = Math.max(width, Math.ceil(Math.sqrt(totalLoad) * 15));
+  const baseSize = Math.max(width, Math.ceil(Math.sqrt(totalLoad) * 20));
+  console.log(`Base column size based on load: ${baseSize}mm`);
   
   // Adjust depth based on number of floors
   let depth = baseSize;
   
   // Increase depth based on number of floors and load
   if (floors > 1) {
-    // Add 50mm per additional floor
-    depth += (floors - 1) * 50;
+    // Add 70mm per additional floor to make changes more noticeable
+    const floorAddition = (floors - 1) * 70;
+    console.log(`Adding ${floorAddition}mm to column depth for ${floors} floors`);
+    depth += floorAddition;
   }
   
   // Ensure depth is at least equal to width (square column)
-  depth = Math.max(depth, width);
+  const minDepth = Math.max(depth, width);
+  if (minDepth > depth) {
+    console.log(`Increasing column depth to match width: ${minDepth}mm`);
+  }
+  depth = minDepth;
   
   // Calculate fire resistance allowance if needed
   let fireAllowance = 0;
   if (fireRating && fireRating !== 'none') {
     fireAllowance = calculateFireResistanceAllowance(fireRating);
+    console.log(`Adding fire allowance of ${fireAllowance}mm to column dimensions`);
   }
   
   // Add fire resistance allowance to width and depth
@@ -132,6 +140,7 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
   // Find nearest available width and depth
   const adjustedWidth = findNearestWidth(fireAdjustedWidth);
   const adjustedDepth = findNearestDepth(adjustedWidth, fireAdjustedDepth);
+  console.log(`Final column size after rounding to available sizes: ${adjustedWidth}x${adjustedDepth}mm`);
   
   return {
     width: adjustedWidth,
