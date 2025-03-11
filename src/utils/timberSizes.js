@@ -14,7 +14,20 @@ let _isInitialized = false;
  */
 export function initializeMasslamSizes() {
   console.log('Initializing MASSLAM sizes module');
+  // Clear any existing data
   _masslamSizes = [];
+  
+  // Immediately load the hardcoded sizes
+  console.log(`Loading ${HARDCODED_MASSLAM_SIZES.length} hardcoded MASSLAM sizes during initialization`);
+  _masslamSizes = [...HARDCODED_MASSLAM_SIZES];
+  
+  // Count by type
+  const typeCount = {};
+  _masslamSizes.forEach(size => {
+    typeCount[size.type] = (typeCount[size.type] || 0) + 1;
+  });
+  console.log('Sizes by type after initialization:', typeCount);
+  
   _isInitialized = true;
   return true;
 }
@@ -35,12 +48,250 @@ function _setMasslamSizes(sizes) {
   _masslamSizes = [...sizes];
 }
 
+// Hardcoded MASSLAM sizes data from the CSV file
+export const HARDCODED_MASSLAM_SIZES = [
+  { width: 120, depth: 200, type: "joist" },
+  { width: 120, depth: 200, type: "beam" },
+  { width: 120, depth: 200, type: "column" },
+  { width: 120, depth: 270, type: "joist" },
+  { width: 120, depth: 270, type: "beam" },
+  { width: 120, depth: 270, type: "column" },
+  { width: 120, depth: 335, type: "joist" },
+  { width: 120, depth: 335, type: "beam" },
+  { width: 120, depth: 335, type: "column" },
+  { width: 120, depth: 410, type: "joist" },
+  { width: 120, depth: 410, type: "beam" },
+  { width: 120, depth: 410, type: "column" },
+  { width: 120, depth: 480, type: "joist" },
+  { width: 120, depth: 480, type: "beam" },
+  { width: 120, depth: 480, type: "column" },
+  { width: 120, depth: 550, type: "joist" },
+  { width: 120, depth: 550, type: "beam" },
+  { width: 120, depth: 550, type: "column" },
+  { width: 120, depth: 620, type: "joist" },
+  { width: 120, depth: 620, type: "beam" },
+  { width: 120, depth: 620, type: "column" },
+  { width: 165, depth: 200, type: "joist" },
+  { width: 165, depth: 200, type: "beam" },
+  { width: 165, depth: 200, type: "column" },
+  { width: 165, depth: 270, type: "joist" },
+  { width: 165, depth: 270, type: "beam" },
+  { width: 165, depth: 270, type: "column" },
+  { width: 165, depth: 335, type: "joist" },
+  { width: 165, depth: 335, type: "beam" },
+  { width: 165, depth: 335, type: "column" },
+  { width: 165, depth: 410, type: "joist" },
+  { width: 165, depth: 410, type: "beam" },
+  { width: 165, depth: 410, type: "column" },
+  { width: 165, depth: 480, type: "joist" },
+  { width: 165, depth: 480, type: "beam" },
+  { width: 165, depth: 480, type: "column" },
+  { width: 165, depth: 550, type: "joist" },
+  { width: 165, depth: 550, type: "beam" },
+  { width: 165, depth: 550, type: "column" },
+  { width: 165, depth: 620, type: "joist" },
+  { width: 165, depth: 620, type: "beam" },
+  { width: 165, depth: 620, type: "column" },
+  { width: 205, depth: 200, type: "joist" },
+  { width: 205, depth: 200, type: "beam" },
+  { width: 205, depth: 200, type: "column" },
+  { width: 205, depth: 270, type: "joist" },
+  { width: 205, depth: 270, type: "beam" },
+  { width: 205, depth: 270, type: "column" },
+  { width: 205, depth: 335, type: "joist" },
+  { width: 205, depth: 335, type: "beam" },
+  { width: 205, depth: 335, type: "column" },
+  { width: 205, depth: 410, type: "joist" },
+  { width: 205, depth: 410, type: "beam" },
+  { width: 205, depth: 410, type: "column" },
+  { width: 205, depth: 480, type: "joist" },
+  { width: 205, depth: 480, type: "beam" },
+  { width: 205, depth: 480, type: "column" },
+  { width: 205, depth: 550, type: "joist" },
+  { width: 205, depth: 550, type: "beam" },
+  { width: 205, depth: 550, type: "column" },
+  { width: 205, depth: 620, type: "joist" },
+  { width: 205, depth: 620, type: "beam" },
+  { width: 205, depth: 620, type: "column" },
+  { width: 250, depth: 200, type: "joist" },
+  { width: 250, depth: 200, type: "beam" },
+  { width: 250, depth: 200, type: "column" },
+  { width: 250, depth: 270, type: "joist" },
+  { width: 250, depth: 270, type: "beam" },
+  { width: 250, depth: 270, type: "column" },
+  { width: 250, depth: 335, type: "joist" },
+  { width: 250, depth: 335, type: "beam" },
+  { width: 250, depth: 335, type: "column" },
+  { width: 250, depth: 410, type: "joist" },
+  { width: 250, depth: 410, type: "beam" },
+  { width: 250, depth: 410, type: "column" },
+  { width: 250, depth: 480, type: "joist" },
+  { width: 250, depth: 480, type: "beam" },
+  { width: 250, depth: 480, type: "column" },
+  { width: 250, depth: 550, type: "joist" },
+  { width: 250, depth: 550, type: "beam" },
+  { width: 250, depth: 550, type: "column" },
+  { width: 250, depth: 620, type: "joist" },
+  { width: 250, depth: 620, type: "beam" },
+  { width: 250, depth: 620, type: "column" },
+  { width: 290, depth: 200, type: "joist" },
+  { width: 290, depth: 200, type: "beam" },
+  { width: 290, depth: 200, type: "column" },
+  { width: 290, depth: 270, type: "joist" },
+  { width: 290, depth: 270, type: "beam" },
+  { width: 290, depth: 270, type: "column" },
+  { width: 290, depth: 335, type: "joist" },
+  { width: 290, depth: 335, type: "beam" },
+  { width: 290, depth: 335, type: "column" },
+  { width: 290, depth: 410, type: "joist" },
+  { width: 290, depth: 410, type: "beam" },
+  { width: 290, depth: 410, type: "column" },
+  { width: 290, depth: 480, type: "joist" },
+  { width: 290, depth: 480, type: "beam" },
+  { width: 290, depth: 480, type: "column" },
+  { width: 290, depth: 550, type: "joist" },
+  { width: 290, depth: 550, type: "beam" },
+  { width: 290, depth: 550, type: "column" },
+  { width: 290, depth: 620, type: "joist" },
+  { width: 290, depth: 620, type: "beam" },
+  { width: 290, depth: 620, type: "column" },
+  { width: 290, depth: 690, type: "joist" },
+  { width: 290, depth: 690, type: "beam" },
+  { width: 290, depth: 690, type: "column" },
+  { width: 290, depth: 760, type: "joist" },
+  { width: 290, depth: 760, type: "beam" },
+  { width: 290, depth: 760, type: "column" },
+  { width: 290, depth: 830, type: "joist" },
+  { width: 290, depth: 830, type: "beam" },
+  { width: 290, depth: 830, type: "column" },
+  { width: 335, depth: 200, type: "joist" },
+  { width: 335, depth: 200, type: "beam" },
+  { width: 335, depth: 200, type: "column" },
+  { width: 335, depth: 270, type: "joist" },
+  { width: 335, depth: 270, type: "beam" },
+  { width: 335, depth: 270, type: "column" },
+  { width: 335, depth: 335, type: "joist" },
+  { width: 335, depth: 335, type: "beam" },
+  { width: 335, depth: 335, type: "column" },
+  { width: 335, depth: 410, type: "joist" },
+  { width: 335, depth: 410, type: "beam" },
+  { width: 335, depth: 410, type: "column" },
+  { width: 335, depth: 480, type: "joist" },
+  { width: 335, depth: 480, type: "beam" },
+  { width: 335, depth: 480, type: "column" },
+  { width: 335, depth: 550, type: "joist" },
+  { width: 335, depth: 550, type: "beam" },
+  { width: 335, depth: 550, type: "column" },
+  { width: 335, depth: 620, type: "joist" },
+  { width: 335, depth: 620, type: "beam" },
+  { width: 335, depth: 620, type: "column" },
+  { width: 335, depth: 690, type: "joist" },
+  { width: 335, depth: 690, type: "beam" },
+  { width: 335, depth: 690, type: "column" },
+  { width: 335, depth: 760, type: "joist" },
+  { width: 335, depth: 760, type: "beam" },
+  { width: 335, depth: 760, type: "column" },
+  { width: 335, depth: 830, type: "joist" },
+  { width: 335, depth: 830, type: "beam" },
+  { width: 335, depth: 830, type: "column" },
+  { width: 380, depth: 200, type: "joist" },
+  { width: 380, depth: 200, type: "beam" },
+  { width: 380, depth: 200, type: "column" },
+  { width: 380, depth: 270, type: "joist" },
+  { width: 380, depth: 270, type: "beam" },
+  { width: 380, depth: 270, type: "column" },
+  { width: 380, depth: 335, type: "joist" },
+  { width: 380, depth: 335, type: "beam" },
+  { width: 380, depth: 335, type: "column" },
+  { width: 380, depth: 410, type: "joist" },
+  { width: 380, depth: 410, type: "beam" },
+  { width: 380, depth: 410, type: "column" },
+  { width: 380, depth: 480, type: "joist" },
+  { width: 380, depth: 480, type: "beam" },
+  { width: 380, depth: 480, type: "column" },
+  { width: 380, depth: 550, type: "joist" },
+  { width: 380, depth: 550, type: "beam" },
+  { width: 380, depth: 550, type: "column" },
+  { width: 380, depth: 620, type: "joist" },
+  { width: 380, depth: 620, type: "beam" },
+  { width: 380, depth: 620, type: "column" },
+  { width: 380, depth: 690, type: "joist" },
+  { width: 380, depth: 690, type: "beam" },
+  { width: 380, depth: 690, type: "column" },
+  { width: 380, depth: 760, type: "joist" },
+  { width: 380, depth: 760, type: "beam" },
+  { width: 380, depth: 760, type: "column" },
+  { width: 380, depth: 830, type: "joist" },
+  { width: 380, depth: 830, type: "beam" },
+  { width: 380, depth: 830, type: "column" },
+  { width: 420, depth: 200, type: "joist" },
+  { width: 420, depth: 200, type: "beam" },
+  { width: 420, depth: 200, type: "column" },
+  { width: 420, depth: 270, type: "joist" },
+  { width: 420, depth: 270, type: "beam" },
+  { width: 420, depth: 270, type: "column" },
+  { width: 420, depth: 335, type: "joist" },
+  { width: 420, depth: 335, type: "beam" },
+  { width: 420, depth: 335, type: "column" },
+  { width: 420, depth: 410, type: "joist" },
+  { width: 420, depth: 410, type: "beam" },
+  { width: 420, depth: 410, type: "column" },
+  { width: 420, depth: 480, type: "joist" },
+  { width: 420, depth: 480, type: "beam" },
+  { width: 420, depth: 480, type: "column" },
+  { width: 420, depth: 550, type: "joist" },
+  { width: 420, depth: 550, type: "beam" },
+  { width: 420, depth: 550, type: "column" },
+  { width: 420, depth: 620, type: "joist" },
+  { width: 420, depth: 620, type: "beam" },
+  { width: 420, depth: 620, type: "column" },
+  { width: 420, depth: 690, type: "joist" },
+  { width: 420, depth: 690, type: "beam" },
+  { width: 420, depth: 690, type: "column" },
+  { width: 420, depth: 760, type: "joist" },
+  { width: 420, depth: 760, type: "beam" },
+  { width: 420, depth: 760, type: "column" },
+  { width: 420, depth: 830, type: "joist" },
+  { width: 420, depth: 830, type: "beam" },
+  { width: 420, depth: 830, type: "column" },
+  { width: 450, depth: 200, type: "joist" },
+  { width: 450, depth: 200, type: "beam" },
+  { width: 450, depth: 200, type: "column" },
+  { width: 450, depth: 270, type: "joist" },
+  { width: 450, depth: 270, type: "beam" },
+  { width: 450, depth: 270, type: "column" },
+  { width: 450, depth: 335, type: "joist" },
+  { width: 450, depth: 335, type: "beam" },
+  { width: 450, depth: 335, type: "column" },
+  { width: 450, depth: 410, type: "joist" },
+  { width: 450, depth: 410, type: "beam" },
+  { width: 450, depth: 410, type: "column" },
+  { width: 450, depth: 480, type: "joist" },
+  { width: 450, depth: 480, type: "beam" },
+  { width: 450, depth: 480, type: "column" },
+  { width: 450, depth: 550, type: "joist" },
+  { width: 450, depth: 550, type: "beam" },
+  { width: 450, depth: 550, type: "column" },
+  { width: 450, depth: 620, type: "joist" },
+  { width: 450, depth: 620, type: "beam" },
+  { width: 450, depth: 620, type: "column" },
+  { width: 450, depth: 690, type: "joist" },
+  { width: 450, depth: 690, type: "beam" },
+  { width: 450, depth: 690, type: "column" },
+  { width: 450, depth: 760, type: "joist" },
+  { width: 450, depth: 760, type: "beam" },
+  { width: 450, depth: 760, type: "column" },
+  { width: 450, depth: 830, type: "joist" },
+  { width: 450, depth: 830, type: "beam" },
+  { width: 450, depth: 830, type: "column" }
+];
+
 /**
- * Load MASSLAM sizes from CSV file
+ * Load MASSLAM sizes from the CSV file
  * @returns {Promise} Promise that resolves when data is loaded
  */
 export async function loadMasslamSizes() {
-  console.log('Loading MASSLAM sizes from CSV...');
+  console.log('Loading MASSLAM sizes from hardcoded data...');
   
   // Initialize the module if not already initialized
   if (!_isInitialized) {
@@ -51,100 +302,30 @@ export async function loadMasslamSizes() {
   }
   
   try {
-    // Fetch the CSV file
-    const response = await fetch('/data/masslam_sizes.csv');
-    if (!response.ok) {
-      throw new Error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
-    }
+    // Use hardcoded data instead of fetching from CSV
+    console.log(`Using ${HARDCODED_MASSLAM_SIZES.length} hardcoded MASSLAM sizes`);
     
-    const csvText = await response.text();
-    console.log('Raw CSV content length:', csvText.length);
-    console.log('CSV lines:', csvText.trim().split('\n').length);
+    // Set the hardcoded data directly to _masslamSizes
+    _masslamSizes = [...HARDCODED_MASSLAM_SIZES];
     
-    // Manual parsing to ensure we get exactly what's in the file
-    const lines = csvText.trim().split('\n');
-    const headers = lines[0].split(',');
-    
-    console.log('CSV Headers:', headers);
-    
-    // Check if we have the expected headers
-    if (!headers.includes('width') || !headers.includes('depth') || !headers.includes('type')) {
-      console.error('CSV is missing required headers (width, depth, type)');
-      return [];
-    }
-    
-    // Get the index of each header
-    const widthIndex = headers.indexOf('width');
-    const depthIndex = headers.indexOf('depth');
-    const typeIndex = headers.indexOf('type');
-    
-    console.log(`Header indices: width=${widthIndex}, depth=${depthIndex}, type=${typeIndex}`);
-    
-    // Parse the data rows
-    const parsedData = [];
-    const skippedLines = [];
-    
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) {
-        console.log(`Line ${i} is empty, skipping`);
-        continue; // Skip empty lines
-      }
-      
-      const values = line.split(',');
-      
-      // Ensure we have enough values
-      if (values.length < Math.max(widthIndex, depthIndex, typeIndex) + 1) {
-        console.warn(`Line ${i} has insufficient values: ${line}`);
-        skippedLines.push({ line: i, reason: 'insufficient values', content: line });
-        continue;
-      }
-      
-      // Create the size object with proper type conversion
-      const size = {
-        width: Number(values[widthIndex]),
-        depth: Number(values[depthIndex]),
-        type: values[typeIndex].trim()
-      };
-      
-      // Validate the size
-      if (isNaN(size.width) || isNaN(size.depth) || !size.type) {
-        console.warn(`Line ${i} has invalid values: ${line}`);
-        skippedLines.push({ line: i, reason: 'invalid values', content: line });
-        continue;
-      }
-      
-      parsedData.push(size);
-    }
-    
-    console.log(`Manually parsed ${parsedData.length} sizes from CSV`);
-    if (skippedLines.length > 0) {
-      console.warn(`Skipped ${skippedLines.length} lines during parsing:`, skippedLines);
-    }
-    
-    // Count by type before setting
-    const typeCountBefore = {};
-    parsedData.forEach(size => {
-      typeCountBefore[size.type] = (typeCountBefore[size.type] || 0) + 1;
+    // Count by type
+    const typeCount = {};
+    _masslamSizes.forEach(size => {
+      typeCount[size.type] = (typeCount[size.type] || 0) + 1;
     });
-    console.log('Sizes by type before setting:', typeCountBefore);
-    
-    // Set the parsed data
-    _setMasslamSizes(parsedData);
-    
-    // Count by type after setting
-    const sizes = getMasslamSizes();
-    const typeCountAfter = {};
-    sizes.forEach(size => {
-      typeCountAfter[size.type] = (typeCountAfter[size.type] || 0) + 1;
-    });
-    console.log('Sizes by type after setting:', typeCountAfter);
+    console.log('Sizes by type:', typeCount);
     
     // Log the current state
     console.log(`MASSLAM sizes loaded: ${_masslamSizes.length} sizes`);
     
+    // Debug the loaded sizes
+    console.log('First 5 sizes:', _masslamSizes.slice(0, 5));
+    console.log('Last 5 sizes:', _masslamSizes.slice(-5));
+    
     // Return a copy of the data
-    return getMasslamSizes();
+    const sizes = getMasslamSizes();
+    console.log(`getMasslamSizes returned ${sizes.length} sizes`);
+    return sizes;
   } catch (error) {
     console.error('Error loading MASSLAM sizes:', error);
     return [];
@@ -160,13 +341,23 @@ export function findNearestWidth(targetWidth) {
   const sizes = getMasslamSizes();
   
   if (sizes.length === 0) {
-    console.warn('MASSLAM sizes not loaded yet, cannot find nearest width');
-    return targetWidth;
+    console.warn('MASSLAM sizes not loaded yet, using hardcoded sizes instead');
+    // Use hardcoded sizes directly
+    const availableWidths = [...new Set(HARDCODED_MASSLAM_SIZES.map(size => size.width))].sort((a, b) => a - b);
+    console.log('Available widths from hardcoded data:', availableWidths);
+    
+    if (availableWidths.length === 0) return targetWidth;
+    
+    // Find the smallest width that is >= targetWidth
+    const roundedUpWidth = availableWidths.find(w => w >= targetWidth) || availableWidths[availableWidths.length - 1];
+    console.log(`Rounding width ${targetWidth}mm up to ${roundedUpWidth}mm (using hardcoded data)`);
+    
+    return roundedUpWidth;
   }
   
   // Extract unique widths and sort them
   const availableWidths = [...new Set(sizes.map(size => size.width))].sort((a, b) => a - b);
-  console.log('Available widths from CSV:', availableWidths);
+  console.log('Available widths from loaded sizes:', availableWidths);
   
   if (availableWidths.length === 0) return targetWidth;
   
@@ -187,8 +378,25 @@ export function findNearestDepth(width, targetDepth) {
   const sizes = getMasslamSizes();
   
   if (sizes.length === 0) {
-    console.warn('MASSLAM sizes not loaded yet, cannot find nearest depth');
-    return targetDepth;
+    console.warn('MASSLAM sizes not loaded yet, using hardcoded sizes instead');
+    // Use hardcoded sizes directly
+    const availableDepths = HARDCODED_MASSLAM_SIZES
+      .filter(size => size.width === width)
+      .map(size => size.depth)
+      .sort((a, b) => a - b);
+    
+    console.log(`Available depths for width ${width} from hardcoded data:`, availableDepths);
+    
+    if (availableDepths.length === 0) {
+      console.warn(`No depths available for width ${width} in the hardcoded data`);
+      return targetDepth;
+    }
+    
+    // Find the smallest depth that is >= targetDepth
+    const roundedUpDepth = availableDepths.find(d => d >= targetDepth) || availableDepths[availableDepths.length - 1];
+    console.log(`Rounding depth ${targetDepth}mm up to ${roundedUpDepth}mm for width ${width}mm (using hardcoded data)`);
+    
+    return roundedUpDepth;
   }
   
   // Filter depths available for the given width
@@ -197,10 +405,10 @@ export function findNearestDepth(width, targetDepth) {
     .map(size => size.depth)
     .sort((a, b) => a - b);
   
-  console.log(`Available depths for width ${width} from CSV:`, availableDepths);
+  console.log(`Available depths for width ${width} from loaded sizes:`, availableDepths);
   
   if (availableDepths.length === 0) {
-    console.warn(`No depths available for width ${width} in the CSV file`);
+    console.warn(`No depths available for width ${width} in the loaded sizes`);
     return targetDepth;
   }
   
