@@ -111,6 +111,43 @@ loadTimberProperties().then(() => {
 });
 
 /**
+ * Map Fire Resistance Level (FRL) to joist width in mm
+ * @param {string} fireRating - Fire rating (e.g., "none", "30/30/30", "60/60/60")
+ * @returns {number} Width in mm based on FRL
+ */
+function getJoistWidthByFRL(fireRating) {
+  if (!fireRating || fireRating === 'none') return 120;
+  
+  switch(fireRating) {
+    case '30/30/30': return 165;
+    case '60/60/60': return 200;
+    case '90/90/90': return 250;
+    case '120/120/120': return 250;
+    default: return 120; // Default fallback
+  }
+}
+
+/**
+ * Map Fire Resistance Level (FRL) to beam width in mm
+ * @param {string} fireRating - Fire rating (e.g., "none", "30/30/30", "60/60/60")
+ * @returns {number} Width in mm based on FRL
+ */
+function getBeamWidthByFRL(fireRating) {
+  // Using the same mapping as joists for consistency
+  return getJoistWidthByFRL(fireRating);
+}
+
+/**
+ * Map Fire Resistance Level (FRL) to column width in mm
+ * @param {string} fireRating - Fire rating (e.g., "none", "30/30/30", "60/60/60")
+ * @returns {number} Width in mm based on FRL
+ */
+function getColumnWidthByFRL(fireRating) {
+  // Using the same mapping as joists for consistency
+  return getJoistWidthByFRL(fireRating);
+}
+
+/**
  * Calculate the required joist size based on span, spacing, and load
  * 
  * @param {number} span - Span in meters
@@ -128,11 +165,14 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   let totalLoad = load;
   console.log(`Initial load (without self-weight): ${totalLoad.toFixed(2)} kPa`);
   
-  // Placeholder implementation
+  // Get width based on Fire Resistance Level (FRL)
+  const width = getJoistWidthByFRL(fireRating);
+  console.log(`Using joist width ${width}mm based on FRL: ${fireRating}`);
+  
+  // Placeholder implementation for depth
   const spanMm = span * 1000; // Convert to mm
   
-  // Calculate theoretical width and depth
-  const theoreticalWidth = Math.max(45, Math.ceil(spanMm / 30)); // Simplified calculation
+  // Calculate theoretical depth
   const theoreticalDepth = Math.max(140, Math.ceil(spanMm / 15)); // Simplified calculation
   
   // Calculate fire resistance allowance if needed
@@ -141,13 +181,11 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
     fireAllowance = calculateFireResistanceAllowance(fireRating);
   }
   
-  // Add fire resistance allowance to width and depth
+  // Add fire resistance allowance to depth only (width is already fixed based on FRL)
   // For joists, typically only 3 sides are exposed (bottom and two sides)
-  const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
   const fireAdjustedDepth = theoreticalDepth + fireAllowance; // Only bottom exposed
   
-  // Find the nearest available width and depth
-  const width = findNearestWidth(fireAdjustedWidth);
+  // Find the nearest available depth for the fixed width
   const depth = findNearestDepth(width, fireAdjustedDepth);
   
   // Calculate self-weight based on size estimate
@@ -177,8 +215,7 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   totalLoad += selfWeightLoad;
   console.log(`Total load (with self-weight): ${totalLoad.toFixed(2)} kPa`);
   
-  console.log(`Joist size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
-  console.log(`Joist size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
+  console.log(`Joist size after fire adjustment: width ${width}mm, depth ${fireAdjustedDepth}mm`);
   
   return {
     width: width,
@@ -199,7 +236,7 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
  * Calculate the required beam size based on span and load
  * 
  * @param {number} span - Span in meters
- * @param {number} load - Load in kPa
+ * @param {number} load - Load in kN/m
  * @param {string} timberGrade - Timber grade (GL18, GL21, GL24)
  * @param {string} fireRating - Fire rating (e.g., "60/60/60", "90/90/90")
  * @returns {Object} Calculated beam size and properties
@@ -208,9 +245,12 @@ export function calculateBeamSize(span, load, timberGrade, fireRating = 'none') 
   // Placeholder implementation
   const spanMm = span * 1000; // Convert to mm
   
-  // Calculate theoretical width and depth
-  const theoreticalWidth = Math.max(65, Math.ceil(spanMm / 25)); // Simplified calculation
-  const theoreticalDepth = Math.max(240, Math.ceil(spanMm / 12)); // Simplified calculation
+  // Get width based on Fire Resistance Level (FRL)
+  const width = getBeamWidthByFRL(fireRating);
+  console.log(`Using beam width ${width}mm based on FRL: ${fireRating}`);
+  
+  // Calculate theoretical depth
+  const theoreticalDepth = Math.max(220, Math.ceil(spanMm / 10)); // Simplified calculation
   
   // Calculate fire resistance allowance if needed
   let fireAllowance = 0;
@@ -218,23 +258,45 @@ export function calculateBeamSize(span, load, timberGrade, fireRating = 'none') 
     fireAllowance = calculateFireResistanceAllowance(fireRating);
   }
   
-  // Add fire resistance allowance to width and depth
+  // Add fire resistance allowance to depth only (width is already fixed based on FRL)
   // For beams, typically 3 sides are exposed (bottom and two sides)
-  const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
-  const fireAdjustedDepth = theoreticalDepth + fireAllowance; // Only bottom exposed
+  const fireAdjustedDepth = theoreticalDepth + fireAllowance;
   
-  console.log(`Beam size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
-  console.log(`Beam size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
-  
-  // Find the nearest available width and depth
-  const width = findNearestWidth(fireAdjustedWidth);
+  // Find the nearest available depth for the fixed width
   const depth = findNearestDepth(width, fireAdjustedDepth);
+  
+  // Calculate self-weight
+  // Convert dimensions to meters
+  const beamWidth = width / 1000; // m
+  const beamDepth = depth / 1000; // m
+  
+  // Get timber density from properties (kg/m³)
+  const density = TIMBER_PROPERTIES[timberGrade]?.density || 600; // Default to 600 kg/m³
+  
+  // Calculate beam volume per meter (m³/m)
+  const beamVolumePerMeter = beamWidth * beamDepth * 1.0; // 1.0 meter length
+  
+  // Calculate beam weight per meter (kg/m)
+  const beamWeightPerMeter = beamVolumePerMeter * density;
+  
+  // Convert to kN/m (1 kg = 0.00981 kN)
+  const beamSelfWeightPerMeter = beamWeightPerMeter * 0.00981;
+  
+  console.log(`Beam self-weight: ${beamSelfWeightPerMeter.toFixed(2)} kN/m`);
+  
+  // Add self-weight to the total load
+  const totalLoad = load + beamSelfWeightPerMeter;
+  console.log(`Total beam load (with self-weight): ${totalLoad.toFixed(2)} kN/m`);
+  
+  console.log(`Beam size after fire adjustment: width ${width}mm, depth ${fireAdjustedDepth}mm`);
   
   return {
     width: width,
     depth: depth,
     span: span,
     load: load,
+    totalLoad: totalLoad,
+    selfWeight: beamSelfWeightPerMeter,
     grade: timberGrade,
     fireRating: fireRating,
     fireAllowance: fireAllowance
@@ -242,21 +304,28 @@ export function calculateBeamSize(span, load, timberGrade, fireRating = 'none') 
 }
 
 /**
- * Calculate the required column size based on height and load
+ * Calculate the required column size based on load and height
  * 
- * @param {number} height - Height in meters
+ * @param {number} beamWidth - Width of the supported beam in mm (used to match width)
  * @param {number} load - Load in kN
+ * @param {number} height - Column height in meters
  * @param {string} timberGrade - Timber grade (GL18, GL21, GL24)
  * @param {string} fireRating - Fire rating (e.g., "60/60/60", "90/90/90")
  * @returns {Object} Calculated column size and properties
  */
-export function calculateColumnSize(height, load, timberGrade, fireRating = 'none') {
-  // Placeholder implementation
-  const heightMm = height * 1000; // Convert to mm
+export function calculateColumnSize(beamWidth, load, height, timberGrade, fireRating = 'none') {
+  console.log(`Calculating column size for load ${load} kN, height ${height} m, fire rating ${fireRating}`);
   
-  // Calculate theoretical width and depth
-  const theoreticalWidth = Math.max(90, Math.ceil(Math.sqrt(load) * 20)); // Simplified calculation
-  const theoreticalDepth = theoreticalWidth; // Square columns for simplicity
+  // For columns, we want to respect both FRL requirements and matching beam width
+  // Get column width based on Fire Resistance Level (FRL)
+  const frlWidth = getColumnWidthByFRL(fireRating);
+  // Use the larger of FRL width or beam width to ensure proper support
+  const width = Math.max(frlWidth, beamWidth);
+  console.log(`Using column width ${width}mm (FRL width: ${frlWidth}mm, beam width: ${beamWidth}mm)`);
+  
+  // Calculate theoretical depth
+  const heightMm = height * 1000; // Convert to mm
+  const theoreticalDepth = Math.max(width, Math.ceil(heightMm / 15)); // Simplified calculation
   
   // Calculate fire resistance allowance if needed
   let fireAllowance = 0;
@@ -264,23 +333,43 @@ export function calculateColumnSize(height, load, timberGrade, fireRating = 'non
     fireAllowance = calculateFireResistanceAllowance(fireRating);
   }
   
-  // Add fire resistance allowance to width and depth
-  // For columns, all 4 sides are exposed
-  const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
-  const fireAdjustedDepth = theoreticalDepth + (2 * fireAllowance); // Both sides exposed
+  // Add fire resistance allowance to depth only (width is already fixed based on FRL and beam width)
+  // For columns, all 4 sides are typically exposed
+  const fireAdjustedDepth = theoreticalDepth + (2 * fireAllowance); // Account for both sides
   
-  console.log(`Column size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
-  console.log(`Column size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
-  
-  // Find the nearest available width and depth
-  const width = findNearestWidth(fireAdjustedWidth);
+  // Find the nearest available depth for the fixed width
   const depth = findNearestDepth(width, fireAdjustedDepth);
+  
+  // Calculate self-weight
+  // Convert dimensions to meters
+  const columnWidth = width / 1000; // m
+  const columnDepth = depth / 1000; // m
+  const columnVolume = columnWidth * columnDepth * height; // m³
+  
+  // Get timber density from properties (kg/m³)
+  const density = TIMBER_PROPERTIES[timberGrade]?.density || 600; // Default to 600 kg/m³
+  
+  // Calculate column weight (kg)
+  const columnWeight = columnVolume * density;
+  
+  // Convert to kN (1 kg = 0.00981 kN)
+  const columnSelfWeight = columnWeight * 0.00981;
+  
+  console.log(`Column self-weight: ${columnSelfWeight.toFixed(2)} kN`);
+  
+  // Add self-weight to the total load
+  const totalLoad = load + columnSelfWeight;
+  console.log(`Total column load (with self-weight): ${totalLoad.toFixed(2)} kN`);
+  
+  console.log(`Column size after fire adjustment: width ${width}mm, depth ${fireAdjustedDepth}mm`);
   
   return {
     width: width,
     depth: depth,
     height: height,
     load: load,
+    totalLoad: totalLoad,
+    selfWeight: columnSelfWeight,
     grade: timberGrade,
     fireRating: fireRating,
     fireAllowance: fireAllowance
