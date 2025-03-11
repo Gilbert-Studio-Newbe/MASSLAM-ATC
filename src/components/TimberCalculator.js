@@ -386,7 +386,8 @@ export default function TimberCalculator() {
           numFloors,
           lengthwiseBays,
           widthwiseBays,
-          joistsRunLengthwise
+          joistsRunLengthwise,
+          timberGrade
         );
         
         // Calculate carbon savings
@@ -1519,8 +1520,8 @@ export default function TimberCalculator() {
                             <h5 className="font-semibold mb-2 text-sm md:text-base">Timber Volume</h5>
                             <div className="space-y-2">
                               <p className="text-sm md:text-base"><strong>Total Volume:</strong> {results.timberVolume?.toFixed(2) || '0.00'} m³</p>
-                              <p className="text-sm md:text-base"><strong>Mass:</strong> {results.timberWeight?.toFixed(2) || '0.00'} tonnes</p>
-                              <p className="text-sm md:text-base"><strong>Density:</strong> 600 kg/m³ (MASSLAM GL18)</p>
+                              <p className="text-sm md:text-base"><strong>Mass:</strong> {(results.timberWeight / 1000)?.toFixed(2) || '0.00'} tonnes</p>
+                              <p className="text-sm md:text-base"><strong>Density:</strong> {TIMBER_PROPERTIES[timberGrade]?.density || 600} kg/m³ ({timberGrade})</p>
                               
                               <div className="mt-3 pt-3 border-t border-gray-200 grid grid-cols-1 gap-1">
                                 <p className="text-xs md:text-sm"><strong>Joists:</strong> {results.elementVolumes?.joists?.toFixed(2) || '0.00'} m³</p>
