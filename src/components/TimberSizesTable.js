@@ -23,19 +23,26 @@ export default function TimberSizesTable({ results, compact = false }) {
       type: 'Joist', 
       width: joists.width, 
       depth: joists.depth, 
-      span: joistSpan.toFixed(2)
+      span: joistSpan.toFixed(2),
+      spacing: '800mm'
     },
     { 
       type: 'Beam', 
       width: beams.width, 
       depth: beams.depth, 
-      span: beamSpan.toFixed(2)
+      span: beamSpan.toFixed(2),
+      tributaryWidth: beams.tributaryWidth?.toFixed(2) || 'N/A',
+      loadPerMeter: beams.loadPerMeter?.toFixed(2) || 'N/A',
+      totalLoad: beams.totalDistributedLoad?.toFixed(2) || 'N/A'
     },
     { 
       type: 'Column', 
       width: columns.width, 
       depth: columns.depth, 
-      span: '3.00' // Fixed height
+      span: columns.height?.toFixed(2) || '3.00',
+      tributaryArea: columns.tributaryArea?.toFixed(2) || 'N/A',
+      loadPerFloor: columns.loadPerFloor?.toFixed(2) || 'N/A',
+      totalLoad: columns.load?.toFixed(2) || 'N/A'
     }
   ];
   
@@ -107,6 +114,9 @@ export default function TimberSizesTable({ results, compact = false }) {
               <th scope="col" className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} text-left text-xs font-medium uppercase tracking-wider`} style={{ color: 'var(--apple-text-secondary)' }}>
                 Span
               </th>
+              <th scope="col" className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} text-left text-xs font-medium uppercase tracking-wider`} style={{ color: 'var(--apple-text-secondary)' }}>
+                Load Info
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -129,6 +139,25 @@ export default function TimberSizesTable({ results, compact = false }) {
                 </td>
                 <td className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} whitespace-nowrap text-sm`} style={{ color: 'var(--apple-text)' }}>
                   {item.span}
+                </td>
+                <td className={`${compact ? 'px-3 py-2' : 'px-6 py-4'} whitespace-nowrap text-sm`} style={{ color: 'var(--apple-text)' }}>
+                  {item.type === 'Joist' && (
+                    <span>Spacing: {item.spacing}</span>
+                  )}
+                  {item.type === 'Beam' && (
+                    <div>
+                      <div>Trib. Width: {item.tributaryWidth}m</div>
+                      <div>Load/m: {item.loadPerMeter} kN/m</div>
+                      <div>Total: {item.totalLoad} kN</div>
+                    </div>
+                  )}
+                  {item.type === 'Column' && (
+                    <div>
+                      <div>Trib. Area: {item.tributaryArea}m²</div>
+                      <div>Load/Floor: {item.loadPerFloor} kN</div>
+                      <div>Total: {item.totalLoad} kN</div>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
