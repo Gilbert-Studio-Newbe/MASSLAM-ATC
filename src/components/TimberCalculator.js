@@ -412,124 +412,124 @@ export default function TimberCalculator() {
   };
   
   // Calculate results based on inputs
+  const calculateResults = async () => {
+    try {
+      // Get bay dimensions
+      const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
+      
+      // Find the maximum bay span (for joists)
+      let maxLengthwiseSpan = Math.max(...lengthwiseBayWidths);
+      let maxWidthwiseSpan = Math.max(...widthwiseBayWidths);
+      
+      // Determine joist span based on global direction setting
+      // instead of automatically using the shorter distance
+      const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+      
+      // Calculate joist size based on span and load
+      // Use the async version to get minimum width from FRL.csv
+      const joistSize = await calculateJoistSizeAsync(joistSpan, load, fireRating);
+      
+      // Calculate beam span (beams span perpendicular to joists)
+      const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+      
+      // Define joist spacing (in meters)
+      const joistSpacing = 0.8; // 800mm spacing
+      
+      // Calculate beam size based on span, load, joist spacing, and number of floors
+      const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+      
+      // Calculate average bay dimensions for tributary area calculation
+      const avgBayLength = buildingLength / lengthwiseBays;
+      const avgBayWidth = buildingWidth / widthwiseBays;
+      
+      // Calculate column size based on beam width, load, floor height, and number of floors
+      const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+      
+      // Calculate timber weight and volumes
+      const timberResult = calculateTimberWeight(
+        joistSize, 
+        beamSize, 
+        columnSize, 
+        buildingLength, 
+        buildingWidth, 
+        numFloors,
+        lengthwiseBays,
+        widthwiseBays,
+        joistsRunLengthwise,
+        timberGrade
+      );
+      
+      // Calculate carbon savings
+      const carbonSavings = calculateCarbonSavings(timberResult);
+      
+      // Calculate cost
+      const costResult = calculateCost(
+        timberResult,
+        joistSize,
+        buildingLength,
+        buildingWidth,
+        numFloors
+      );
+      
+      // Validate the structure
+      const validationResult = validateStructure(joistSize, beamSize, columnSize, joistSpan, beamSpan);
+      
+      // Set results
+      setResults({
+        buildingLength,
+        buildingWidth,
+        lengthwiseBays,
+        widthwiseBays,
+        numFloors,
+        floorHeight,
+        load,
+        fireRating,
+        joistSpan,
+        beamSpan,
+        joistsRunLengthwise,
+        joists: joistSize,
+        beams: beamSize,
+        columns: columnSize,
+        timberWeight: timberResult.weight,
+        timberVolume: timberResult.totalVolume,
+        carbonSavings,
+        elementCounts: {
+          joists: timberResult.elements.joists.count,
+          beams: timberResult.elements.beams.count,
+          columns: timberResult.elements.columns.count
+        },
+        elementVolumes: {
+          joists: timberResult.elements.joists.volume,
+          beams: timberResult.elements.beams.volume,
+          columns: timberResult.elements.columns.volume
+        },
+        costs: {
+          joists: costResult.elements.joists.cost,
+          beams: costResult.elements.beams.cost,
+          columns: costResult.elements.columns.cost,
+          total: costResult.totalCost
+        },
+        rates: {
+          joists: costResult.elements.joists.rate,
+          beams: costResult.elements.beams.rate,
+          columns: costResult.elements.columns.rate
+        },
+        floorArea: costResult.elements.joists.area,
+        validationResult,
+        customBayDimensions: useCustomBayDimensions ? {
+          lengthwiseBayWidths,
+          widthwiseBayWidths
+        } : null
+      });
+      
+      setError(null);
+    } catch (error) {
+      console.error('Error calculating results:', error);
+      setError(error.message);
+    }
+  };
+
   useEffect(() => {
-    const calculateResults = async () => {
-      try {
-        // Get bay dimensions
-        const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
-        
-        // Find the maximum bay span (for joists)
-        let maxLengthwiseSpan = Math.max(...lengthwiseBayWidths);
-        let maxWidthwiseSpan = Math.max(...widthwiseBayWidths);
-        
-        // Determine joist span based on global direction setting
-        // instead of automatically using the shorter distance
-        const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
-        
-        // Calculate joist size based on span and load
-        // Use the async version to get minimum width from FRL.csv
-        const joistSize = await calculateJoistSizeAsync(joistSpan, load, fireRating);
-        
-        // Calculate beam span (beams span perpendicular to joists)
-        const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
-        
-        // Define joist spacing (in meters)
-        const joistSpacing = 0.8; // 800mm spacing
-        
-        // Calculate beam size based on span, load, joist spacing, and number of floors
-        const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
-        
-        // Calculate average bay dimensions for tributary area calculation
-        const avgBayLength = buildingLength / lengthwiseBays;
-        const avgBayWidth = buildingWidth / widthwiseBays;
-        
-        // Calculate column size based on beam width, load, floor height, and number of floors
-        const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
-        
-        // Calculate timber weight and volumes
-        const timberResult = calculateTimberWeight(
-          joistSize, 
-          beamSize, 
-          columnSize, 
-          buildingLength, 
-          buildingWidth, 
-          numFloors,
-          lengthwiseBays,
-          widthwiseBays,
-          joistsRunLengthwise,
-          timberGrade
-        );
-        
-        // Calculate carbon savings
-        const carbonSavings = calculateCarbonSavings(timberResult);
-        
-        // Calculate cost
-        const costResult = calculateCost(
-          timberResult,
-          joistSize,
-          buildingLength,
-          buildingWidth,
-          numFloors
-        );
-        
-        // Validate the structure
-        const validationResult = validateStructure(joistSize, beamSize, columnSize, joistSpan, beamSpan);
-        
-        // Set results
-        setResults({
-          buildingLength,
-          buildingWidth,
-          lengthwiseBays,
-          widthwiseBays,
-          numFloors,
-          floorHeight,
-          load,
-          fireRating,
-          joistSpan,
-          beamSpan,
-          joistsRunLengthwise,
-          joists: joistSize,
-          beams: beamSize,
-          columns: columnSize,
-          timberWeight: timberResult.weight,
-          timberVolume: timberResult.totalVolume,
-          carbonSavings,
-          elementCounts: {
-            joists: timberResult.elements.joists.count,
-            beams: timberResult.elements.beams.count,
-            columns: timberResult.elements.columns.count
-          },
-          elementVolumes: {
-            joists: timberResult.elements.joists.volume,
-            beams: timberResult.elements.beams.volume,
-            columns: timberResult.elements.columns.volume
-          },
-          costs: {
-            joists: costResult.elements.joists.cost,
-            beams: costResult.elements.beams.cost,
-            columns: costResult.elements.columns.cost,
-            total: costResult.totalCost
-          },
-          rates: {
-            joists: costResult.elements.joists.rate,
-            beams: costResult.elements.beams.rate,
-            columns: costResult.elements.columns.rate
-          },
-          floorArea: costResult.elements.joists.area,
-          validationResult,
-          customBayDimensions: useCustomBayDimensions ? {
-            lengthwiseBayWidths,
-            widthwiseBayWidths
-          } : null
-        });
-        
-        setError(null);
-      } catch (error) {
-        console.error('Error calculating results:', error);
-        setError(error.message);
-      }
-    };
-    
     // Call the async function
     calculateResults();
     
@@ -605,8 +605,11 @@ export default function TimberCalculator() {
     setLoad(value);
   };
 
+  // Update handleFireRatingChange to use the extracted calculateResults function
   const handleFireRatingChange = (value) => {
     setFireRating(value);
+    // Explicitly trigger recalculation when fire rating changes
+    calculateResults();
   };
   
   // Handlers for custom bay dimensions
