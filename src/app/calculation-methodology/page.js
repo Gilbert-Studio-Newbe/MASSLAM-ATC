@@ -202,6 +202,252 @@ export default function CalculationMethodologyPage() {
             </div>
           </div>
           
+          {/* New Section: Detailed Component Calculation Methodology */}
+          <div className="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 className="text-xl font-semibold mb-4">Detailed Component Calculation Methodology</h2>
+            <p className="mb-4">
+              This section provides a detailed explanation of how each structural component (joist, beam, and column) is calculated in the application, using MASSLAM SL33 properties and standard sizes.
+            </p>
+            
+            <h3 className="text-lg font-medium mt-6 mb-2">Joist Size Calculation</h3>
+            <p className="mb-4">
+              The joist size calculation follows these steps:
+            </p>
+            <ol className="list-decimal pl-5 mb-4 space-y-2">
+              <li>
+                <strong>Convert span to millimeters:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">spanMm = span * 1000</code><br />
+                <span className="text-sm text-gray-600">Example: For a 4.5m span, spanMm = 4500 mm</span>
+              </li>
+              <li>
+                <strong>Calculate theoretical width:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">theoreticalWidth = Math.max(45, Math.ceil(spanMm / 30))</code><br />
+                <span className="text-sm text-gray-600">Example: For a 4.5m span, theoreticalWidth = Math.max(45, Math.ceil(4500 / 30)) = Math.max(45, 150) = 150 mm</span>
+              </li>
+              <li>
+                <strong>Calculate theoretical depth:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">theoreticalDepth = Math.max(140, Math.ceil(spanMm / 15))</code><br />
+                <span className="text-sm text-gray-600">Example: For a 4.5m span, theoreticalDepth = Math.max(140, Math.ceil(4500 / 15)) = Math.max(140, 300) = 300 mm</span>
+              </li>
+              <li>
+                <strong>Calculate fire resistance allowance (if applicable):</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">fireAllowance = calculateFireResistanceAllowance(fireRating)</code><br />
+                <span className="text-sm text-gray-600">Example: For a 60-minute fire rating with MASSLAM SL33 charring rate of 0.7 mm/min, fireAllowance = 0.7 * 60 = 42 mm</span>
+              </li>
+              <li>
+                <strong>Add fire resistance allowance to dimensions:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance)</code><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">fireAdjustedDepth = theoreticalDepth + fireAllowance</code><br />
+                <span className="text-sm text-gray-600">Example: For a 150 mm width and 300 mm depth with 42 mm allowance, fireAdjustedWidth = 150 + (2 * 42) = 234 mm, fireAdjustedDepth = 300 + 42 = 342 mm</span>
+              </li>
+              <li>
+                <strong>Find nearest available standard size:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">width = findNearestWidth(fireAdjustedWidth)</code><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">depth = findNearestDepth(width, fireAdjustedDepth)</code><br />
+                <span className="text-sm text-gray-600">Example: For a 234 mm adjusted width and 342 mm adjusted depth, the nearest standard size from masslam_sizes.csv would be 250 mm width and 410 mm depth</span>
+              </li>
+            </ol>
+            
+            <div className="bg-blue-50 p-4 rounded-lg mb-4">
+              <h4 className="font-medium mb-2">Example Joist Calculation</h4>
+              <p className="mb-2">Input parameters:</p>
+              <ul className="list-disc pl-5 mb-2">
+                <li>Span: 4.5m</li>
+                <li>Spacing: 450 mm</li>
+                <li>Load: 2.0 kPa</li>
+                <li>Timber Grade: MASSLAM_SL33</li>
+                <li>Fire Rating: 60 minutes</li>
+              </ul>
+              <p className="mb-2">Calculation steps:</p>
+              <ol className="list-decimal pl-5 mb-2 text-sm">
+                <li>spanMm = 4.5 * 1000 = 4500 mm</li>
+                <li>theoreticalWidth = Math.max(45, Math.ceil(4500 / 30)) = 150 mm</li>
+                <li>theoreticalDepth = Math.max(140, Math.ceil(4500 / 15)) = 300 mm</li>
+                <li>fireAllowance = 0.7 * 60 = 42 mm</li>
+                <li>fireAdjustedWidth = 150 + (2 * 42) = 234 mm</li>
+                <li>fireAdjustedDepth = 300 + 42 = 342 mm</li>
+                <li>Final size (from standard sizes): 250 mm × 410 mm</li>
+              </ol>
+            </div>
+            
+            <h3 className="text-lg font-medium mt-6 mb-2">Beam Size Calculation</h3>
+            <p className="mb-4">
+              The beam size calculation follows these steps:
+            </p>
+            <ol className="list-decimal pl-5 mb-4 space-y-2">
+              <li>
+                <strong>Convert span to millimeters:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">spanMm = span * 1000</code><br />
+                <span className="text-sm text-gray-600">Example: For a 6.0m span, spanMm = 6000 mm</span>
+              </li>
+              <li>
+                <strong>Calculate theoretical width:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">theoreticalWidth = Math.max(65, Math.ceil(spanMm / 25))</code><br />
+                <span className="text-sm text-gray-600">Example: For a 6.0m span, theoreticalWidth = Math.max(65, Math.ceil(6000 / 25)) = Math.max(65, 240) = 240 mm</span>
+              </li>
+              <li>
+                <strong>Calculate theoretical depth:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">theoreticalDepth = Math.max(240, Math.ceil(spanMm / 12))</code><br />
+                <span className="text-sm text-gray-600">Example: For a 6.0m span, theoreticalDepth = Math.max(240, Math.ceil(6000 / 12)) = Math.max(240, 500) = 500 mm</span>
+              </li>
+              <li>
+                <strong>Calculate fire resistance allowance (if applicable):</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">fireAllowance = calculateFireResistanceAllowance(fireRating)</code><br />
+                <span className="text-sm text-gray-600">Example: For a 60-minute fire rating with MASSLAM SL33 charring rate of 0.7 mm/min, fireAllowance = 0.7 * 60 = 42 mm</span>
+              </li>
+              <li>
+                <strong>Add fire resistance allowance to dimensions:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance)</code><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">fireAdjustedDepth = theoreticalDepth + fireAllowance</code><br />
+                <span className="text-sm text-gray-600">Example: For a 240 mm width and 500 mm depth with 42 mm allowance, fireAdjustedWidth = 240 + (2 * 42) = 324 mm, fireAdjustedDepth = 500 + 42 = 542 mm</span>
+              </li>
+              <li>
+                <strong>Find nearest available standard size:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">width = findNearestWidth(fireAdjustedWidth)</code><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">depth = findNearestDepth(width, fireAdjustedDepth)</code><br />
+                <span className="text-sm text-gray-600">Example: For a 324 mm adjusted width and 542 mm adjusted depth, the nearest standard size from masslam_sizes.csv would be 335 mm width and 550 mm depth</span>
+              </li>
+            </ol>
+            
+            <div className="bg-blue-50 p-4 rounded-lg mb-4">
+              <h4 className="font-medium mb-2">Example Beam Calculation</h4>
+              <p className="mb-2">Input parameters:</p>
+              <ul className="list-disc pl-5 mb-2">
+                <li>Span: 6.0m</li>
+                <li>Load: 3.0 kPa</li>
+                <li>Timber Grade: MASSLAM_SL33</li>
+                <li>Fire Rating: 60 minutes</li>
+              </ul>
+              <p className="mb-2">Calculation steps:</p>
+              <ol className="list-decimal pl-5 mb-2 text-sm">
+                <li>spanMm = 6.0 * 1000 = 6000 mm</li>
+                <li>theoreticalWidth = Math.max(65, Math.ceil(6000 / 25)) = 240 mm</li>
+                <li>theoreticalDepth = Math.max(240, Math.ceil(6000 / 12)) = 500 mm</li>
+                <li>fireAllowance = 0.7 * 60 = 42 mm</li>
+                <li>fireAdjustedWidth = 240 + (2 * 42) = 324 mm</li>
+                <li>fireAdjustedDepth = 500 + 42 = 542 mm</li>
+                <li>Final size (from standard sizes): 335 mm × 550 mm</li>
+              </ol>
+            </div>
+            
+            <h3 className="text-lg font-medium mt-6 mb-2">Column Size Calculation</h3>
+            <p className="mb-4">
+              The column size calculation follows these steps:
+            </p>
+            <ol className="list-decimal pl-5 mb-4 space-y-2">
+              <li>
+                <strong>For single-floor columns:</strong>
+              </li>
+              <ol className="list-decimal pl-5 mb-2">
+                <li>
+                  <strong>Convert height to millimeters:</strong><br />
+                  <code className="bg-gray-100 px-2 py-1 rounded">heightMm = height * 1000</code><br />
+                  <span className="text-sm text-gray-600">Example: For a 3.0m height, heightMm = 3000 mm</span>
+                </li>
+                <li>
+                  <strong>Calculate theoretical width and depth:</strong><br />
+                  <code className="bg-gray-100 px-2 py-1 rounded">theoreticalWidth = Math.max(90, Math.ceil(Math.sqrt(load) * 20))</code><br />
+                  <code className="bg-gray-100 px-2 py-1 rounded">theoreticalDepth = theoreticalWidth</code><br />
+                  <span className="text-sm text-gray-600">Example: For a load of 4.0 kPa, theoreticalWidth = Math.max(90, Math.ceil(Math.sqrt(4.0) * 20)) = Math.max(90, 40) = 90 mm, theoreticalDepth = 90 mm</span>
+                </li>
+              </ol>
+              <li>
+                <strong>For multi-floor columns:</strong>
+              </li>
+              <ol className="list-decimal pl-5 mb-2">
+                <li>
+                  <strong>Match column width to beam width:</strong><br />
+                  <code className="bg-gray-100 px-2 py-1 rounded">width = beamWidth</code><br />
+                  <span className="text-sm text-gray-600">Example: If the beam width is 335 mm, the column width will be 335 mm</span>
+                </li>
+                <li>
+                  <strong>Calculate total load based on number of floors:</strong><br />
+                  <code className="bg-gray-100 px-2 py-1 rounded">totalLoad = load * floors</code><br />
+                  <span className="text-sm text-gray-600">Example: For a load of 3.0 kPa and 3 floors, totalLoad = 3.0 * 3 = 9.0 kPa</span>
+                </li>
+                <li>
+                  <strong>Calculate initial depth equal to width:</strong><br />
+                  <code className="bg-gray-100 px-2 py-1 rounded">depth = width</code><br />
+                  <span className="text-sm text-gray-600">Example: If width is 335 mm, initial depth = 335 mm</span>
+                </li>
+                <li>
+                  <strong>Increase depth based on number of floors:</strong><br />
+                  <code className="bg-gray-100 px-2 py-1 rounded">if (floors {'>'} 1) {'{'} depth += (floors - 1) * 50 {'}'}</code><br />
+                  <span className="text-sm text-gray-600">Example: For 3 floors, depth = 335 + (3 - 1) * 50 = 335 + 100 = 435 mm</span>
+                </li>
+                <li>
+                  <strong>Ensure minimum square proportion:</strong><br />
+                  <code className="bg-gray-100 px-2 py-1 rounded">depth = Math.max(depth, width)</code><br />
+                  <span className="text-sm text-gray-600">Example: depth = Math.max(435, 335) = 435 mm</span>
+                </li>
+              </ol>
+              <li>
+                <strong>Calculate fire resistance allowance (if applicable):</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">fireAllowance = calculateFireResistanceAllowance(fireRating)</code><br />
+                <span className="text-sm text-gray-600">Example: For a 60-minute fire rating with MASSLAM SL33 charring rate of 0.7 mm/min, fireAllowance = 0.7 * 60 = 42 mm</span>
+              </li>
+              <li>
+                <strong>Add fire resistance allowance to dimensions:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">fireAdjustedWidth = width + (2 * fireAllowance)</code><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">fireAdjustedDepth = depth + (2 * fireAllowance)</code><br />
+                <span className="text-sm text-gray-600">Example: For a 335 mm width and 435 mm depth with 42 mm allowance, fireAdjustedWidth = 335 + (2 * 42) = 419 mm, fireAdjustedDepth = 435 + (2 * 42) = 519 mm</span>
+              </li>
+              <li>
+                <strong>Find nearest available standard size:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">adjustedWidth = findNearestWidth(fireAdjustedWidth)</code><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">adjustedDepth = findNearestDepth(adjustedWidth, fireAdjustedDepth)</code><br />
+                <span className="text-sm text-gray-600">Example: For a 419 mm adjusted width and 519 mm adjusted depth, the nearest standard size from masslam_sizes.csv would be 420 mm width and 690 mm depth</span>
+              </li>
+            </ol>
+            
+            <div className="bg-blue-50 p-4 rounded-lg mb-4">
+              <h4 className="font-medium mb-2">Example Multi-Floor Column Calculation</h4>
+              <p className="mb-2">Input parameters:</p>
+              <ul className="list-disc pl-5 mb-2">
+                <li>Beam Width: 335 mm</li>
+                <li>Load: 3.0 kPa</li>
+                <li>Height: 3.0m</li>
+                <li>Number of Floors: 3</li>
+                <li>Fire Rating: 60 minutes</li>
+              </ul>
+              <p className="mb-2">Calculation steps:</p>
+              <ol className="list-decimal pl-5 mb-2 text-sm">
+                <li>width = beamWidth = 335 mm</li>
+                <li>totalLoad = 3.0 * 3 = 9.0 kPa</li>
+                <li>depth = width = 335 mm</li>
+                <li>depth += (floors - 1) * 50 = 335 + (3 - 1) * 50 = 335 + 100 = 435 mm</li>
+                <li>depth = Math.max(435, 335) = 435 mm</li>
+                <li>fireAllowance = 0.7 * 60 = 42 mm</li>
+                <li>fireAdjustedWidth = 335 + (2 * 42) = 419 mm</li>
+                <li>fireAdjustedDepth = 435 + (2 * 42) = 519 mm</li>
+                <li>Final size (from standard sizes): 420 mm × 690 mm</li>
+              </ol>
+            </div>
+            
+            <h3 className="text-lg font-medium mt-6 mb-2">Fire Resistance Calculation</h3>
+            <p className="mb-4">
+              Fire resistance is calculated based on the charring rate of MASSLAM SL33 timber:
+            </p>
+            <div className="bg-gray-100 p-3 rounded mb-4">
+              <pre className="font-mono text-sm whitespace-pre-wrap">
+{`fireAllowance = charringRate * requiredMinutes
+where:
+charringRate = 0.7 mm/min (from MASSLAM_SL33_Mechanical_Properties.csv)
+requiredMinutes = fire rating in minutes (e.g., 30, 60, 90, 120)`}
+              </pre>
+            </div>
+            <p className="mb-4">
+              This fire allowance is added to the dimensions of the structural members to ensure they maintain their structural integrity for the required fire rating period.
+            </p>
+            
+            <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
+              <h3 className="text-md font-medium text-blue-800 mb-2">Verification of Calculations</h3>
+              <p className="text-sm text-blue-700">
+                Engineers can verify these calculations by following the step-by-step process outlined above. The calculations use the mechanical properties from MASSLAM_SL33_Mechanical_Properties.csv and select from the standard sizes in masslam_sizes.csv. The simplified formulas used in the calculator provide a conservative estimate for preliminary design, but detailed structural analysis should be performed for final design.
+              </p>
+            </div>
+          </div>
+          
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4">Key Factors Affecting Span</h2>
             
@@ -267,8 +513,9 @@ export default function CalculationMethodologyPage() {
               <pre className="font-mono text-sm whitespace-pre-wrap">
 {`totalLoad = floorLoad * numberOfFloors
 initialDepth = columnWidth
+let depth = initialDepth
 if (floors > 1) {
-  depth += (floors - 1) * 50mm
+  depth += (floors - 1) * 50
 }
 depth = max(depth, width) // Ensure minimum square proportion`}
               </pre>
