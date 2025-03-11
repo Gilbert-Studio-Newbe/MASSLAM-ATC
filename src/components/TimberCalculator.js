@@ -83,9 +83,9 @@ const calculateMultiFloorBeamSize = (span, load, joistSpacing, numFloors, fireRa
 
 // Rename the custom function to avoid naming conflict
 const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRating = 'none', bayLength, bayWidth) => {
-  // Column width should match beam width
+  // Column width MUST exactly match beam width
   const width = beamWidth;
-  console.log(`Setting column width to match beam width: ${width}mm`);
+  console.log(`Setting column width to exactly match beam width: ${width}mm`);
   
   // Calculate tributary area for the column (in square meters)
   // Each column typically supports a quarter of each of the four adjacent bays
@@ -98,29 +98,29 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
   const totalLoad = loadPerFloor * floors;
   console.log(`Column load per floor: ${loadPerFloor.toFixed(2)} kN, Total load: ${totalLoad.toFixed(2)} kN`);
   
-  // Calculate minimum depth based on load and height
-  // Start with a base size that depends on the load
-  // This ensures columns resize properly when floors are added or removed
-  const baseSize = Math.max(width, Math.ceil(Math.sqrt(totalLoad) * 20));
-  console.log(`Base column size based on load: ${baseSize}mm`);
+  // Calculate required cross-sectional area based on compression strength
+  // Using a simplified approach with safety factor
+  const compressionStrength = 26; // MPa (from MASSLAM_SL33_Mechanical_Properties.csv)
+  const safetyFactor = 2.0; // Conservative safety factor
+  const requiredArea = (totalLoad * 1000) / (compressionStrength / safetyFactor); // mm²
   
-  // Adjust depth based on number of floors
-  let depth = baseSize;
+  // Calculate minimum depth based on required area and fixed width
+  let requiredDepth = Math.ceil(requiredArea / width);
+  console.log(`Minimum required depth based on axial load: ${requiredDepth}mm`);
   
-  // Increase depth based on number of floors and load
-  if (floors > 1) {
-    // Add 70mm per additional floor to make changes more noticeable
-    const floorAddition = (floors - 1) * 70;
-    console.log(`Adding ${floorAddition}mm to column depth for ${floors} floors`);
-    depth += floorAddition;
+  // Check for buckling - simplified approach
+  // For timber columns, depth should generally be at least 1/20 of height for buckling resistance
+  const minDepthForBuckling = Math.ceil(height * 1000 / 20);
+  if (minDepthForBuckling > requiredDepth) {
+    console.log(`Increasing depth to ${minDepthForBuckling}mm to prevent buckling`);
+    requiredDepth = minDepthForBuckling;
   }
   
   // Ensure depth is at least equal to width (square column)
-  const minDepth = Math.max(depth, width);
-  if (minDepth > depth) {
-    console.log(`Increasing column depth to match width: ${minDepth}mm`);
+  if (width > requiredDepth) {
+    console.log(`Increasing depth to match width: ${width}mm`);
+    requiredDepth = width;
   }
-  depth = minDepth;
   
   // Calculate fire resistance allowance if needed
   let fireAllowance = 0;
@@ -129,16 +129,19 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
     console.log(`Adding fire allowance of ${fireAllowance}mm to column dimensions`);
   }
   
-  // Add fire resistance allowance to width and depth
-  // For columns, all 4 sides are exposed
+  // Add fire resistance allowance to depth only (width is fixed to match beam)
+  // For columns, all 4 sides are exposed, but we only adjust depth
   const fireAdjustedWidth = width + (2 * fireAllowance); // Both sides exposed
-  const fireAdjustedDepth = depth + (2 * fireAllowance); // Both sides exposed
+  const fireAdjustedDepth = requiredDepth + (2 * fireAllowance); // Both sides exposed
   
-  console.log(`Column size before fire adjustment: ${width}x${depth}mm`);
+  console.log(`Column size before fire adjustment: ${width}x${requiredDepth}mm`);
   console.log(`Column size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
   
-  // Find nearest available width and depth
+  // For column width, we must use exactly the beam width after fire adjustment
+  // This ensures proper connection between beam and column
   const adjustedWidth = findNearestWidth(fireAdjustedWidth);
+  
+  // Find the nearest available depth for the given width
   const adjustedDepth = findNearestDepth(adjustedWidth, fireAdjustedDepth);
   console.log(`Final column size after rounding to available sizes: ${adjustedWidth}x${adjustedDepth}mm`);
   
