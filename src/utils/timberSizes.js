@@ -360,11 +360,11 @@ export function validateMasslamSize(width, depth, type) {
 export function validateAllSizes(results) {
   if (!results) return false;
   
-  const { joists, beams, columns } = results;
+  const { joistSize, beamSize, columnSize } = results;
   
-  const joistValid = validateMasslamSize(joists.width, joists.depth, 'joist');
-  const beamValid = validateMasslamSize(beams.width, beams.depth, 'beam');
-  const columnValid = validateMasslamSize(columns.width, columns.depth, 'column');
+  const joistValid = validateMasslamSize(joistSize.width, joistSize.depth, 'joist');
+  const beamValid = validateMasslamSize(beamSize.width, beamSize.depth, 'beam');
+  const columnValid = validateMasslamSize(columnSize.width, columnSize.depth, 'column');
   
   return joistValid && beamValid && columnValid;
 }

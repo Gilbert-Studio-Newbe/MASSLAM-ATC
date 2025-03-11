@@ -15,34 +15,30 @@ export default function TimberSizesTable({ results, compact = false }) {
   
   if (!results) return null;
   
-  const { joists, beams, columns, joistSpan, beamSpan } = results;
+  const { joistSize, beamSize, columnSize } = results;
   
   // Prepare data for display
   const allSizes = [
     { 
       type: 'Joist', 
-      width: joists.width, 
-      depth: joists.depth, 
-      span: joistSpan.toFixed(2),
+      width: joistSize.width, 
+      depth: joistSize.depth, 
+      span: joistSize.span.toFixed(2),
       spacing: '800mm'
     },
     { 
       type: 'Beam', 
-      width: beams.width, 
-      depth: beams.depth, 
-      span: beamSpan.toFixed(2),
-      tributaryWidth: beams.tributaryWidth?.toFixed(2) || 'N/A',
-      loadPerMeter: beams.loadPerMeter?.toFixed(2) || 'N/A',
-      totalLoad: beams.totalDistributedLoad?.toFixed(2) || 'N/A'
+      width: beamSize.width, 
+      depth: beamSize.depth, 
+      span: beamSize.span.toFixed(2),
+      load: beamSize.loadPerMeter ? `${beamSize.loadPerMeter.toFixed(2)} kN/m` : 'N/A'
     },
     { 
       type: 'Column', 
-      width: columns.width, 
-      depth: columns.depth, 
-      span: columns.height?.toFixed(2) || '3.00',
-      tributaryArea: columns.tributaryArea?.toFixed(2) || 'N/A',
-      loadPerFloor: columns.loadPerFloor?.toFixed(2) || 'N/A',
-      totalLoad: columns.load?.toFixed(2) || 'N/A'
+      width: columnSize.width, 
+      depth: columnSize.depth, 
+      height: columnSize.height.toFixed(2),
+      load: columnSize.load ? `${columnSize.load.toFixed(2)} kN` : 'N/A'
     }
   ];
   
@@ -146,16 +142,13 @@ export default function TimberSizesTable({ results, compact = false }) {
                   )}
                   {item.type === 'Beam' && (
                     <div>
-                      <div>Trib. Width: {item.tributaryWidth}m</div>
-                      <div>Load/m: {item.loadPerMeter} kN/m</div>
-                      <div>Total: {item.totalLoad} kN</div>
+                      <div>Load: {item.load}</div>
                     </div>
                   )}
                   {item.type === 'Column' && (
                     <div>
-                      <div>Trib. Area: {item.tributaryArea}m²</div>
-                      <div>Load/Floor: {item.loadPerFloor} kN</div>
-                      <div>Total: {item.totalLoad} kN</div>
+                      <div>Height: {item.height}</div>
+                      <div>Load: {item.load}</div>
                     </div>
                   )}
                 </td>

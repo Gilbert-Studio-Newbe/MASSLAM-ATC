@@ -38,12 +38,8 @@ const calculateMultiFloorBeamSize = (span, load, joistSpacing, numFloors, fireRa
   
   // Calculate load per meter of beam (kN/m)
   // load is in kPa (kN/m²), so multiply by tributary width to get kN/m
-  const loadPerMeter = load * tributaryWidth;
-  console.log(`Beam load per meter: ${loadPerMeter.toFixed(2)} kN/m`);
-  
-  // Calculate total distributed load on the beam
-  const totalDistributedLoad = loadPerMeter * span;
-  console.log(`Total distributed load on beam: ${totalDistributedLoad.toFixed(2)} kN`);
+  let loadPerMeter = load * tributaryWidth;
+  console.log(`Initial beam load per meter (without self-weight): ${loadPerMeter.toFixed(2)} kN/m`);
   
   // Calculate theoretical width and depth
   const spanMm = span * 1000; // Convert to mm
@@ -61,12 +57,39 @@ const calculateMultiFloorBeamSize = (span, load, joistSpacing, numFloors, fireRa
   const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
   const fireAdjustedDepth = theoreticalDepth + fireAllowance; // Only bottom exposed
   
-  console.log(`Beam size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
-  console.log(`Beam size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
-  
   // Find the nearest available width and depth
   const width = findNearestWidth(fireAdjustedWidth);
   const depth = findNearestDepth(width, fireAdjustedDepth);
+  
+  // Calculate self-weight based on size estimate
+  // Convert dimensions to meters
+  const beamWidth = width / 1000; // m
+  const beamDepth = depth / 1000; // m
+  
+  // Get timber density from properties (kg/m³)
+  const density = TIMBER_PROPERTIES['MASSLAM_SL33']?.density || 600; // Default to 600 kg/m³
+  
+  // Calculate beam volume per meter (m³/m)
+  const beamVolumePerMeter = beamWidth * beamDepth * 1.0; // 1.0 meter length
+  
+  // Calculate beam weight per meter (kg/m)
+  const beamWeightPerMeter = beamVolumePerMeter * density;
+  
+  // Convert to kN/m (1 kg = 0.00981 kN)
+  const beamSelfWeightPerMeter = beamWeightPerMeter * 0.00981;
+  
+  console.log(`Beam self-weight: ${beamSelfWeightPerMeter.toFixed(2)} kN/m`);
+  
+  // Add self-weight to the load per meter
+  loadPerMeter += beamSelfWeightPerMeter;
+  console.log(`Total beam load per meter (with self-weight): ${loadPerMeter.toFixed(2)} kN/m`);
+  
+  // Calculate total distributed load on the beam (including self-weight)
+  const totalDistributedLoad = loadPerMeter * span;
+  console.log(`Total distributed load on beam (including self-weight): ${totalDistributedLoad.toFixed(2)} kN`);
+  
+  console.log(`Beam size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
+  console.log(`Beam size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
   
   return {
     width: width,
@@ -74,6 +97,7 @@ const calculateMultiFloorBeamSize = (span, load, joistSpacing, numFloors, fireRa
     span: span,
     tributaryWidth: tributaryWidth,
     loadPerMeter: loadPerMeter,
+    selfWeight: beamSelfWeightPerMeter,
     totalDistributedLoad: totalDistributedLoad,
     fireRating: fireRating,
     fireAllowance: fireAllowance
@@ -94,8 +118,8 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
   // Calculate load based on number of floors and tributary area
   // load is in kPa (kN/m²), so multiply by tributary area to get kN
   const loadPerFloor = load * tributaryArea;
-  const totalLoad = loadPerFloor * floors;
-  console.log(`Column load per floor: ${loadPerFloor.toFixed(2)} kN, Total load: ${totalLoad.toFixed(2)} kN`);
+  let totalLoad = loadPerFloor * floors;
+  console.log(`Initial column load per floor: ${loadPerFloor.toFixed(2)} kN, Total load (without self-weight): ${totalLoad.toFixed(2)} kN`);
   
   // Calculate minimum depth based on load and height
   // For simplicity, we'll start with the width and increase based on load
@@ -121,12 +145,43 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
   const fireAdjustedWidth = width + (2 * fireAllowance); // Both sides exposed
   const fireAdjustedDepth = depth + (2 * fireAllowance); // Both sides exposed
   
-  console.log(`Column size before fire adjustment: ${width}x${depth}mm`);
-  console.log(`Column size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
-  
   // Find nearest available width and depth
   const adjustedWidth = findNearestWidth(fireAdjustedWidth);
   const adjustedDepth = findNearestDepth(adjustedWidth, fireAdjustedDepth);
+  
+  // Calculate self-weight of the column
+  // Convert dimensions to meters
+  const columnWidth = adjustedWidth / 1000; // m
+  const columnDepth = adjustedDepth / 1000; // m
+  
+  // Get timber density from properties (kg/m³)
+  const density = TIMBER_PROPERTIES['MASSLAM_SL33']?.density || 600; // Default to 600 kg/m³
+  
+  // Calculate column volume (m³)
+  const columnVolume = columnWidth * columnDepth * height;
+  
+  // Calculate column weight (kg)
+  const columnWeight = columnVolume * density;
+  
+  // Convert to kN (1 kg = 0.00981 kN)
+  const columnSelfWeight = columnWeight * 0.00981;
+  
+  // For multi-floor columns, calculate the cumulative self-weight
+  // Each floor's column adds weight to the floors below
+  let cumulativeSelfWeight = 0;
+  for (let i = 1; i <= floors; i++) {
+    // Weight of columns from this floor to the top
+    cumulativeSelfWeight += columnSelfWeight * (floors - i + 1);
+  }
+  
+  console.log(`Column self-weight per floor: ${columnSelfWeight.toFixed(2)} kN, Cumulative: ${cumulativeSelfWeight.toFixed(2)} kN`);
+  
+  // Add self-weight to the total load
+  totalLoad += cumulativeSelfWeight;
+  console.log(`Total column load (with self-weight): ${totalLoad.toFixed(2)} kN`);
+  
+  console.log(`Column size before fire adjustment: ${width}x${depth}mm`);
+  console.log(`Column size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
   
   return {
     width: adjustedWidth,
@@ -135,6 +190,8 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
     load: totalLoad,
     tributaryArea: tributaryArea,
     loadPerFloor: loadPerFloor,
+    selfWeight: columnSelfWeight,
+    cumulativeSelfWeight: cumulativeSelfWeight,
     floors: floors,
     fireRating: fireRating,
     fireAllowance: fireAllowance
@@ -268,6 +325,10 @@ export default function TimberCalculator() {
   // Add state for timber properties
   const [timberGrade, setTimberGrade] = useState('MASSLAM_SL33');
   const [propertiesLoaded, setPropertiesLoaded] = useState(false);
+  const [csvLoadingErrors, setCsvLoadingErrors] = useState({
+    properties: false,
+    sizes: false
+  });
   
   // Load timber properties from CSV when component mounts
   useEffect(() => {
@@ -278,6 +339,7 @@ export default function TimberCalculator() {
         console.log('Timber properties loaded from CSV:', TIMBER_PROPERTIES.MASSLAM_SL33);
       } catch (error) {
         console.error('Error loading timber properties:', error);
+        setCsvLoadingErrors(prev => ({ ...prev, properties: true }));
       }
     };
     
@@ -345,20 +407,29 @@ export default function TimberCalculator() {
     // Load the MASSLAM sizes from the CSV file
     const loadSizes = async () => {
       console.log('Loading MASSLAM sizes from TimberCalculator');
-      const loadedSizes = await loadMasslamSizes();
-      console.log(`Loaded ${loadedSizes.length} MASSLAM sizes`);
-      
-      // Filter to standard sizes
-      console.log('Filtering to standard sizes');
-      const standardSizes = filterToStandardSizes();
-      console.log(`Filtered to ${standardSizes.length} standard sizes`);
-      
-      // Verify the loaded sizes
-      const verified = verifyLoadedSizes();
-      console.log('Verification result:', verified);
-      
-      // Debug the loaded sizes
-      debugMasslamSizes();
+      try {
+        const loadedSizes = await loadMasslamSizes();
+        console.log(`Loaded ${loadedSizes.length} MASSLAM sizes`);
+        
+        // Filter to standard sizes
+        console.log('Filtering to standard sizes');
+        const standardSizes = filterToStandardSizes();
+        console.log(`Filtered to ${standardSizes.length} standard sizes`);
+        
+        // Verify the loaded sizes
+        const verified = verifyLoadedSizes();
+        console.log('Verification result:', verified);
+        
+        // Debug the loaded sizes
+        debugMasslamSizes();
+        
+        if (loadedSizes.length === 0) {
+          setCsvLoadingErrors(prev => ({ ...prev, sizes: true }));
+        }
+      } catch (error) {
+        console.error('Error loading MASSLAM sizes:', error);
+        setCsvLoadingErrors(prev => ({ ...prev, sizes: true }));
+      }
     };
     
     loadSizes();
@@ -426,7 +497,7 @@ export default function TimberCalculator() {
         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
         
         // Calculate joist size based on span and load
-        const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+        const joistSize = calculateJoistSize(joistSpan, 800, load, timberGrade, fireRating);
         
         // Calculate beam span (beams span perpendicular to joists)
         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
@@ -459,72 +530,45 @@ export default function TimberCalculator() {
         );
         
         // Calculate carbon savings
-        const carbonSavings = calculateCarbonSavings(timberResult);
+        const carbonSavings = calculateCarbonSavings(timberResult.totalVolume);
         
-        // Calculate cost
-        const costResult = calculateCost(
-          timberResult,
-          joistSize,
-          buildingLength,
-          buildingWidth,
-          numFloors
-        );
+        // Calculate cost estimate
+        const costEstimate = calculateCost(timberResult, joistSize, buildingLength, buildingWidth, numFloors);
         
         // Validate the structure
-        const validationResult = validateStructure(joistSize, beamSize, columnSize, joistSpan, beamSpan);
+        const validationResult = validateStructure(joistSize, beamSize, columnSize);
         
-        // Set results
+        // Set the results
         setResults({
           buildingLength,
           buildingWidth,
-          lengthwiseBays,
-          widthwiseBays,
           numFloors,
           floorHeight,
           load,
           fireRating,
-          joistSpan,
-          beamSpan,
+          lengthwiseBays,
+          widthwiseBays,
           joistsRunLengthwise,
-          joists: joistSize,
-          beams: beamSize,
-          columns: columnSize,
+          joistSize,
+          beamSize,
+          columnSize,
           timberWeight: timberResult.weight,
           timberVolume: timberResult.totalVolume,
           carbonSavings,
+          costs: costEstimate,
           elementCounts: {
             joists: timberResult.elements.joists.count,
             beams: timberResult.elements.beams.count,
             columns: timberResult.elements.columns.count
           },
-          elementVolumes: {
-            joists: timberResult.elements.joists.volume,
-            beams: timberResult.elements.beams.volume,
-            columns: timberResult.elements.columns.volume
-          },
-          costs: {
-            joists: costResult.elements.joists.cost,
-            beams: costResult.elements.beams.cost,
-            columns: costResult.elements.columns.cost,
-            total: costResult.totalCost
-          },
-          rates: {
-            joists: costResult.elements.joists.rate,
-            beams: costResult.elements.beams.rate,
-            columns: costResult.elements.columns.rate
-          },
-          floorArea: costResult.elements.joists.area,
-          validationResult,
-          customBayDimensions: useCustomBayDimensions ? {
-            lengthwiseBayWidths,
-            widthwiseBayWidths
-          } : null
+          validation: validationResult
         });
         
         setError(null);
       } catch (err) {
-        console.error('Calculation error:', err);
-        setError(err.message || 'An error occurred during calculations');
+        console.error('Error calculating results:', err);
+        setError(`Failed to calculate results: ${err.message}`);
+        setResults(null);
       }
     };
     
@@ -1423,12 +1467,12 @@ export default function TimberCalculator() {
                         {/* Joist Results */}
                         <div className="bg-white p-3 md:p-4 rounded-lg shadow">
                           <h4 className="font-semibold mb-2 text-sm md:text-base">Joists</h4>
-                          <p className="text-sm md:text-base"><strong>Size:</strong> {results.joists.width}mm × {results.joists.depth}mm</p>
-                          <p className="text-sm md:text-base"><strong>Span:</strong> {results.joistSpan?.toFixed(2) || '0.00'}m</p>
+                          <p className="text-sm md:text-base"><strong>Size:</strong> {results.joistSize.width}mm × {results.joistSize.depth}mm</p>
+                          <p className="text-sm md:text-base"><strong>Span:</strong> {results.joistSize.span?.toFixed(2) || '0.00'}m</p>
                           <p className="text-sm md:text-base"><strong>Spacing:</strong> 800mm</p>
-                          {results.joists.fireAllowance > 0 && (
+                          {results.joistSize.fireAllowance > 0 && (
                             <p className="text-sm md:text-base text-blue-600">
-                              <strong>Fire Allowance:</strong> {results.joists.fireAllowance.toFixed(1)}mm per face
+                              <strong>Fire Allowance:</strong> {results.joistSize.fireAllowance.toFixed(1)}mm per face
                             </p>
                           )}
                           
@@ -1452,7 +1496,7 @@ export default function TimberCalculator() {
                                       const joistSpan = joistsSpanLengthwise ? bayWidth : bayHeight;
                                       
                                       // Calculate joist size for this specific span
-                                      const bayJoistSize = calculateJoistSize(joistSpan, load, fireRating);
+                                      const bayJoistSize = calculateJoistSize(joistSpan, 800, load, timberGrade, fireRating);
                                       
                                       // Find if this size already exists in our unique list
                                       const existingSize = uniqueBaySizes.find(item => 
@@ -1494,17 +1538,18 @@ export default function TimberCalculator() {
                         {/* Beam Results */}
                         <div className="bg-white p-3 md:p-4 rounded-lg shadow">
                           <h4 className="font-semibold mb-2 text-sm md:text-base">Beams</h4>
-                          <p className="text-sm md:text-base"><strong>Size:</strong> {results.beams.width}mm × {results.beams.depth}mm</p>
-                          <p className="text-sm md:text-base"><strong>Span:</strong> {results.beamSpan?.toFixed(2) || '0.00'}m</p>
-                          <p className="text-sm md:text-base"><strong>Tributary Width:</strong> {results.beams.tributaryWidth?.toFixed(2) || '0.00'}m</p>
-                          <p className="text-sm md:text-base"><strong>Load per Meter:</strong> {results.beams.loadPerMeter?.toFixed(2) || '0.00'} kN/m</p>
-                          <p className="text-sm md:text-base"><strong>Total Load:</strong> {results.beams.totalDistributedLoad?.toFixed(2) || '0.00'} kN</p>
-                          {results.beams.fireAllowance > 0 && (
+                          <p className="text-sm md:text-base"><strong>Size:</strong> {results.beamSize.width}mm × {results.beamSize.depth}mm</p>
+                          <p className="text-sm md:text-base"><strong>Span:</strong> {results.beamSize.span?.toFixed(2) || '0.00'}m</p>
+                          <p className="text-sm md:text-base"><strong>Tributary Width:</strong> {results.beamSize.tributaryWidth?.toFixed(2) || '0.00'}m</p>
+                          <p className="text-sm md:text-base"><strong>Load per Meter:</strong> {results.beamSize.loadPerMeter?.toFixed(2) || '0.00'} kN/m</p>
+                          <p className="text-sm md:text-base"><strong>Total Load:</strong> {results.beamSize.totalDistributedLoad?.toFixed(2) || '0.00'} kN</p>
+                          {results.beamSize.fireAllowance > 0 && (
                             <p className="text-sm md:text-base text-blue-600">
-                              <strong>Fire Allowance:</strong> {results.beams.fireAllowance.toFixed(1)}mm per face
+                              <strong>Fire Allowance:</strong> {results.beamSize.fireAllowance.toFixed(1)}mm per face
                             </p>
                           )}
-                          {results.beams.width === results.columns.width && (
+                          
+                          {results.beamSize.width === results.columnSize.width && (
                             <p className="text-sm md:text-base text-green-600 mt-2">
                               <strong>✓</strong> Width matched with columns
                             </p>
@@ -1572,15 +1617,15 @@ export default function TimberCalculator() {
                         {/* Column Results */}
                         <div className="bg-white p-3 md:p-4 rounded-lg shadow">
                           <h4 className="font-semibold mb-2 text-sm md:text-base">Columns</h4>
-                          <p className="text-sm md:text-base"><strong>Size:</strong> {results.columns.width}mm × {results.columns.depth}mm</p>
-                          <p className="text-sm md:text-base"><strong>Height:</strong> {results.columns.height}m</p>
+                          <p className="text-sm md:text-base"><strong>Size:</strong> {results.columnSize.width}mm × {results.columnSize.depth}mm</p>
+                          <p className="text-sm md:text-base"><strong>Height:</strong> {results.columnSize.height}m</p>
                           <p className="text-sm md:text-base"><strong>Floors:</strong> {results.numFloors}</p>
-                          <p className="text-sm md:text-base"><strong>Tributary Area:</strong> {results.columns.tributaryArea?.toFixed(2) || '0.00'}m²</p>
-                          <p className="text-sm md:text-base"><strong>Load per Floor:</strong> {results.columns.loadPerFloor?.toFixed(2) || '0.00'} kN</p>
-                          <p className="text-sm md:text-base"><strong>Total Load:</strong> {results.columns.load?.toFixed(2) || '0.00'} kN</p>
-                          {results.columns.fireAllowance > 0 && (
+                          <p className="text-sm md:text-base"><strong>Tributary Area:</strong> {results.columnSize.tributaryArea?.toFixed(2) || '0.00'}m²</p>
+                          <p className="text-sm md:text-base"><strong>Load per Floor:</strong> {results.columnSize.loadPerFloor?.toFixed(2) || '0.00'} kN</p>
+                          <p className="text-sm md:text-base"><strong>Total Load:</strong> {results.columnSize.load?.toFixed(2) || '0.00'} kN</p>
+                          {results.columnSize.fireAllowance > 0 && (
                             <p className="text-sm md:text-base text-blue-600">
-                              <strong>Fire Allowance:</strong> {results.columns.fireAllowance.toFixed(1)}mm per face
+                              <strong>Fire Allowance:</strong> {results.columnSize.fireAllowance.toFixed(1)}mm per face
                             </p>
                           )}
                         </div>
@@ -1683,6 +1728,23 @@ export default function TimberCalculator() {
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
             <strong className="font-bold">Error: </strong>
             <span className="block sm:inline">{error}</span>
+          </div>
+        </div>
+      )}
+      
+      {/* CSV Loading Error Display */}
+      {(csvLoadingErrors.properties || csvLoadingErrors.sizes) && (
+        <div className="apple-section mt-4">
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Warning: </strong>
+            <span className="block sm:inline">
+              {csvLoadingErrors.properties && csvLoadingErrors.sizes 
+                ? "Failed to load mechanical properties and timber sizes CSV files. Using default values."
+                : csvLoadingErrors.properties 
+                  ? "Failed to load mechanical properties CSV file. Using default values."
+                  : "Failed to load timber sizes CSV file. Using default values."
+              }
+            </span>
           </div>
         </div>
       )}

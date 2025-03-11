@@ -121,6 +121,13 @@ loadTimberProperties().then(() => {
  * @returns {Object} Calculated joist size and properties
  */
 export function calculateJoistSize(span, spacing, load, timberGrade, fireRating = 'none') {
+  // Convert spacing from mm to m for calculations
+  const spacingM = spacing / 1000;
+  
+  // Initial load without self-weight
+  let totalLoad = load;
+  console.log(`Initial load (without self-weight): ${totalLoad.toFixed(2)} kPa`);
+  
   // Placeholder implementation
   const spanMm = span * 1000; // Convert to mm
   
@@ -139,12 +146,39 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
   const fireAdjustedDepth = theoreticalDepth + fireAllowance; // Only bottom exposed
   
-  console.log(`Joist size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
-  console.log(`Joist size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
-  
   // Find the nearest available width and depth
   const width = findNearestWidth(fireAdjustedWidth);
   const depth = findNearestDepth(width, fireAdjustedDepth);
+  
+  // Calculate self-weight based on size estimate
+  // Convert dimensions to meters
+  const joistWidth = width / 1000; // m
+  const joistDepth = depth / 1000; // m
+  
+  // Get timber density from properties (kg/m³)
+  const density = TIMBER_PROPERTIES[timberGrade]?.density || 600; // Default to 600 kg/m³
+  
+  // Calculate joist volume per meter (m³/m)
+  const joistVolumePerMeter = joistWidth * joistDepth * 1.0; // 1.0 meter length
+  
+  // Calculate joist weight per meter (kg/m)
+  const joistWeightPerMeter = joistVolumePerMeter * density;
+  
+  // Convert to kN/m (1 kg = 0.00981 kN)
+  const joistSelfWeightPerMeter = joistWeightPerMeter * 0.00981;
+  
+  // Convert linear self-weight (kN/m) to area load (kPa) based on joist spacing
+  // Self-weight per square meter = self-weight per meter / spacing in meters
+  const selfWeightLoad = joistSelfWeightPerMeter / spacingM;
+  
+  console.log(`Joist self-weight: ${joistSelfWeightPerMeter.toFixed(2)} kN/m (${selfWeightLoad.toFixed(2)} kPa)`);
+  
+  // Add self-weight to the total load
+  totalLoad += selfWeightLoad;
+  console.log(`Total load (with self-weight): ${totalLoad.toFixed(2)} kPa`);
+  
+  console.log(`Joist size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
+  console.log(`Joist size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
   
   return {
     width: width,
@@ -152,6 +186,9 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
     span: span,
     spacing: spacing,
     load: load,
+    totalLoad: totalLoad,
+    selfWeight: joistSelfWeightPerMeter,
+    selfWeightLoad: selfWeightLoad,
     grade: timberGrade,
     fireRating: fireRating,
     fireAllowance: fireAllowance
@@ -374,7 +411,7 @@ export function calculateCarbonSavings(weightOrResult) {
   return volume * 0.9; // tonnes CO2e
 }
 
-export function validateStructure(joists, beams, columns) {
+export function validateStructure(joistSize, beamSize, columnSize) {
   // Placeholder implementation
   return { valid: true, messages: [] };
 }

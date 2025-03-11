@@ -61,7 +61,11 @@ export default function MasslamSizesPage() {
       debugMasslamSizes();
       
       // Fetch the raw CSV content for debugging
-      const response = await fetch('/data/masslam_sizes.csv');
+      const csvUrl = typeof window !== 'undefined' 
+        ? new URL('/data/masslam_sizes.csv', window.location.origin).toString()
+        : '/data/masslam_sizes.csv';
+      
+      const response = await fetch(csvUrl);
       const csvText = await response.text();
       console.log('Raw CSV content length:', csvText.length);
       console.log('CSV data lines:', csvText.trim().split('\n').length - 1); // Exclude header

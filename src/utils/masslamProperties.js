@@ -19,7 +19,12 @@ export const CHARRING_RATES = {
 export async function loadMasslamSL33CharringRate() {
   try {
     // Fetch the CSV file
-    const response = await fetch('/data/MASSLAM_SL33_Mechanical_Properties.csv');
+    console.log('Fetching mechanical properties from:', '/data/MASSLAM_SL33_Mechanical_Properties.csv');
+    const url = typeof window !== 'undefined' 
+      ? new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString()
+      : '/data/MASSLAM_SL33_Mechanical_Properties.csv';
+    
+    const response = await fetch(url);
     if (!response.ok) {
       console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
       return CHARRING_RATES.masslam_sl33; // Return default value if fetch fails
@@ -243,7 +248,12 @@ export function getMasslamProductProperties(productCode) {
 export async function loadMasslamSL33MechanicalProperties() {
   try {
     // Fetch the CSV file
-    const response = await fetch('/data/MASSLAM_SL33_Mechanical_Properties.csv');
+    console.log('Fetching mechanical properties from:', '/data/MASSLAM_SL33_Mechanical_Properties.csv');
+    const url = typeof window !== 'undefined' 
+      ? new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString()
+      : '/data/MASSLAM_SL33_Mechanical_Properties.csv';
+    
+    const response = await fetch(url);
     if (!response.ok) {
       console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
       return null; // Return null if fetch fails
