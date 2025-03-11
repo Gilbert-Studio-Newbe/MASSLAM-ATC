@@ -336,92 +336,42 @@ export default function CalculationMethodologyPage() {
             </p>
             <ol className="list-decimal pl-5 mb-4 space-y-2">
               <li>
-                <strong>For single-floor columns:</strong>
-              </li>
-              <ol className="list-decimal pl-5 mb-2">
-                <li>
-                  <strong>Convert height to millimeters:</strong><br />
-                  <code className="bg-gray-100 px-2 py-1 rounded">heightMm = height * 1000</code><br />
-                  <span className="text-sm text-gray-600">Example: For a 3.0m height, heightMm = 3000 mm</span>
-                </li>
-                <li>
-                  <strong>Calculate theoretical width and depth:</strong><br />
-                  <code className="bg-gray-100 px-2 py-1 rounded">theoreticalWidth = Math.max(90, Math.ceil(Math.sqrt(load) * 20))</code><br />
-                  <code className="bg-gray-100 px-2 py-1 rounded">theoreticalDepth = theoreticalWidth</code><br />
-                  <span className="text-sm text-gray-600">Example: For a load of 4.0 kPa, theoreticalWidth = Math.max(90, Math.ceil(Math.sqrt(4.0) * 20)) = Math.max(90, 40) = 90 mm, theoreticalDepth = 90 mm</span>
-                </li>
-              </ol>
-              <li>
-                <strong>For multi-floor columns:</strong>
-              </li>
-              <ol className="list-decimal pl-5 mb-2">
-                <li>
-                  <strong>Match column width to beam width:</strong><br />
-                  <code className="bg-gray-100 px-2 py-1 rounded">width = beamWidth</code><br />
-                  <span className="text-sm text-gray-600">Example: If the beam width is 335 mm, the column width will be 335 mm</span>
-                </li>
-                <li>
-                  <strong>Calculate total load based on number of floors:</strong><br />
-                  <code className="bg-gray-100 px-2 py-1 rounded">totalLoad = load * floors</code><br />
-                  <span className="text-sm text-gray-600">Example: For a load of 3.0 kPa and 3 floors, totalLoad = 3.0 * 3 = 9.0 kPa</span>
-                </li>
-                <li>
-                  <strong>Calculate initial depth equal to width:</strong><br />
-                  <code className="bg-gray-100 px-2 py-1 rounded">depth = width</code><br />
-                  <span className="text-sm text-gray-600">Example: If width is 335 mm, initial depth = 335 mm</span>
-                </li>
-                <li>
-                  <strong>Increase depth based on number of floors:</strong><br />
-                  <code className="bg-gray-100 px-2 py-1 rounded">if (floors {'>'} 1) {'{'} depth += (floors - 1) * 50 {'}'}</code><br />
-                  <span className="text-sm text-gray-600">Example: For 3 floors, depth = 335 + (3 - 1) * 50 = 335 + 100 = 435 mm</span>
-                </li>
-                <li>
-                  <strong>Ensure minimum square proportion:</strong><br />
-                  <code className="bg-gray-100 px-2 py-1 rounded">depth = Math.max(depth, width)</code><br />
-                  <span className="text-sm text-gray-600">Example: depth = Math.max(435, 335) = 435 mm</span>
-                </li>
-              </ol>
-              <li>
-                <strong>Calculate fire resistance allowance (if applicable):</strong><br />
-                <code className="bg-gray-100 px-2 py-1 rounded">fireAllowance = calculateFireResistanceAllowance(fireRating)</code><br />
-                <span className="text-sm text-gray-600">Example: For a 60-minute fire rating with MASSLAM SL33 charring rate of 0.7 mm/min, fireAllowance = 0.7 * 60 = 42 mm</span>
+                <strong>Width Matching:</strong> Column width matches the supporting beam width for proper connection.
               </li>
               <li>
-                <strong>Add fire resistance allowance to dimensions:</strong><br />
-                <code className="bg-gray-100 px-2 py-1 rounded">fireAdjustedWidth = width + (2 * fireAllowance)</code><br />
-                <code className="bg-gray-100 px-2 py-1 rounded">fireAdjustedDepth = depth + (2 * fireAllowance)</code><br />
-                <span className="text-sm text-gray-600">Example: For a 335 mm width and 435 mm depth with 42 mm allowance, fireAdjustedWidth = 335 + (2 * 42) = 419 mm, fireAdjustedDepth = 435 + (2 * 42) = 519 mm</span>
+                <strong>Tributary Area Calculation:</strong> The area supported by each column is calculated based on the bay dimensions.
               </li>
               <li>
-                <strong>Find nearest available standard size:</strong><br />
-                <code className="bg-gray-100 px-2 py-1 rounded">adjustedWidth = findNearestWidth(fireAdjustedWidth)</code><br />
-                <code className="bg-gray-100 px-2 py-1 rounded">adjustedDepth = findNearestDepth(adjustedWidth, fireAdjustedDepth)</code><br />
-                <span className="text-sm text-gray-600">Example: For a 419 mm adjusted width and 519 mm adjusted depth, the nearest standard size from masslam_sizes.csv would be 420 mm width and 690 mm depth</span>
+                <strong>Load Accumulation:</strong> Total load is calculated as the floor load (kPa) multiplied by the tributary area (m²) and the number of floors.
+              </li>
+              <li>
+                <strong>Progressive Sizing:</strong> Column depth increases with additional floors (50mm per additional floor).
+              </li>
+              <li>
+                <strong>Minimum Proportions:</strong> Column depth is always at least equal to its width (square minimum).
+              </li>
+              <li>
+                <strong>Standard Size Adjustment:</strong> Final dimensions are adjusted to the nearest available MASSLAM sizes.
               </li>
             </ol>
             
-            <div className="bg-blue-50 p-4 rounded-lg mb-4">
-              <h4 className="font-medium mb-2">Example Multi-Floor Column Calculation</h4>
-              <p className="mb-2">Input parameters:</p>
-              <ul className="list-disc pl-5 mb-2">
-                <li>Beam Width: 335 mm</li>
-                <li>Load: 3.0 kPa</li>
-                <li>Height: 3.0m</li>
-                <li>Number of Floors: 3</li>
-                <li>Fire Rating: 60 minutes</li>
-              </ul>
-              <p className="mb-2">Calculation steps:</p>
-              <ol className="list-decimal pl-5 mb-2 text-sm">
-                <li>width = beamWidth = 335 mm</li>
-                <li>totalLoad = 3.0 * 3 = 9.0 kPa</li>
-                <li>depth = width = 335 mm</li>
-                <li>depth += (floors - 1) * 50 = 335 + (3 - 1) * 50 = 335 + 100 = 435 mm</li>
-                <li>depth = Math.max(435, 335) = 435 mm</li>
-                <li>fireAllowance = 0.7 * 60 = 42 mm</li>
-                <li>fireAdjustedWidth = 335 + (2 * 42) = 419 mm</li>
-                <li>fireAdjustedDepth = 435 + (2 * 42) = 519 mm</li>
-                <li>Final size (from standard sizes): 420 mm × 690 mm</li>
-              </ol>
+            <div className="bg-gray-100 p-3 rounded mb-4">
+              <pre className="font-mono text-sm whitespace-pre-wrap">
+{`// Calculate tributary area for the column
+tributaryArea = bayLength * bayWidth
+
+// Calculate load based on tributary area and number of floors
+loadPerFloor = floorLoad * tributaryArea  // kN per floor
+totalLoad = loadPerFloor * numberOfFloors  // Total kN
+
+// Size the column based on load
+initialDepth = columnWidth
+let depth = initialDepth
+if (floors > 1) {
+  depth += (floors - 1) * 50
+}
+depth = max(depth, width) // Ensure minimum square proportion`}
+              </pre>
             </div>
             
             <h3 className="text-lg font-medium mt-6 mb-2">Fire Resistance Calculation</h3>
@@ -496,7 +446,10 @@ requiredMinutes = fire rating in minutes (e.g., 30, 60, 90, 120)`}
                 <strong>Width Matching:</strong> Column width matches the supporting beam width for proper connection.
               </li>
               <li>
-                <strong>Load Accumulation:</strong> Total load is calculated as the floor load multiplied by the number of floors.
+                <strong>Tributary Area Calculation:</strong> The area supported by each column is calculated based on the bay dimensions.
+              </li>
+              <li>
+                <strong>Load Accumulation:</strong> Total load is calculated as the floor load (kPa) multiplied by the tributary area (m²) and the number of floors.
               </li>
               <li>
                 <strong>Progressive Sizing:</strong> Column depth increases with additional floors (50mm per additional floor).
@@ -511,7 +464,14 @@ requiredMinutes = fire rating in minutes (e.g., 30, 60, 90, 120)`}
             
             <div className="bg-gray-100 p-3 rounded mb-4">
               <pre className="font-mono text-sm whitespace-pre-wrap">
-{`totalLoad = floorLoad * numberOfFloors
+{`// Calculate tributary area for the column
+tributaryArea = bayLength * bayWidth
+
+// Calculate load based on tributary area and number of floors
+loadPerFloor = floorLoad * tributaryArea  // kN per floor
+totalLoad = loadPerFloor * numberOfFloors  // Total kN
+
+// Size the column based on load
 initialDepth = columnWidth
 let depth = initialDepth
 if (floors > 1) {
@@ -612,6 +572,34 @@ A = cross-sectional area (mm²)`}
             <p className="text-sm text-gray-600 mt-4">
               Note: The current implementation focuses on strength and stability. For tall timber buildings where differential axial shortening between columns and walls becomes significant, additional compensation measures should be incorporated in the design by a structural engineer.
             </p>
+            
+            <div className="bg-blue-50 p-4 rounded-lg mb-4">
+              <h4 className="font-medium mb-2">Example Column Calculation with Tributary Area</h4>
+              <p className="mb-2">Input parameters:</p>
+              <ul className="list-disc pl-5 mb-2">
+                <li>Beam Width: 335 mm</li>
+                <li>Floor Load: 3.0 kPa</li>
+                <li>Bay Length: 6.0 m</li>
+                <li>Bay Width: 7.0 m</li>
+                <li>Height: 3.2 m</li>
+                <li>Number of Floors: 3</li>
+                <li>Fire Rating: 60 minutes</li>
+              </ul>
+              <p className="mb-2">Calculation steps:</p>
+              <ol className="list-decimal pl-5 mb-2 text-sm">
+                <li>tributaryArea = bayLength * bayWidth = 6.0 * 7.0 = 42.0 m²</li>
+                <li>loadPerFloor = floorLoad * tributaryArea = 3.0 * 42.0 = 126.0 kN</li>
+                <li>totalLoad = loadPerFloor * numberOfFloors = 126.0 * 3 = 378.0 kN</li>
+                <li>width = beamWidth = 335 mm</li>
+                <li>depth = width = 335 mm</li>
+                <li>depth += (floors - 1) * 50 = 335 + (3 - 1) * 50 = 335 + 100 = 435 mm</li>
+                <li>depth = Math.max(435, 335) = 435 mm</li>
+                <li>fireAllowance = 0.7 * 60 = 42 mm</li>
+                <li>fireAdjustedWidth = 335 + (2 * 42) = 419 mm</li>
+                <li>fireAdjustedDepth = 435 + (2 * 42) = 519 mm</li>
+                <li>Final size (from standard sizes): 420 mm × 520 mm</li>
+              </ol>
+            </div>
           </div>
         </div>
         

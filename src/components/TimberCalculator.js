@@ -30,13 +30,21 @@ import { calculateCost, formatCurrency } from '../utils/costEstimator';
 // ... other imports as before
 
 // Rename the custom function to avoid naming conflict
-const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRating = 'none') => {
+const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRating = 'none', bayLength, bayWidth) => {
   // Column width should match beam width
   const width = beamWidth;
   console.log(`Setting column width to match beam width: ${width}mm`);
   
-  // Calculate load based on number of floors
-  const totalLoad = load * floors;
+  // Calculate tributary area for the column (in square meters)
+  // Each column typically supports a quarter of each of the four adjacent bays
+  const tributaryArea = bayLength * bayWidth;
+  console.log(`Column tributary area: ${tributaryArea.toFixed(2)} m²`);
+  
+  // Calculate load based on number of floors and tributary area
+  // load is in kPa (kN/m²), so multiply by tributary area to get kN
+  const loadPerFloor = load * tributaryArea;
+  const totalLoad = loadPerFloor * floors;
+  console.log(`Column load per floor: ${loadPerFloor.toFixed(2)} kN, Total load: ${totalLoad.toFixed(2)} kN`);
   
   // Calculate minimum depth based on load and height
   // For simplicity, we'll start with the width and increase based on load
@@ -74,6 +82,8 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
     depth: adjustedDepth,
     height: height,
     load: totalLoad,
+    tributaryArea: tributaryArea,
+    loadPerFloor: loadPerFloor,
     floors: floors,
     fireRating: fireRating,
     fireAllowance: fireAllowance
@@ -373,8 +383,12 @@ export default function TimberCalculator() {
         // Calculate beam size based on span, load, and number of floors
         const beamSize = calculateBeamSize(beamSpan, load, numFloors, fireRating);
         
+        // Calculate average bay dimensions for tributary area calculation
+        const avgBayLength = buildingLength / lengthwiseBays;
+        const avgBayWidth = buildingWidth / widthwiseBays;
+        
         // Calculate column size based on beam width, load, floor height, and number of floors
-        const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating);
+        const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
         
         // Calculate timber weight and volumes
         const timberResult = calculateTimberWeight(
@@ -1504,6 +1518,9 @@ export default function TimberCalculator() {
                           <p className="text-sm md:text-base"><strong>Size:</strong> {results.columns.width}mm × {results.columns.depth}mm</p>
                           <p className="text-sm md:text-base"><strong>Height:</strong> {results.columns.height}m</p>
                           <p className="text-sm md:text-base"><strong>Floors:</strong> {results.numFloors}</p>
+                          <p className="text-sm md:text-base"><strong>Tributary Area:</strong> {results.columns.tributaryArea?.toFixed(2) || '0.00'}m²</p>
+                          <p className="text-sm md:text-base"><strong>Load per Floor:</strong> {results.columns.loadPerFloor?.toFixed(2) || '0.00'} kN</p>
+                          <p className="text-sm md:text-base"><strong>Total Load:</strong> {results.columns.load?.toFixed(2) || '0.00'} kN</p>
                           {results.columns.fireAllowance > 0 && (
                             <p className="text-sm md:text-base text-blue-600">
                               <strong>Fire Allowance:</strong> {results.columns.fireAllowance.toFixed(1)}mm per face
