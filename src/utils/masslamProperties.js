@@ -13,48 +13,52 @@ export const CHARRING_RATES = {
 };
 
 /**
- * Load the charring rate from the MASSLAM_SL33_Mechanical_Properties.csv file
+ * Hardcoded MASSLAM SL33 mechanical properties from CSV
+ * This eliminates the need to fetch the CSV file at runtime
+ */
+export const HARDCODED_MASSLAM_SL33_PROPERTIES = [
+  { property: "Bending Strength (f'b)", value: "33", unit: "MPa" },
+  { property: "Tension Strength Parallel (f't)", value: "16", unit: "MPa" },
+  { property: "Tension Strength Perpendicular (f't90)", value: "0.5", unit: "MPa" },
+  { property: "Shear Strength (f's)", value: "4.2", unit: "MPa" },
+  { property: "Compression Strength Parallel (f'c)", value: "26", unit: "MPa" },
+  { property: "Compression Strength Perpendicular (f'c90)", value: "N/A", unit: "MPa" },
+  { property: "Bearing Strength Parallel (f'j)", value: "30", unit: "MPa" },
+  { property: "Bearing Strength Perpendicular (f'j90)", value: "10", unit: "MPa" },
+  { property: "Modulus of Elasticity (E_mean)", value: "13300", unit: "MPa" },
+  { property: "Modulus of Elasticity 5th Percentile (E_05)", value: "9975", unit: "MPa" },
+  { property: "Modulus of Elasticity Perpendicular Mean (E₉₀,mean)", value: "890", unit: "MPa" },
+  { property: "Modulus of Rigidity (G)", value: "900", unit: "MPa" },
+  { property: "Density (ρ_mean)", value: "600", unit: "kg/m³" },
+  { property: "Joint Group", value: "JD4", unit: "-" },
+  { property: "Charring Rate", value: "0.7", unit: "mm/min" }
+];
+
+/**
+ * Load the charring rate from the hardcoded MASSLAM_SL33_Mechanical_Properties data
  * @returns {Promise<number>} The charring rate in mm/min
  */
 export async function loadMasslamSL33CharringRate() {
   try {
-    // Fetch the CSV file
-    console.log('Fetching mechanical properties from:', '/data/MASSLAM_SL33_Mechanical_Properties.csv');
-    const url = typeof window !== 'undefined' 
-      ? new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString()
-      : '/data/MASSLAM_SL33_Mechanical_Properties.csv';
+    console.log('Loading charring rate from hardcoded data');
     
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
-      return CHARRING_RATES.masslam_sl33; // Return default value if fetch fails
-    }
+    // Find the charring rate in the hardcoded data
+    const charringRateItem = HARDCODED_MASSLAM_SL33_PROPERTIES.find(
+      item => item.property.toLowerCase().includes('charring rate')
+    );
     
-    const csvText = await response.text();
-    const lines = csvText.trim().split('\n');
-    
-    // Find the line with the charring rate
-    const charringRateLine = lines.find(line => line.toLowerCase().includes('charring rate'));
-    
-    if (!charringRateLine) {
-      console.warn('Charring rate not found in MASSLAM_SL33_Mechanical_Properties.csv');
+    if (!charringRateItem) {
+      console.warn('Charring rate not found in hardcoded data');
       return CHARRING_RATES.masslam_sl33; // Return default value if not found
     }
     
-    // Parse the charring rate value
-    const values = charringRateLine.split(',');
-    if (values.length < 2) {
-      console.warn('Invalid charring rate format in CSV');
-      return CHARRING_RATES.masslam_sl33; // Return default value if format is invalid
-    }
-    
-    const charringRate = parseFloat(values[1]);
+    const charringRate = parseFloat(charringRateItem.value);
     if (isNaN(charringRate)) {
-      console.warn('Invalid charring rate value in CSV');
+      console.warn('Invalid charring rate value in hardcoded data');
       return CHARRING_RATES.masslam_sl33; // Return default value if value is invalid
     }
     
-    console.log(`Loaded MASSLAM SL33 charring rate from CSV: ${charringRate} mm/min`);
+    console.log(`Loaded MASSLAM SL33 charring rate from hardcoded data: ${charringRate} mm/min`);
     
     // Update the default charring rate
     CHARRING_RATES.masslam_sl33 = charringRate;
@@ -242,40 +246,21 @@ export function getMasslamProductProperties(productCode) {
 }
 
 /**
- * Load all mechanical properties from the MASSLAM_SL33_Mechanical_Properties.csv file
+ * Load all mechanical properties from the hardcoded data
  * @returns {Promise<Object>} The mechanical properties
  */
 export async function loadMasslamSL33MechanicalProperties() {
   try {
-    // Fetch the CSV file
-    console.log('Fetching mechanical properties from:', '/data/MASSLAM_SL33_Mechanical_Properties.csv');
-    const url = typeof window !== 'undefined' 
-      ? new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString()
-      : '/data/MASSLAM_SL33_Mechanical_Properties.csv';
+    console.log('Loading mechanical properties from hardcoded data');
     
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
-      return null; // Return null if fetch fails
-    }
-    
-    const csvText = await response.text();
-    const lines = csvText.trim().split('\n');
-    
-    // Skip the header line and process each property line
+    // Process the hardcoded data
     const properties = {};
     
-    // Process each line after the header
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue; // Skip empty lines
-      
-      const values = line.split(',');
-      if (values.length < 3) continue; // Skip invalid lines
-      
-      const propertyName = values[0].trim();
-      const propertyValue = values[1].trim();
-      const propertyUnit = values[2].trim();
+    // Process each property
+    for (const item of HARDCODED_MASSLAM_SL33_PROPERTIES) {
+      const propertyName = item.property.trim();
+      const propertyValue = item.value.trim();
+      const propertyUnit = item.unit.trim();
       
       // Skip if property name or value is empty
       if (!propertyName || !propertyValue) continue;
@@ -290,7 +275,7 @@ export async function loadMasslamSL33MechanicalProperties() {
       };
     }
     
-    console.log('Loaded MASSLAM SL33 mechanical properties:', properties);
+    console.log('Loaded MASSLAM SL33 mechanical properties from hardcoded data');
     return properties;
   } catch (error) {
     console.error('Error loading MASSLAM SL33 mechanical properties:', error);
