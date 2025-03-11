@@ -99,8 +99,12 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
   console.log(`Column load per floor: ${loadPerFloor.toFixed(2)} kN, Total load: ${totalLoad.toFixed(2)} kN`);
   
   // Calculate minimum depth based on load and height
-  // For simplicity, we'll start with the width and increase based on load
-  let depth = width;
+  // Start with a base size that depends on the load
+  // This ensures columns resize properly when floors are added or removed
+  const baseSize = Math.max(width, Math.ceil(Math.sqrt(totalLoad) * 15));
+  
+  // Adjust depth based on number of floors
+  let depth = baseSize;
   
   // Increase depth based on number of floors and load
   if (floors > 1) {
