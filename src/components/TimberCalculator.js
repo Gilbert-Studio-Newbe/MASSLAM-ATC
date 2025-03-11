@@ -1497,9 +1497,9 @@ export default function TimberCalculator() {
                               <p className="text-sm md:text-base"><strong>Density:</strong> 600 kg/m³ (MASSLAM GL18)</p>
                               
                               <div className="mt-3 pt-3 border-t border-gray-200 grid grid-cols-1 gap-1">
-                                <p className="text-xs md:text-sm"><strong>Joists:</strong> {results.joistsVolume?.toFixed(2) || '0.00'} m³</p>
-                                <p className="text-xs md:text-sm"><strong>Beams:</strong> {results.beamsVolume?.toFixed(2) || '0.00'} m³</p>
-                                <p className="text-xs md:text-sm"><strong>Columns:</strong> {results.columnsVolume?.toFixed(2) || '0.00'} m³</p>
+                                <p className="text-xs md:text-sm"><strong>Joists:</strong> {results.elementVolumes?.joists?.toFixed(2) || '0.00'} m³</p>
+                                <p className="text-xs md:text-sm"><strong>Beams:</strong> {results.elementVolumes?.beams?.toFixed(2) || '0.00'} m³</p>
+                                <p className="text-xs md:text-sm"><strong>Columns:</strong> {results.elementVolumes?.columns?.toFixed(2) || '0.00'} m³</p>
                               </div>
                             </div>
                           </div>
@@ -1507,14 +1507,13 @@ export default function TimberCalculator() {
                           <div className="bg-white p-3 md:p-4 rounded-lg shadow">
                             <h5 className="font-semibold mb-2 text-sm md:text-base">Carbon Benefits</h5>
                             <div className="space-y-2">
-                              <p className="text-sm md:text-base"><strong>Carbon Storage:</strong> {results.carbonStorage?.toFixed(2) || '0.00'} tonnes CO₂e</p>
-                              <p className="text-sm md:text-base"><strong>Embodied Carbon:</strong> {results.embodiedCarbon?.toFixed(2) || '0.00'} tonnes CO₂e</p>
+                              <p className="text-sm md:text-base"><strong>Carbon Storage:</strong> {(results.timberVolume * 0.9 || 0).toFixed(2)} tonnes CO₂e</p>
+                              <p className="text-sm md:text-base"><strong>Embodied Carbon:</strong> {(results.timberVolume * 0.2 || 0).toFixed(2)} tonnes CO₂e</p>
                               
                               <div className="mt-3 pt-3 border-t border-gray-200">
                                 <p className="text-sm text-green-700"><strong>Compared to Steel/Concrete:</strong></p>
                                 <p className="text-sm md:text-base text-green-700">
-                                  <strong>Carbon Saving:</strong> {results.carbonSavings?.toFixed(2) || '0.00'} tonnes CO₂e
-                                </p>
+                                  <strong>Carbon Saving:</strong> {results.carbonSavings?.toFixed(2) || '0.00'} tonnes CO₂e</p>
                                 <p className="text-xs text-gray-500 mt-1">
                                   Based on average embodied carbon differential between mass timber and conventional structural systems.
                                 </p>
@@ -1538,14 +1537,17 @@ export default function TimberCalculator() {
                             <div>
                               <p className="text-xs md:text-sm text-gray-600">Joists</p>
                               <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.joists || 0)}</p>
+                              <p className="text-xs text-gray-500">{results.elementCounts?.joists || 0} pieces</p>
                             </div>
                             <div>
                               <p className="text-xs md:text-sm text-gray-600">Beams</p>
                               <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.beams || 0)}</p>
+                              <p className="text-xs text-gray-500">{results.elementCounts?.beams || 0} pieces</p>
                             </div>
                             <div>
                               <p className="text-xs md:text-sm text-gray-600">Columns</p>
                               <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.columns || 0)}</p>
+                              <p className="text-xs text-gray-500">{results.elementCounts?.columns || 0} pieces</p>
                             </div>
                           </div>
                         </div>
