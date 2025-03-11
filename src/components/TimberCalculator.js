@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { 
   calculateJoistSize, 
+  calculateJoistSizeAsync,
   calculateBeamSize, 
   calculateColumnSize,
   calculateTimberWeight,
@@ -412,7 +413,7 @@ export default function TimberCalculator() {
   
   // Calculate results based on inputs
   useEffect(() => {
-    const calculateResults = () => {
+    const calculateResults = async () => {
       try {
         // Get bay dimensions
         const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
@@ -426,7 +427,8 @@ export default function TimberCalculator() {
         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
         
         // Calculate joist size based on span and load
-        const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+        // Use the async version to get minimum width from FRL.csv
+        const joistSize = await calculateJoistSizeAsync(joistSpan, load, fireRating);
         
         // Calculate beam span (beams span perpendicular to joists)
         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
@@ -522,19 +524,17 @@ export default function TimberCalculator() {
         });
         
         setError(null);
-      } catch (err) {
-        console.error('Calculation error:', err);
-        setError(err.message || 'An error occurred during calculations');
+      } catch (error) {
+        console.error('Error calculating results:', error);
+        setError(error.message);
       }
     };
     
-    // Debounce calculations to avoid excessive recalculations
-    const timer = setTimeout(() => {
-      calculateResults();
-    }, 100);
+    // Call the async function
+    calculateResults();
     
-    return () => clearTimeout(timer);
-  }, [buildingLength, buildingWidth, lengthwiseBays, widthwiseBays, load, numFloors, timberGrade, fireRating, useCustomBayDimensions, customLengthwiseBayWidths, customWidthwiseBayWidths, joistsRunLengthwise]);
+    // Dependencies
+  }, [buildingLength, buildingWidth, lengthwiseBays, widthwiseBays, numFloors, floorHeight, load, fireRating, joistsRunLengthwise, useCustomBayDimensions, customLengthwiseBayWidths, customWidthwiseBayWidths, timberGrade]);
 
   // Handle input changes
   const handleBuildingLengthChange = (value) => {

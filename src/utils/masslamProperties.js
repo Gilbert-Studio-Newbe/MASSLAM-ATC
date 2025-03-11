@@ -302,3 +302,81 @@ export async function getMasslamSL33Properties() {
   }
   return MASSLAM_SL33_PROPERTIES;
 }
+
+/**
+ * Default minimum joist widths for different fire resistance levels (mm)
+ * These values will be overridden by the FRL.csv file if available
+ */
+export const DEFAULT_MIN_JOIST_WIDTHS = {
+  'none': 45,
+  '30/30/30': 120,
+  '60/60/60': 165,
+  '90/90/90': 205,
+  '120/120/120': 250
+};
+
+// Cache for FRL data to avoid repeated fetches
+let frlDataCache = null;
+
+/**
+ * Load the minimum joist width from the FRL.csv file based on the fire resistance level
+ * @param {string} frl - Fire resistance level (e.g., "60/60/60")
+ * @returns {Promise<number>} The minimum joist width in mm
+ */
+export async function loadMinJoistWidthForFRL(frl) {
+  try {
+    // If no FRL specified, return the minimum width
+    if (!frl || frl === 'none') {
+      return DEFAULT_MIN_JOIST_WIDTHS['none'];
+    }
+    
+    // Use cached data if available
+    if (frlDataCache) {
+      const matchingEntry = frlDataCache.find(entry => entry.frl === frl);
+      if (matchingEntry) {
+        console.log(`Using cached minimum joist width for FRL ${frl}: ${matchingEntry.minWidth}mm`);
+        return matchingEntry.minWidth;
+      }
+    }
+    
+    // Fetch the CSV file
+    const response = await fetch('/data/FRL.csv');
+    if (!response.ok) {
+      console.error(`Failed to fetch FRL.csv: ${response.status} ${response.statusText}`);
+      return DEFAULT_MIN_JOIST_WIDTHS[frl] || DEFAULT_MIN_JOIST_WIDTHS['none']; // Return default value if fetch fails
+    }
+    
+    const csvText = await response.text();
+    const lines = csvText.trim().split('\n');
+    
+    // Skip header row
+    const dataLines = lines.slice(1);
+    
+    // Parse CSV data
+    const frlData = dataLines.map(line => {
+      const [frlValue, minWidthStr] = line.split(',');
+      return {
+        frl: frlValue.trim(),
+        minWidth: parseInt(minWidthStr.trim())
+      };
+    });
+    
+    // Cache the data
+    frlDataCache = frlData;
+    
+    // Find matching FRL entry
+    const matchingEntry = frlData.find(entry => entry.frl === frl);
+    
+    if (matchingEntry) {
+      console.log(`Loaded minimum joist width for FRL ${frl} from CSV: ${matchingEntry.minWidth}mm`);
+      return matchingEntry.minWidth;
+    }
+    
+    // If no matching entry found, return default value
+    console.warn(`No matching entry found in FRL.csv for FRL ${frl}, using default value`);
+    return DEFAULT_MIN_JOIST_WIDTHS[frl] || DEFAULT_MIN_JOIST_WIDTHS['none'];
+  } catch (error) {
+    console.error('Error loading minimum joist width for FRL:', error);
+    return DEFAULT_MIN_JOIST_WIDTHS[frl] || DEFAULT_MIN_JOIST_WIDTHS['none']; // Return default value if an error occurs
+  }
+}

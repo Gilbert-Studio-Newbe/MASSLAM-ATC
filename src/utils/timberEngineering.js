@@ -12,7 +12,9 @@ import {
 import { 
   calculateFireResistanceAllowance, 
   getMasslamSL33Properties,
-  loadMasslamSL33MechanicalProperties
+  loadMasslamSL33MechanicalProperties,
+  DEFAULT_MIN_JOIST_WIDTHS,
+  loadMinJoistWidthForFRL
 } from './masslamProperties';
 
 // Initialize properties object that will be populated from CSV
@@ -112,6 +114,61 @@ loadTimberProperties().then(() => {
 
 /**
  * Calculate the required joist size based on span, spacing, and load
+ * This async version loads the minimum joist width from the FRL.csv file
+ * 
+ * @param {number} span - Span in meters
+ * @param {number} spacing - Spacing in mm
+ * @param {number} load - Load in kPa
+ * @param {string} timberGrade - Timber grade (GL18, GL21, GL24)
+ * @param {string} fireRating - Fire rating (e.g., "60/60/60", "90/90/90")
+ * @returns {Promise<Object>} Calculated joist size and properties
+ */
+export async function calculateJoistSizeAsync(span, spacing, load, timberGrade, fireRating = 'none') {
+  // Placeholder implementation
+  const spanMm = span * 1000; // Convert to mm
+  
+  // Get minimum joist width based on FRL from the CSV file
+  const minJoistWidth = await loadMinJoistWidthForFRL(fireRating);
+  console.log(`Minimum joist width for FRL ${fireRating}: ${minJoistWidth}mm`);
+  
+  // Calculate theoretical width and depth
+  // For width, use the minimum width from FRL.csv
+  const theoreticalWidth = minJoistWidth;
+  const theoreticalDepth = Math.max(140, Math.ceil(spanMm / 15)); // Simplified calculation
+  
+  // Calculate fire resistance allowance if needed
+  let fireAllowance = 0;
+  if (fireRating && fireRating !== 'none') {
+    fireAllowance = calculateFireResistanceAllowance(fireRating);
+  }
+  
+  // Add fire resistance allowance to depth only (width is already set based on FRL)
+  // For joists, typically only 3 sides are exposed (bottom and two sides)
+  const fireAdjustedWidth = theoreticalWidth; // Width is already set based on FRL
+  const fireAdjustedDepth = theoreticalDepth + fireAllowance; // Only bottom exposed
+  
+  console.log(`Joist size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
+  console.log(`Joist size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
+  
+  // Find the nearest available width and depth
+  const width = findNearestWidth(fireAdjustedWidth);
+  const depth = findNearestDepth(width, fireAdjustedDepth);
+  
+  return {
+    width: width,
+    depth: depth,
+    span: span,
+    spacing: spacing,
+    load: load,
+    grade: timberGrade,
+    fireRating: fireRating,
+    fireAllowance: fireAllowance
+  };
+}
+
+/**
+ * Calculate the required joist size based on span, spacing, and load
+ * This synchronous version uses default minimum joist widths
  * 
  * @param {number} span - Span in meters
  * @param {number} spacing - Spacing in mm
@@ -121,11 +178,14 @@ loadTimberProperties().then(() => {
  * @returns {Object} Calculated joist size and properties
  */
 export function calculateJoistSize(span, spacing, load, timberGrade, fireRating = 'none') {
-  // Placeholder implementation
-  const spanMm = span * 1000; // Convert to mm
+  // Get minimum joist width based on FRL from default values
+  const minJoistWidth = DEFAULT_MIN_JOIST_WIDTHS[fireRating] || DEFAULT_MIN_JOIST_WIDTHS['none'];
+  console.log(`Using default minimum joist width for FRL ${fireRating}: ${minJoistWidth}mm`);
   
   // Calculate theoretical width and depth
-  const theoreticalWidth = Math.max(45, Math.ceil(spanMm / 30)); // Simplified calculation
+  // For width, use the minimum width from default values
+  const spanMm = span * 1000; // Convert to mm
+  const theoreticalWidth = minJoistWidth;
   const theoreticalDepth = Math.max(140, Math.ceil(spanMm / 15)); // Simplified calculation
   
   // Calculate fire resistance allowance if needed
@@ -134,9 +194,9 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
     fireAllowance = calculateFireResistanceAllowance(fireRating);
   }
   
-  // Add fire resistance allowance to width and depth
+  // Add fire resistance allowance to depth only (width is already set based on FRL)
   // For joists, typically only 3 sides are exposed (bottom and two sides)
-  const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
+  const fireAdjustedWidth = theoreticalWidth; // Width is already set based on FRL
   const fireAdjustedDepth = theoreticalDepth + fireAllowance; // Only bottom exposed
   
   console.log(`Joist size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
