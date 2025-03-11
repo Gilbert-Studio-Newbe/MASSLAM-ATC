@@ -9,15 +9,10 @@ import {
   getMasslamSizes,
   initializeMasslamSizes
 } from './timberSizes';
-import { 
-  calculateFireResistanceAllowance, 
-  getMasslamSL33Properties,
-  loadMasslamSL33MechanicalProperties
-} from './masslamProperties';
+import { calculateFireResistanceAllowance } from './masslamProperties';
 
-// Initialize properties object that will be populated from CSV
-export let TIMBER_PROPERTIES = {
-  // Default values that will be replaced with data from CSV
+// Constants
+export const TIMBER_PROPERTIES = {
   MASSLAM_SL33: {
     bendingStrength: 33, // MPa
     tensileStrength: 16, // MPa
@@ -25,90 +20,13 @@ export let TIMBER_PROPERTIES = {
     shearStrength: 4.2, // MPa
     modulusOfElasticity: 13300, // MPa
     density: 600 // kg/m³
-  },
-  // Keep these for backward compatibility until fully migrated
-  GL18: {
-    bendingStrength: 18, // MPa
-    tensileStrength: 11, // MPa
-    compressiveStrength: 18, // MPa
-    shearStrength: 3.5, // MPa
-    modulusOfElasticity: 11500, // MPa
-    density: 600 // kg/m³
-  },
-  GL21: {
-    bendingStrength: 21, // MPa
-    tensileStrength: 13, // MPa
-    compressiveStrength: 21, // MPa
-    shearStrength: 3.8, // MPa
-    modulusOfElasticity: 13000, // MPa
-    density: 650 // kg/m³
-  },
-  GL24: {
-    bendingStrength: 24, // MPa
-    tensileStrength: 16, // MPa
-    compressiveStrength: 24, // MPa
-    shearStrength: 4.0, // MPa
-    modulusOfElasticity: 14500, // MPa
-    density: 700 // kg/m³
   }
 };
-
-/**
- * Load timber properties from the CSV file
- * This function should be called when the application starts
- */
-export async function loadTimberProperties() {
-  try {
-    const properties = await loadMasslamSL33MechanicalProperties();
-    
-    if (!properties) {
-      console.warn('Failed to load MASSLAM SL33 properties from CSV, using default values');
-      return;
-    }
-    
-    // Map CSV properties to the format expected by the application
-    TIMBER_PROPERTIES.MASSLAM_SL33 = {
-      bendingStrength: properties['Bending Strength (f\'b)']?.value || 33,
-      tensileStrength: properties['Tension Strength Parallel (f\'t)']?.value || 16,
-      compressiveStrength: properties['Compression Strength Parallel (f\'c)']?.value || 26,
-      shearStrength: properties['Shear Strength (f\'s)']?.value || 4.2,
-      modulusOfElasticity: properties['Modulus of Elasticity (E_mean)']?.value || 13300,
-      density: properties['Density (ρ_mean)']?.value || 600,
-      // Add additional properties
-      tensileStrengthPerpendicular: properties['Tension Strength Perpendicular (f\'t90)']?.value || 0.5,
-      compressiveStrengthPerpendicular: properties['Compression Strength Perpendicular (f\'c90)']?.value || null,
-      bearingStrengthParallel: properties['Bearing Strength Parallel (f\'j)']?.value || 30,
-      bearingStrengthPerpendicular: properties['Bearing Strength Perpendicular (f\'j90)']?.value || 10,
-      modulusOfElasticity5thPercentile: properties['Modulus of Elasticity 5th Percentile (E_05)']?.value || 9975,
-      modulusOfElasticityPerpendicular: properties['Modulus of Elasticity Perpendicular Mean (E₉₀,mean)']?.value || 890,
-      modulusOfRigidity: properties['Modulus of Rigidity (G)']?.value || 900,
-      jointGroup: properties['Joint Group']?.value || 'JD4',
-      charringRate: properties['Charring Rate']?.value || 0.7
-    };
-    
-    console.log('Loaded MASSLAM SL33 properties from CSV:', TIMBER_PROPERTIES.MASSLAM_SL33);
-    
-    // For backward compatibility, update GL24 to match MASSLAM_SL33
-    // This ensures existing code using GL24 will use the correct values
-    TIMBER_PROPERTIES.GL24 = { ...TIMBER_PROPERTIES.MASSLAM_SL33 };
-    
-    return TIMBER_PROPERTIES.MASSLAM_SL33;
-  } catch (error) {
-    console.error('Error loading timber properties:', error);
-  }
-}
 
 // Initialize the module when this file is imported
 console.log('timberEngineering.js: Initializing MASSLAM sizes module');
 initializeMasslamSizes();
 console.log('timberEngineering.js: Initial MASSLAM sizes:', getMasslamSizes());
-
-// Load timber properties from CSV
-loadTimberProperties().then(() => {
-  console.log('timberEngineering.js: Timber properties loaded from CSV');
-}).catch(error => {
-  console.error('timberEngineering.js: Error loading timber properties:', error);
-});
 
 /**
  * Calculate the required joist size based on span, spacing, and load
@@ -116,7 +34,7 @@ loadTimberProperties().then(() => {
  * @param {number} span - Span in meters
  * @param {number} spacing - Spacing in mm
  * @param {number} load - Load in kPa
- * @param {string} timberGrade - Timber grade (GL18, GL21, GL24)
+ * @param {string} timberGrade - Timber grade (MASSLAM_SL33)
  * @param {string} fireRating - Fire rating (e.g., "60/60/60", "90/90/90")
  * @returns {Object} Calculated joist size and properties
  */
@@ -163,7 +81,7 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
  * 
  * @param {number} span - Span in meters
  * @param {number} load - Load in kPa
- * @param {string} timberGrade - Timber grade (GL18, GL21, GL24)
+ * @param {string} timberGrade - Timber grade (MASSLAM_SL33)
  * @param {string} fireRating - Fire rating (e.g., "60/60/60", "90/90/90")
  * @returns {Object} Calculated beam size and properties
  */
@@ -209,7 +127,7 @@ export function calculateBeamSize(span, load, timberGrade, fireRating = 'none') 
  * 
  * @param {number} height - Height in meters
  * @param {number} load - Load in kN
- * @param {string} timberGrade - Timber grade (GL18, GL21, GL24)
+ * @param {string} timberGrade - Timber grade (MASSLAM_SL33)
  * @param {string} fireRating - Fire rating (e.g., "60/60/60", "90/90/90")
  * @returns {Object} Calculated column size and properties
  */

@@ -232,22 +232,20 @@ export default function OptimalSolverPage() {
             </select>
           </div>
           
-          {/* Timber Grade */}
+          {/* Timber Grade - Now hardcoded to MASSLAM_SL33 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Timber Grade
             </label>
-            <select
-              value={timberGrade}
-              onChange={(e) => setTimberGrade(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded"
-            >
-              {Object.keys(TIMBER_PROPERTIES).map((grade) => (
-                <option key={grade} value={grade}>
-                  {grade}
-                </option>
-              ))}
-            </select>
+            <input
+              type="text"
+              value="MASSLAM_SL33"
+              disabled
+              className="w-full p-2 border border-gray-300 rounded bg-gray-100"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Using properties from MASSLAM_SL33_Mechanical_Properties.csv
+            </p>
           </div>
         </div>
         
