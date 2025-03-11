@@ -184,7 +184,7 @@ export function calculateColumnSize(height, load, timberGrade, fireRating = 'non
   };
 }
 
-export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingLength, buildingWidth, numFloors, lengthwiseBays = 3, widthwiseBays = 2, timberGrade = 'GL18') {
+export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingLength, buildingWidth, numFloors, lengthwiseBays = 3, widthwiseBays = 2, joistsRunLengthwise = true, timberGrade = 'GL18') {
   // If called with just volume and timberGrade (for testing or simple cases)
   if (typeof joistSize === 'number' && (typeof beamSize === 'string' || beamSize === undefined)) {
     const volume = joistSize;
@@ -204,7 +204,7 @@ export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingL
   // Joists run perpendicular to beams
   // If joists run lengthwise, they span across the width of each bay
   // If joists run widthwise, they span across the length of each bay
-  const joistsRunLengthwise = true; // Assuming joists run lengthwise by default
+  // Using the joistsRunLengthwise parameter passed from the caller
   
   let numJoistsPerBay;
   let joistLength;
@@ -227,23 +227,31 @@ export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingL
   const joistDepth = joistSize.depth / 1000; // Convert mm to m
   const joistVolume = joistWidth * joistDepth * joistLength * totalJoists;
   
-  // Calculate number of beams
-  // Beams run along the grid lines
-  // Lengthwise beams: (widthwiseBays + 1) * lengthwiseBays
-  // Widthwise beams: (lengthwiseBays + 1) * widthwiseBays
-  const numLengthwiseBeams = (widthwiseBays + 1) * lengthwiseBays;
-  const numWidthwiseBeams = (lengthwiseBays + 1) * widthwiseBays;
+  // Calculate number of beams - beams should only run perpendicular to joists
+  let totalBeams;
+  let beamVolume;
   
-  // Total number of beams
-  const totalBeams = (numLengthwiseBeams + numWidthwiseBeams) * numFloors;
-  
-  // Calculate beam volume
-  const beamWidth = beamSize.width / 1000; // Convert mm to m
-  const beamDepth = beamSize.depth / 1000; // Convert mm to m
-  const lengthwiseBeamLength = bayLengthWidth;
-  const widthwiseBeamLength = bayWidthWidth;
-  const beamVolume = beamWidth * beamDepth * 
-    ((numLengthwiseBeams * lengthwiseBeamLength) + (numWidthwiseBeams * widthwiseBeamLength)) * numFloors;
+  if (joistsRunLengthwise) {
+    // If joists run lengthwise, beams should only run widthwise
+    const numWidthwiseBeams = (lengthwiseBays + 1) * widthwiseBays;
+    totalBeams = numWidthwiseBeams * numFloors;
+    
+    // Calculate beam volume - only widthwise beams
+    const beamWidth = beamSize.width / 1000; // Convert mm to m
+    const beamDepth = beamSize.depth / 1000; // Convert mm to m
+    const widthwiseBeamLength = bayWidthWidth;
+    beamVolume = beamWidth * beamDepth * (numWidthwiseBeams * widthwiseBeamLength) * numFloors;
+  } else {
+    // If joists run widthwise, beams should only run lengthwise
+    const numLengthwiseBeams = (widthwiseBays + 1) * lengthwiseBays;
+    totalBeams = numLengthwiseBeams * numFloors;
+    
+    // Calculate beam volume - only lengthwise beams
+    const beamWidth = beamSize.width / 1000; // Convert mm to m
+    const beamDepth = beamSize.depth / 1000; // Convert mm to m
+    const lengthwiseBeamLength = bayLengthWidth;
+    beamVolume = beamWidth * beamDepth * (numLengthwiseBeams * lengthwiseBeamLength) * numFloors;
+  }
   
   // Calculate number of columns
   // Columns are at the intersections of grid lines
