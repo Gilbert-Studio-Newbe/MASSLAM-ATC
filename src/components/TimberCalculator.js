@@ -29,6 +29,57 @@ import TimberSizesTable from './TimberSizesTable';
 import { calculateCost, formatCurrency } from '../utils/costEstimator';
 // ... other imports as before
 
+// Custom function for beam size calculation with tributary area
+const calculateMultiFloorBeamSize = (span, load, joistSpacing, numFloors, fireRating = 'none') => {
+  // Calculate tributary width for the beam (in meters)
+  // Tributary width is typically half the joist spacing on each side
+  const tributaryWidth = joistSpacing;
+  console.log(`Beam tributary width: ${tributaryWidth.toFixed(2)} m`);
+  
+  // Calculate load per meter of beam (kN/m)
+  // load is in kPa (kN/m²), so multiply by tributary width to get kN/m
+  const loadPerMeter = load * tributaryWidth;
+  console.log(`Beam load per meter: ${loadPerMeter.toFixed(2)} kN/m`);
+  
+  // Calculate total distributed load on the beam
+  const totalDistributedLoad = loadPerMeter * span;
+  console.log(`Total distributed load on beam: ${totalDistributedLoad.toFixed(2)} kN`);
+  
+  // Calculate theoretical width and depth
+  const spanMm = span * 1000; // Convert to mm
+  const theoreticalWidth = Math.max(65, Math.ceil(spanMm / 25)); // Simplified calculation
+  const theoreticalDepth = Math.max(240, Math.ceil(spanMm / 12)); // Simplified calculation
+  
+  // Calculate fire resistance allowance if needed
+  let fireAllowance = 0;
+  if (fireRating && fireRating !== 'none') {
+    fireAllowance = calculateFireResistanceAllowance(fireRating);
+  }
+  
+  // Add fire resistance allowance to width and depth
+  // For beams, typically 3 sides are exposed (bottom and two sides)
+  const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
+  const fireAdjustedDepth = theoreticalDepth + fireAllowance; // Only bottom exposed
+  
+  console.log(`Beam size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
+  console.log(`Beam size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
+  
+  // Find the nearest available width and depth
+  const width = findNearestWidth(fireAdjustedWidth);
+  const depth = findNearestDepth(width, fireAdjustedDepth);
+  
+  return {
+    width: width,
+    depth: depth,
+    span: span,
+    tributaryWidth: tributaryWidth,
+    loadPerMeter: loadPerMeter,
+    totalDistributedLoad: totalDistributedLoad,
+    fireRating: fireRating,
+    fireAllowance: fireAllowance
+  };
+};
+
 // Rename the custom function to avoid naming conflict
 const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRating = 'none', bayLength, bayWidth) => {
   // Column width should match beam width
@@ -380,8 +431,11 @@ export default function TimberCalculator() {
         // Calculate beam span (beams span perpendicular to joists)
         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
         
-        // Calculate beam size based on span, load, and number of floors
-        const beamSize = calculateBeamSize(beamSpan, load, numFloors, fireRating);
+        // Define joist spacing (in meters)
+        const joistSpacing = 0.8; // 800mm spacing
+        
+        // Calculate beam size based on span, load, joist spacing, and number of floors
+        const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
         
         // Calculate average bay dimensions for tributary area calculation
         const avgBayLength = buildingLength / lengthwiseBays;
@@ -1442,6 +1496,9 @@ export default function TimberCalculator() {
                           <h4 className="font-semibold mb-2 text-sm md:text-base">Beams</h4>
                           <p className="text-sm md:text-base"><strong>Size:</strong> {results.beams.width}mm × {results.beams.depth}mm</p>
                           <p className="text-sm md:text-base"><strong>Span:</strong> {results.beamSpan?.toFixed(2) || '0.00'}m</p>
+                          <p className="text-sm md:text-base"><strong>Tributary Width:</strong> {results.beams.tributaryWidth?.toFixed(2) || '0.00'}m</p>
+                          <p className="text-sm md:text-base"><strong>Load per Meter:</strong> {results.beams.loadPerMeter?.toFixed(2) || '0.00'} kN/m</p>
+                          <p className="text-sm md:text-base"><strong>Total Load:</strong> {results.beams.totalDistributedLoad?.toFixed(2) || '0.00'} kN</p>
                           {results.beams.fireAllowance > 0 && (
                             <p className="text-sm md:text-base text-blue-600">
                               <strong>Fire Allowance:</strong> {results.beams.fireAllowance.toFixed(1)}mm per face

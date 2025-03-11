@@ -276,6 +276,21 @@ export default function CalculationMethodologyPage() {
             </p>
             <ol className="list-decimal pl-5 mb-4 space-y-2">
               <li>
+                <strong>Calculate tributary width:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">tributaryWidth = joistSpacing</code><br />
+                <span className="text-sm text-gray-600">Example: For joists spaced at 800mm, tributaryWidth = 0.8m</span>
+              </li>
+              <li>
+                <strong>Calculate load per meter:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">loadPerMeter = load * tributaryWidth</code><br />
+                <span className="text-sm text-gray-600">Example: For a load of 3.0 kPa and tributary width of 0.8m, loadPerMeter = 3.0 * 0.8 = 2.4 kN/m</span>
+              </li>
+              <li>
+                <strong>Calculate total distributed load:</strong><br />
+                <code className="bg-gray-100 px-2 py-1 rounded">totalDistributedLoad = loadPerMeter * span</code><br />
+                <span className="text-sm text-gray-600">Example: For a load per meter of 2.4 kN/m and span of 6.0m, totalDistributedLoad = 2.4 * 6.0 = 14.4 kN</span>
+              </li>
+              <li>
                 <strong>Convert span to millimeters:</strong><br />
                 <code className="bg-gray-100 px-2 py-1 rounded">spanMm = span * 1000</code><br />
                 <span className="text-sm text-gray-600">Example: For a 6.0m span, spanMm = 6000 mm</span>
@@ -310,16 +325,20 @@ export default function CalculationMethodologyPage() {
             </ol>
             
             <div className="bg-blue-50 p-4 rounded-lg mb-4">
-              <h4 className="font-medium mb-2">Example Beam Calculation</h4>
+              <h4 className="font-medium mb-2">Example Beam Calculation with Tributary Area</h4>
               <p className="mb-2">Input parameters:</p>
               <ul className="list-disc pl-5 mb-2">
                 <li>Span: 6.0m</li>
                 <li>Load: 3.0 kPa</li>
+                <li>Joist Spacing: 0.8m</li>
                 <li>Timber Grade: MASSLAM_SL33</li>
                 <li>Fire Rating: 60 minutes</li>
               </ul>
               <p className="mb-2">Calculation steps:</p>
               <ol className="list-decimal pl-5 mb-2 text-sm">
+                <li>tributaryWidth = joistSpacing = 0.8m</li>
+                <li>loadPerMeter = load * tributaryWidth = 3.0 * 0.8 = 2.4 kN/m</li>
+                <li>totalDistributedLoad = loadPerMeter * span = 2.4 * 6.0 = 14.4 kN</li>
                 <li>spanMm = 6.0 * 1000 = 6000 mm</li>
                 <li>theoreticalWidth = Math.max(65, Math.ceil(6000 / 25)) = 240 mm</li>
                 <li>theoreticalDepth = Math.max(240, Math.ceil(6000 / 12)) = 500 mm</li>
