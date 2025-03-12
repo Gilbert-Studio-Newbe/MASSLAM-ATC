@@ -240,10 +240,14 @@ export function findNearestWidth(targetWidth) {
  * Find the nearest available depth to the target depth for a given width, rounding up
  * @param {number} width - Width in mm
  * @param {number} targetDepth - Target depth in mm
+ * @param {string} type - Type of member ('joist', 'beam', or 'column'). Defaults to 'joist'.
  * @returns {number} Nearest available depth (rounded up)
  */
-export function findNearestDepth(width, targetDepth) {
+export function findNearestDepth(width, targetDepth, type = 'joist') {
+  console.log(`findNearestDepth called with width=${width}mm, targetDepth=${targetDepth}mm, type=${type}`);
   const sizes = getMasslamSizes();
+  
+  console.log(`Total MASSLAM sizes loaded: ${sizes.length}`);
   
   if (sizes.length === 0) {
     console.warn('MASSLAM sizes not loaded yet, cannot find nearest depth. Using fallback value.');
@@ -252,6 +256,7 @@ export function findNearestDepth(width, targetDepth) {
   
   // Get all unique widths
   const allWidths = [...new Set(sizes.map(size => size.width))].sort((a, b) => a - b);
+  console.log(`All available widths: ${allWidths.join(', ')}mm`);
   
   // Check if the exact width exists in the data
   let widthToUse = width;
@@ -264,22 +269,22 @@ export function findNearestDepth(width, targetDepth) {
     widthToUse = nearestWidth;
   }
   
-  // Filter depths available for the given width
+  // Filter depths available for the given width and type
   const availableDepths = sizes
-    .filter(size => size.width === widthToUse)
+    .filter(size => size.width === widthToUse && size.type === type)
     .map(size => size.depth)
     .sort((a, b) => a - b);
   
-  console.log(`Available depths for width ${widthToUse}mm from CSV:`, availableDepths);
+  console.log(`Available depths for width ${widthToUse}mm and type ${type} from CSV: ${availableDepths.join(', ')}mm`);
   
   if (availableDepths.length === 0) {
-    console.warn(`No depths available for width ${widthToUse}mm in the CSV file. Using fallback value.`);
+    console.warn(`No depths available for width ${widthToUse}mm and type ${type} in the CSV file. Using fallback value.`);
     return targetDepth; // Fallback to the input value
   }
   
   // Find the smallest depth that is >= targetDepth
   const roundedUpDepth = availableDepths.find(d => d >= targetDepth) || availableDepths[availableDepths.length - 1];
-  console.log(`Rounding depth ${targetDepth}mm up to ${roundedUpDepth}mm for width ${widthToUse}mm`);
+  console.log(`Rounding depth ${targetDepth}mm up to ${roundedUpDepth}mm for width ${widthToUse}mm and type ${type}`);
   
   return roundedUpDepth;
 }

@@ -210,6 +210,8 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   
   // Check if MASSLAM sizes are loaded
   const sizesLoaded = checkMasslamSizesLoaded();
+  console.log(`MASSLAM sizes loaded: ${sizesLoaded}`);
+  
   if (!sizesLoaded) {
     console.warn('MASSLAM sizes not loaded, using fallback values for joist calculation');
     // Return a fallback size with a flag indicating fallback was used
@@ -317,7 +319,9 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   
   // Step 12: Find nearest available standard size
   const width = initialWidth; // Use the initial width based on fire rating
-  const depth = findNearestDepth(width, fireAdjustedDepth);
+  console.log(`Finding nearest depth for width ${width}mm and target depth ${fireAdjustedDepth}mm`);
+  const depth = findNearestDepth(width, fireAdjustedDepth, 'joist');
+  console.log(`findNearestDepth returned: ${depth}mm`);
   
   console.log(`Final joist size: ${width}mm width × ${depth}mm depth (standard size from CSV)`);
   
@@ -678,7 +682,7 @@ export function calculateBeamSize(span, load, timberGrade, tributaryWidth, fireR
   
   // Step 11: Find nearest available standard size
   const width = findNearestWidth(fireAdjustedWidth);
-  const depth = findNearestDepth(width, fireAdjustedDepth);
+  const depth = findNearestDepth(width, fireAdjustedDepth, 'beam');
   
   console.log(`Final beam size: ${width}mm width × ${depth}mm depth (standard size from CSV)`);
   
@@ -811,7 +815,7 @@ function calculateFallbackBeamSizeEngineered(span, load, timberGrade, tributaryW
   
   // Step 11: Find nearest available standard size
   const width = findNearestWidth(fireAdjustedWidth);
-  const depth = findNearestDepth(width, fireAdjustedDepth);
+  const depth = findNearestDepth(width, fireAdjustedDepth, 'beam');
   
   console.log(`Final beam size: ${width}mm width × ${depth}mm depth (standard size from CSV)`);
   
@@ -897,14 +901,18 @@ export function calculateColumnSize(height, load, timberGrade, fireRating = 'non
     fireAllowance = calculateFireResistanceAllowance(fireRating);
   }
   
-  console.log(`Column size: ${fixedWidth}x${fixedDepth}mm (fixed dimensions based on fire rating)`);
+  // Find nearest available standard size
+  const width = findNearestWidth(fixedWidth);
+  const depth = findNearestDepth(width, fixedDepth, 'column');
+  
+  console.log(`Column size: ${width}x${depth}mm (standard size from CSV)`);
   
   // Check if we're using fallback values - for columns, we're always using the fixed values
   const usingFallback = false;
   
   return {
-    width: fixedWidth,
-    depth: fixedDepth,
+    width: width,
+    depth: depth,
     height: height,
     load: load,
     grade: timberGrade,

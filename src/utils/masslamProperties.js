@@ -13,7 +13,7 @@ export const CHARRING_RATES = {
 };
 
 /**
- * Load the charring rate from the MASSLAM_SL33_Mechanical_Properties.csv file
+ * Load the charring rate from the ML38_Mechanical_Properties.csv file
  * @returns {Promise<number>} The charring rate in mm/min
  */
 export async function loadML38CharringRate() {
@@ -26,7 +26,7 @@ export async function loadML38CharringRate() {
     
     if (typeof window !== 'undefined') {
       // Client-side: Use window.location.origin
-      const url = new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString();
+      const url = new URL('/data/ML38_Mechanical_Properties.csv', window.location.origin).toString();
       console.log('Client-side: Fetching CSV from:', url);
       
       const response = await fetch(url);
@@ -46,7 +46,7 @@ export async function loadML38CharringRate() {
         const path = require('path');
         
         // Attempt to read the CSV file from the public directory
-        const csvPath = path.join(process.cwd(), 'public', 'data', 'MASSLAM_SL33_Mechanical_Properties.csv');
+        const csvPath = path.join(process.cwd(), 'public', 'data', 'ML38_Mechanical_Properties.csv');
         console.log('Attempting to read CSV from server path:', csvPath);
         
         if (fs.existsSync(csvPath)) {
@@ -73,7 +73,7 @@ export async function loadML38CharringRate() {
     const charringRateLine = lines.find(line => line.toLowerCase().includes('charring rate'));
     
     if (!charringRateLine) {
-      console.warn('Charring rate not found in MASSLAM_SL33_Mechanical_Properties.csv');
+      console.warn('Charring rate not found in ML38_Mechanical_Properties.csv');
       return CHARRING_RATES.masslam_sl33; // Return default value if not found
     }
     
@@ -278,7 +278,7 @@ export function getMasslamProductProperties(productCode) {
 }
 
 /**
- * Load all mechanical properties from the MASSLAM_SL33_Mechanical_Properties.csv file
+ * Load all mechanical properties from the ML38_Mechanical_Properties.csv file
  * @returns {Promise<Object>} The mechanical properties
  */
 export async function loadML38MechanicalProperties() {
@@ -291,7 +291,7 @@ export async function loadML38MechanicalProperties() {
     
     if (typeof window !== 'undefined') {
       // Client-side: Use window.location.origin
-      const url = new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString();
+      const url = new URL('/data/ML38_Mechanical_Properties.csv', window.location.origin).toString();
       console.log('Client-side: Fetching CSV from:', url);
       
       const response = await fetch(url);
@@ -311,7 +311,7 @@ export async function loadML38MechanicalProperties() {
         const path = require('path');
         
         // Attempt to read the CSV file from the public directory
-        const csvPath = path.join(process.cwd(), 'public', 'data', 'MASSLAM_SL33_Mechanical_Properties.csv');
+        const csvPath = path.join(process.cwd(), 'public', 'data', 'ML38_Mechanical_Properties.csv');
         console.log('Attempting to read CSV from server path:', csvPath);
         
         if (fs.existsSync(csvPath)) {
