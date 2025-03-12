@@ -13,8 +13,8 @@ import {
 } from './timberSizes';
 import { 
   calculateFireResistanceAllowance, 
-  getMasslamSL33Properties,
-  loadMasslamSL33MechanicalProperties
+  getML38Properties,
+  loadML38MechanicalProperties
 } from './masslamProperties';
 
 // Initialize properties object that will be populated from CSV
@@ -70,10 +70,10 @@ export let TIMBER_PROPERTIES = {
  */
 export async function loadTimberProperties() {
   try {
-    const properties = await loadMasslamSL33MechanicalProperties();
+    const properties = await loadML38MechanicalProperties();
     
     if (!properties) {
-      console.warn('Failed to load MASSLAM SL33 properties from CSV, using default values');
+      console.warn('Failed to load ML38 properties from CSV, using default values');
       return;
     }
     

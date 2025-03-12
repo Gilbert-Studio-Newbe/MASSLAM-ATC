@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { TIMBER_PROPERTIES, loadTimberProperties } from '@/utils/timberEngineering';
-import { getMasslamSL33Properties } from '@/utils/masslamProperties';
+import { getML38Properties } from '@/utils/masslamProperties';
 
 export default function CalculationMethodologyPage() {
   // Default values for calculation parameters
@@ -25,7 +25,7 @@ export default function CalculationMethodologyPage() {
       try {
         // Load properties from CSV
         await loadTimberProperties();
-        const rawProperties = await getMasslamSL33Properties();
+        const rawProperties = await getML38Properties();
         setMechanicalProperties(rawProperties);
       } catch (error) {
         console.error('Error loading mechanical properties:', error);
@@ -39,8 +39,8 @@ export default function CalculationMethodologyPage() {
   
   // Calculate example span based on current parameters
   const calculateExampleSpan = () => {
-    // Get timber properties for MASSLAM_SL33
-    const timberProps = TIMBER_PROPERTIES.MASSLAM_SL33;
+    // Get timber properties for ML38
+    const timberProps = TIMBER_PROPERTIES.ML38;
     
     // Example joist: 90mm x 240mm
     const width = 90; // mm
@@ -92,9 +92,9 @@ export default function CalculationMethodologyPage() {
         </Link>
       </div>
       
-      {/* MASSLAM SL33 Mechanical Properties Section */}
+      {/* ML38 Mechanical Properties Section */}
       <div className="bg-white p-6 rounded-lg shadow mb-8">
-        <h2 className="text-xl font-semibold mb-4">MASSLAM SL33 Mechanical Properties</h2>
+        <h2 className="text-xl font-semibold mb-4">ML38 Mechanical Properties</h2>
         <p className="mb-4">
           The following mechanical properties are loaded from the MASSLAM_SL33_Mechanical_Properties.csv file and used in all calculations:
         </p>
@@ -140,7 +140,7 @@ export default function CalculationMethodologyPage() {
           <p className="text-sm text-blue-700">
             These mechanical properties are used in all structural calculations throughout the application. 
             The values are loaded directly from the MASSLAM_SL33_Mechanical_Properties.csv file, ensuring 
-            that all calculations use the most up-to-date specifications for MASSLAM SL33 timber.
+            that all calculations use the most up-to-date specifications for ML38 timber.
           </p>
         </div>
       </div>
@@ -206,7 +206,7 @@ export default function CalculationMethodologyPage() {
           <div className="bg-white p-6 rounded-lg shadow mb-6">
             <h2 className="text-xl font-semibold mb-4">Detailed Component Calculation Methodology</h2>
             <p className="mb-4">
-              This section provides a detailed explanation of how each structural component (joist, beam, and column) is calculated in the application, using MASSLAM SL33 properties and standard sizes.
+              This section provides a detailed explanation of how each structural component (joist, beam, and column) is calculated in the application, using ML38 properties and standard sizes.
             </p>
             
             <h3 className="text-lg font-medium mt-6 mb-2">Joist Size Calculation</h3>
@@ -232,7 +232,7 @@ export default function CalculationMethodologyPage() {
               <li>
                 <strong>Calculate fire resistance allowance (if applicable):</strong><br />
                 <code className="bg-gray-100 px-2 py-1 rounded">fireAllowance = calculateFireResistanceAllowance(fireRating)</code><br />
-                <span className="text-sm text-gray-600">Example: For a 60-minute fire rating with MASSLAM SL33 charring rate of 0.7 mm/min, fireAllowance = 0.7 * 60 = 42 mm</span>
+                <span className="text-sm text-gray-600">Example: For a 60-minute fire rating with ML38 charring rate of 0.7 mm/min, fireAllowance = 0.7 * 60 = 42 mm</span>
               </li>
               <li>
                 <strong>Add fire resistance allowance to dimensions:</strong><br />
@@ -255,7 +255,7 @@ export default function CalculationMethodologyPage() {
                 <li>Span: 4.5m</li>
                 <li>Spacing: 450 mm</li>
                 <li>Load: 2.0 kPa</li>
-                <li>Timber Grade: MASSLAM_SL33</li>
+                <li>Timber Grade: ML38</li>
                 <li>Fire Rating: 60 minutes</li>
               </ul>
               <p className="mb-2">Calculation steps:</p>
@@ -308,7 +308,7 @@ export default function CalculationMethodologyPage() {
               <li>
                 <strong>Calculate fire resistance allowance (if applicable):</strong><br />
                 <code className="bg-gray-100 px-2 py-1 rounded">fireAllowance = calculateFireResistanceAllowance(fireRating)</code><br />
-                <span className="text-sm text-gray-600">Example: For a 60-minute fire rating with MASSLAM SL33 charring rate of 0.7 mm/min, fireAllowance = 0.7 * 60 = 42 mm</span>
+                <span className="text-sm text-gray-600">Example: For a 60-minute fire rating with ML38 charring rate of 0.7 mm/min, fireAllowance = 0.7 * 60 = 42 mm</span>
               </li>
               <li>
                 <strong>Add fire resistance allowance to dimensions:</strong><br />
@@ -331,7 +331,7 @@ export default function CalculationMethodologyPage() {
                 <li>Span: 6.0m</li>
                 <li>Load: 3.0 kPa</li>
                 <li>Joist Spacing: 0.8m</li>
-                <li>Timber Grade: MASSLAM_SL33</li>
+                <li>Timber Grade: ML38</li>
                 <li>Fire Rating: 60 minutes</li>
               </ul>
               <p className="mb-2">Calculation steps:</p>
@@ -370,7 +370,7 @@ export default function CalculationMethodologyPage() {
                 <strong>Minimum Proportions:</strong> Column depth is always at least equal to its width (square minimum).
               </li>
               <li>
-                <strong>Standard Size Adjustment:</strong> Final dimensions are adjusted to the nearest available MASSLAM sizes.
+                <strong>Standard Size Adjustment:</strong> Final dimensions are adjusted to the nearest available ML38 sizes.
               </li>
             </ol>
             
@@ -395,7 +395,7 @@ depth = max(depth, width) // Ensure minimum square proportion`}
             
             <h3 className="text-lg font-medium mt-6 mb-2">Fire Resistance Calculation</h3>
             <p className="mb-4">
-              Fire resistance is calculated based on the charring rate of MASSLAM SL33 timber:
+              Fire resistance is calculated based on the charring rate of ML38 timber:
             </p>
             <div className="bg-gray-100 p-3 rounded mb-4">
               <pre className="font-mono text-sm whitespace-pre-wrap">
@@ -477,7 +477,7 @@ requiredMinutes = fire rating in minutes (e.g., 30, 60, 90, 120)`}
                 <strong>Minimum Proportions:</strong> Column depth is always at least equal to its width (square minimum).
               </li>
               <li>
-                <strong>Standard Size Adjustment:</strong> Final dimensions are adjusted to the nearest available MASSLAM sizes.
+                <strong>Standard Size Adjustment:</strong> Final dimensions are adjusted to the nearest available ML38 sizes.
               </li>
             </ol>
             
@@ -523,7 +523,7 @@ depth = max(depth, width) // Ensure minimum square proportion`}
                   </tr>
                   <tr>
                     <td className="py-2 px-4 border-b">Compression Strength Parallel to Grain</td>
-                    <td className="py-2 px-4 border-b">{TIMBER_PROPERTIES.MASSLAM_SL33.compressiveStrength} MPa (MASSLAM SL33)</td>
+                    <td className="py-2 px-4 border-b">{TIMBER_PROPERTIES.ML38.compressiveStrength} MPa (ML38)</td>
                     <td className="py-2 px-4 border-b">Characteristic strength value for the timber grade</td>
                   </tr>
                   <tr>
@@ -753,7 +753,7 @@ A = cross-sectional area (mm²)`}
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4">Example Calculation Results</h2>
             <p className="mb-4 text-sm text-gray-600">
-              Based on a 90mm × 240mm MASSLAM SL33 joist with 450mm spacing.
+              Based on a 90mm × 240mm ML38 joist with 450mm spacing.
             </p>
             
             <div className="bg-blue-50 p-4 rounded-lg mb-4">

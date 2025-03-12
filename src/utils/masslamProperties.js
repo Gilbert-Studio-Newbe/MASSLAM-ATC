@@ -9,14 +9,14 @@ export const CHARRING_RATES = {
   glulam: 0.7,     // Glue laminated timber
   clt: 0.65,       // Cross-laminated timber
   lvl: 0.7,        // Laminated veneer lumber
-  masslam_sl33: 0.7, // MASSLAM SL33 (from mechanical properties CSV)
+  masslam_sl33: 0.7, // ML38 (from mechanical properties CSV)
 };
 
 /**
  * Load the charring rate from the MASSLAM_SL33_Mechanical_Properties.csv file
  * @returns {Promise<number>} The charring rate in mm/min
  */
-export async function loadMasslamSL33CharringRate() {
+export async function loadML38CharringRate() {
   try {
     // Fetch the CSV file
     console.log('Fetching charring rate from CSV...');
@@ -281,7 +281,7 @@ export function getMasslamProductProperties(productCode) {
  * Load all mechanical properties from the MASSLAM_SL33_Mechanical_Properties.csv file
  * @returns {Promise<Object>} The mechanical properties
  */
-export async function loadMasslamSL33MechanicalProperties() {
+export async function loadML38MechanicalProperties() {
   try {
     // Fetch the CSV file
     console.log('Fetching mechanical properties from CSV...');
@@ -371,16 +371,16 @@ export async function loadMasslamSL33MechanicalProperties() {
 }
 
 // Create a singleton to store the loaded properties
-let MASSLAM_SL33_PROPERTIES = null;
+let ML38_PROPERTIES = null;
 
 /**
- * Get the MASSLAM SL33 mechanical properties
+ * Get the ML38 mechanical properties
  * Loads the properties if they haven't been loaded yet
  * @returns {Promise<Object>} The mechanical properties
  */
-export async function getMasslamSL33Properties() {
-  if (MASSLAM_SL33_PROPERTIES === null) {
-    MASSLAM_SL33_PROPERTIES = await loadMasslamSL33MechanicalProperties();
+export async function getML38Properties() {
+  if (ML38_PROPERTIES === null) {
+    ML38_PROPERTIES = await loadML38MechanicalProperties();
   }
-  return MASSLAM_SL33_PROPERTIES;
+  return ML38_PROPERTIES;
 }
