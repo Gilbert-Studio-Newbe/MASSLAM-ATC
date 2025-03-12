@@ -615,3 +615,42 @@ export function filterToStandardSizes() {
 
 // For backward compatibility
 export const MASSLAM_SIZES = [];
+
+/**
+ * Debug function to check if the CSV files are being loaded correctly
+ * This function will log the current state of the MASSLAM sizes
+ */
+export function debugMasslamSizesLoading() {
+  console.log('=== DEBUG: MASSLAM Sizes Loading ===');
+  console.log('_isInitialized:', _isInitialized);
+  console.log('_masslamSizes.length:', _masslamSizes.length);
+  
+  if (_masslamSizes.length > 0) {
+    // Log some sample sizes
+    console.log('Sample sizes:');
+    console.log(_masslamSizes.slice(0, 3));
+    
+    // Count by type
+    const typeCount = {};
+    _masslamSizes.forEach(size => {
+      typeCount[size.type] = (typeCount[size.type] || 0) + 1;
+    });
+    console.log('Sizes by type:', typeCount);
+    
+    // Get unique widths and depths
+    const uniqueWidths = [...new Set(_masslamSizes.map(size => size.width))].sort((a, b) => a - b);
+    const uniqueDepths = [...new Set(_masslamSizes.map(size => size.depth))].sort((a, b) => a - b);
+    
+    console.log('Unique widths:', uniqueWidths);
+    console.log('Unique depths:', uniqueDepths);
+  } else {
+    console.warn('No MASSLAM sizes loaded yet!');
+  }
+  console.log('=== END DEBUG ===');
+  
+  return {
+    isInitialized: _isInitialized,
+    sizesLoaded: _masslamSizes.length > 0,
+    count: _masslamSizes.length
+  };
+}
