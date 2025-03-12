@@ -11,7 +11,7 @@ export default function CalculationMethodologyPage() {
   const [safetyFactor, setSafetyFactor] = useState(2.0); // Typical safety factor
   const [loadDurationFactor, setLoadDurationFactor] = useState(0.8); // Medium-term loading
   const [deadLoad, setDeadLoad] = useState(0.5); // kPa
-  const [liveLoad, setLiveLoad] = useState(1.5); // kPa (residential)
+  const [liveLoad, setLiveLoad] = useState(2); // kPa (residential)
   const [maxSpan, setMaxSpan] = useState(9.0); // meters
   
   // State for mechanical properties
@@ -710,12 +710,15 @@ A = cross-sectional area (mm²)`}
                   <label className="inline-flex items-center">
                     <input
                       type="radio"
+                      id="residential-load"
+                      name="live-load"
                       className="form-radio h-4 w-4 text-blue-600"
-                      name="liveLoadType"
-                      checked={liveLoad === 1.5}
-                      onChange={() => setLiveLoad(1.5)}
+                      checked={liveLoad === 2}
+                      onChange={() => setLiveLoad(2)}
                     />
-                    <span className="ml-2">Residential (1.5 kPa)</span>
+                    <label htmlFor="residential-load" className="ml-2">
+                      <span className="ml-2">Residential (2 kPa)</span>
+                    </label>
                   </label>
                   <label className="inline-flex items-center">
                     <input

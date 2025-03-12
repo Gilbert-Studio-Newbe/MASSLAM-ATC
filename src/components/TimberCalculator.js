@@ -317,7 +317,7 @@ export default function TimberCalculator() {
   }, [buildingLength, buildingWidth]);
   
   const [fireRating, setFireRating] = useState('none');
-  const [load, setLoad] = useState(1.5); // kPa
+  const [load, setLoad] = useState(2); // kPa (updated from 1.5 to 2)
   
   // Constants
   const structureType = 'floor'; // Fixed to floor
@@ -873,13 +873,15 @@ export default function TimberCalculator() {
                       <label className="inline-flex items-center">
                         <input
                           type="radio"
-                          className="form-radio h-5 w-5"
-                          style={{ accentColor: 'var(--apple-blue)' }}
-                          name="loadType"
-                          checked={load === 1.5}
-                          onChange={() => handleLoadChange(1.5)}
+                          id="residential"
+                          name="load"
+                          className="form-radio h-4 w-4 text-blue-600"
+                          checked={load === 2}
+                          onChange={() => handleLoadChange(2)}
                         />
-                        <span className="ml-3">Residential (1.5 kPa)</span>
+                        <label htmlFor="residential" className="ml-2">
+                          <span className="ml-3">Residential (2 kPa)</span>
+                        </label>
                       </label>
                       <label className="inline-flex items-center">
                         <input
@@ -1098,7 +1100,7 @@ export default function TimberCalculator() {
                     </div>
                     <div>
                       <p className="text-sm mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Load:</p>
-                      <p className="font-medium">{results.load} kPa ({results.load === 1.5 ? 'Residential' : 'Commercial'})</p>
+                      <p className="font-medium">{results.load} kPa ({results.load === 2 ? 'Residential' : 'Commercial'})</p>
                     </div>
                   </div>
                 </div>
