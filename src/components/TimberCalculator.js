@@ -411,21 +411,34 @@ export default function TimberCalculator() {
         const loadedSizes = await loadMasslamSizes();
         console.log(`Loaded ${loadedSizes.length} MASSLAM sizes`);
         
+        if (loadedSizes.length === 0) {
+          console.warn('No MASSLAM sizes loaded from CSV, calculations will use fallback values');
+          setCsvLoadingErrors(prev => ({ ...prev, sizes: true }));
+          return;
+        }
+        
         // Filter to standard sizes
         console.log('Filtering to standard sizes');
         const standardSizes = filterToStandardSizes();
         console.log(`Filtered to ${standardSizes.length} standard sizes`);
         
+        if (standardSizes.length === 0) {
+          console.warn('No standard sizes found after filtering, calculations will use fallback values');
+          setCsvLoadingErrors(prev => ({ ...prev, sizes: true }));
+          return;
+        }
+        
         // Verify the loaded sizes
         const verified = verifyLoadedSizes();
         console.log('Verification result:', verified);
         
-        // Debug the loaded sizes
-        debugMasslamSizes();
-        
-        if (loadedSizes.length === 0) {
+        if (!verified) {
+          console.warn('Size verification failed, calculations may use fallback values');
           setCsvLoadingErrors(prev => ({ ...prev, sizes: true }));
         }
+        
+        // Debug the loaded sizes
+        debugMasslamSizes();
       } catch (error) {
         console.error('Error loading MASSLAM sizes:', error);
         setCsvLoadingErrors(prev => ({ ...prev, sizes: true }));
@@ -554,6 +567,11 @@ export default function TimberCalculator() {
           columnSize,
           timberWeight: timberResult.weight,
           timberVolume: timberResult.totalVolume,
+          elementVolumes: {
+            joists: timberResult.elements.joists.volume,
+            beams: timberResult.elements.beams.volume,
+            columns: timberResult.elements.columns.volume
+          },
           carbonSavings,
           costs: costEstimate,
           elementCounts: {
@@ -1675,24 +1693,24 @@ export default function TimberCalculator() {
                         <div className="grid grid-cols-1 bg-white p-3 md:p-4 rounded-lg shadow">
                           <div className="border-b pb-3 mb-3">
                             <h5 className="font-semibold mb-2 text-sm md:text-base">Total Cost Estimate</h5>
-                            <p className="text-xl md:text-2xl font-bold text-green-700">{formatCurrency(results.costs?.total || 0)}</p>
+                            <p className="text-xl md:text-2xl font-bold text-green-700">{formatCurrency(results.costs?.totalCost || 0)}</p>
                             <p className="text-xs md:text-sm text-gray-500 mt-1">Excluding GST and installation</p>
                           </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div>
                               <p className="text-xs md:text-sm text-gray-600">Joists</p>
-                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.joists || 0)}</p>
+                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.elements?.joists?.cost || 0)}</p>
                               <p className="text-xs text-gray-500">{results.elementCounts?.joists || 0} pieces</p>
                             </div>
                             <div>
                               <p className="text-xs md:text-sm text-gray-600">Beams</p>
-                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.beams || 0)}</p>
+                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.elements?.beams?.cost || 0)}</p>
                               <p className="text-xs text-gray-500">{results.elementCounts?.beams || 0} pieces</p>
                             </div>
                             <div>
                               <p className="text-xs md:text-sm text-gray-600">Columns</p>
-                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.columns || 0)}</p>
+                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.elements?.columns?.cost || 0)}</p>
                               <p className="text-xs text-gray-500">{results.elementCounts?.columns || 0} pieces</p>
                             </div>
                           </div>
@@ -1736,14 +1754,40 @@ export default function TimberCalculator() {
       {(csvLoadingErrors.properties || csvLoadingErrors.sizes) && (
         <div className="apple-section mt-4">
           <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded relative" role="alert">
-            <strong className="font-bold">Warning: </strong>
+            <strong className="font-bold">CSV Data Issue: </strong>
             <span className="block sm:inline">
               {csvLoadingErrors.properties && csvLoadingErrors.sizes 
-                ? "Failed to load mechanical properties and timber sizes CSV files. Using default values."
+                ? "Unable to load required CSV data files for mechanical properties and timber sizes. The application is using built-in default values which may not reflect the latest product specifications."
                 : csvLoadingErrors.properties 
-                  ? "Failed to load mechanical properties CSV file. Using default values."
-                  : "Failed to load timber sizes CSV file. Using default values."
+                  ? "Unable to load the mechanical properties CSV file. The application is using built-in default values for timber strength properties."
+                  : "Unable to load the timber sizes CSV file. The application is using built-in default values for available timber dimensions, which may not include all current product options."
               }
+              <br />
+              <span className="mt-2 block text-sm">
+                This may affect the accuracy of calculations. Please ensure the CSV files are correctly formatted and accessible.
+              </span>
+            </span>
+          </div>
+        </div>
+      )}
+      
+      {/* Fallback Values Warning Display */}
+      {(results?.joistSize?.usingFallback || 
+        results?.beamSize?.usingFallback || 
+        results?.columnSize?.usingFallback) && (
+        <div className="apple-section mt-4">
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">Using Approximate Sizes: </strong>
+            <span className="block sm:inline">
+              The exact timber dimensions required for your project could not be found in the available data.
+              <ul className="list-disc ml-5 mt-1">
+                {results?.joistSize?.usingFallback && <li>Joist sizes are approximate and may not match standard MASSLAM products.</li>}
+                {results?.beamSize?.usingFallback && <li>Beam sizes are approximate and may not match standard MASSLAM products.</li>}
+                {results?.columnSize?.usingFallback && <li>Column sizes are approximate and may not match standard MASSLAM products.</li>}
+              </ul>
+              <span className="block mt-2 text-sm">
+                These calculations use engineering rules of thumb and should be verified by a qualified engineer.
+              </span>
             </span>
           </div>
         </div>
