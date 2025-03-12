@@ -30,11 +30,28 @@ import { calculateCost, formatCurrency } from '../utils/costEstimator';
 // ... other imports as before
 
 // Custom function for beam size calculation with tributary area
-const calculateMultiFloorBeamSize = (span, load, joistSpacing, numFloors, fireRating = 'none') => {
+const calculateMultiFloorBeamSize = (span, load, joistSpacing, numFloors, fireRating = 'none', joistsRunLengthwise = true, avgBayWidth = 0, avgBayLength = 0, isEdgeBeam = false) => {
   // Calculate tributary width for the beam (in meters)
-  // Tributary width is typically half the joist spacing on each side
-  const tributaryWidth = joistSpacing;
-  console.log(`Beam tributary width: ${tributaryWidth.toFixed(2)} m`);
+  // For a more realistic calculation, use half the perpendicular dimension to the beam span
+  // If beam spans lengthwise (joists run widthwise), tributary width is half the bay width
+  // If beam spans widthwise (joists run lengthwise), tributary width is half the bay length
+  let tributaryWidth;
+  
+  if (avgBayWidth > 0 && avgBayLength > 0) {
+    // If we have bay dimensions, use them for a more realistic tributary width
+    if (isEdgeBeam) {
+      // Edge beams only support load from one side (half the tributary width of interior beams)
+      tributaryWidth = joistsRunLengthwise ? avgBayWidth / 4 : avgBayLength / 4;
+    } else {
+      // Interior beams support load from both sides
+      tributaryWidth = joistsRunLengthwise ? avgBayWidth / 2 : avgBayLength / 2;
+    }
+  } else {
+    // Fallback to the old calculation if bay dimensions aren't provided
+    tributaryWidth = isEdgeBeam ? joistSpacing / 2 : joistSpacing;
+  }
+  
+  console.log(`Beam tributary width (${isEdgeBeam ? 'edge' : 'interior'}): ${tributaryWidth.toFixed(2)} m`);
   
   // Calculate load per meter of beam (kN/m)
   // load is in kPa (kN/m²), so multiply by tributary width to get kN/m
@@ -100,7 +117,8 @@ const calculateMultiFloorBeamSize = (span, load, joistSpacing, numFloors, fireRa
     selfWeight: beamSelfWeightPerMeter,
     totalDistributedLoad: totalDistributedLoad,
     fireRating: fireRating,
-    fireAllowance: fireAllowance
+    fireAllowance: fireAllowance,
+    isEdgeBeam: isEdgeBeam
   };
 };
 
@@ -518,12 +536,41 @@ export default function TimberCalculator() {
         // Define joist spacing (in meters)
         const joistSpacing = 0.8; // 800mm spacing
         
-        // Calculate beam size based on span, load, joist spacing, and number of floors
-        const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
-        
         // Calculate average bay dimensions for tributary area calculation
         const avgBayLength = buildingLength / lengthwiseBays;
         const avgBayWidth = buildingWidth / widthwiseBays;
+        
+        // Calculate interior beam size (beams that support load from both sides)
+        // These beams have a tributary width of half the perpendicular bay dimension
+        const interiorBeamSize = calculateMultiFloorBeamSize(
+          beamSpan, 
+          load, 
+          joistSpacing, 
+          numFloors, 
+          fireRating, 
+          joistsRunLengthwise, 
+          avgBayWidth, 
+          avgBayLength,
+          false // isEdgeBeam = false
+        );
+        
+        // Calculate edge beam size (beams that support load from only one side)
+        // These beams have a smaller tributary width (half of interior beams)
+        const edgeBeamSize = calculateMultiFloorBeamSize(
+          beamSpan, 
+          load, 
+          joistSpacing, 
+          numFloors, 
+          fireRating, 
+          joistsRunLengthwise, 
+          avgBayWidth, 
+          avgBayLength,
+          true // isEdgeBeam = true
+        );
+        
+        // Use the interior beam size as the primary beam size for column calculations
+        // since interior beams are typically larger and more critical
+        const beamSize = interiorBeamSize;
         
         // Calculate column size based on beam width, load, floor height, and number of floors
         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
@@ -581,7 +628,8 @@ export default function TimberCalculator() {
             beams: timberResult.elements.beams.count,
             columns: timberResult.elements.columns.count
           },
-          validation: validationResult
+          validation: validationResult,
+          edgeBeamSize: edgeBeamSize
         });
         
         setError(null);
@@ -1249,6 +1297,10 @@ export default function TimberCalculator() {
                               String.fromCharCode(65 + i)
                             );
                             
+                            // Set gap based on joist direction - smaller gap where there are no beams
+                            const horizontalGap = joistsRunLengthwise ? '1px' : '4px';
+                            const verticalGap = joistsRunLengthwise ? '4px' : '1px';
+                            
                             return (
                               <>
                                 {/* Column labels (alphabetical) */}
@@ -1313,7 +1365,8 @@ export default function TimberCalculator() {
                                   display: 'grid',
                                   gridTemplateColumns: useCustomBayDimensions ? gridTemplateColumns : `repeat(${results.lengthwiseBays}, 1fr)`,
                                   gridTemplateRows: useCustomBayDimensions ? gridTemplateRows : `repeat(${results.widthwiseBays}, 1fr)`,
-                                  gap: '2px'
+                                  columnGap: horizontalGap,
+                                  rowGap: verticalGap
                                 }}>
                                   {Array.from({ length: results.lengthwiseBays * results.widthwiseBays }).map((_, index) => {
                                     const row = Math.floor(index / results.lengthwiseBays);
@@ -1335,7 +1388,8 @@ export default function TimberCalculator() {
                                         alignItems: 'center',
                                         fontSize: '0.8rem',
                                         padding: '8px',
-                                        borderRadius: '0'
+                                        borderRadius: '0',
+                                        margin: '2px'
                                       }}>
                                         {/* Bay Label */}
                                         <div className="absolute top-1 left-1 text-xs font-medium text-gray-600">
@@ -1437,6 +1491,162 @@ export default function TimberCalculator() {
                               }
                             });
                           })()}
+                          
+                          {/* Beam Lines */}
+                          {(() => {
+                            // Calculate bay dimensions
+                            const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
+                            
+                            // Beams run perpendicular to joists
+                            const beamsRunLengthwise = !joistsRunLengthwise;
+                            
+                            // Create arrays to hold beam lines
+                            const beamLines = [];
+                            
+                            // Set gap based on joist direction - smaller gap where there are no beams
+                            // Defining these variables here so they're in scope for the beam lines
+                            const horizontalGap = joistsRunLengthwise ? '1px' : '4px';
+                            const verticalGap = joistsRunLengthwise ? '4px' : '1px';
+                            
+                            // Calculate the offset for beam lines to account for grid gaps and margins
+                            const gridGapHorizontal = parseInt(horizontalGap.replace('px', ''));
+                            const gridGapVertical = parseInt(verticalGap.replace('px', ''));
+                            const cellMargin = 2; // The margin of each bay cell (from the style)
+                            
+                            if (beamsRunLengthwise) {
+                              // Horizontal beams (when joists run vertically)
+                              // Add horizontal lines at each row boundary
+                              let cumulativeHeight = 0;
+                              
+                              // Add a line at the top of the grid (edge beam)
+                              beamLines.push(
+                                <div 
+                                  key="beam-top"
+                                  style={{
+                                    position: 'absolute',
+                                    top: '-3px', // Slightly above the grid to avoid overlapping
+                                    left: '0',
+                                    width: '100%',
+                                    height: '3px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    zIndex: 5
+                                  }}
+                                />
+                              );
+                              
+                              // Add lines between rows (internal beams)
+                              for (let i = 0; i < results.widthwiseBays; i++) {
+                                cumulativeHeight += widthwiseBayWidths[i];
+                                const topPercent = (cumulativeHeight / buildingWidth) * 100;
+                                
+                                // Determine if this is an edge beam (bottom of grid)
+                                const isEdgeBeam = i === results.widthwiseBays - 1;
+                                
+                                if (isEdgeBeam) {
+                                  // Edge beam at the bottom
+                                  beamLines.push(
+                                    <div 
+                                      key={`beam-row-${i}`}
+                                      style={{
+                                        position: 'absolute',
+                                        top: 'calc(100% + 2px)',
+                                        left: '0',
+                                        width: '100%',
+                                        height: '3px',
+                                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                        zIndex: 5
+                                      }}
+                                    />
+                                  );
+                                } else {
+                                  // Internal beam - needs to be centered in the gap
+                                  // Calculate the exact position to center in the gap
+                                  beamLines.push(
+                                    <div 
+                                      key={`beam-row-${i}`}
+                                      style={{
+                                        position: 'absolute',
+                                        top: `calc(${topPercent}% + ${gridGapVertical/2}px)`,
+                                        left: '0',
+                                        width: '100%',
+                                        height: '3px',
+                                        borderTop: '3px dashed rgba(0, 0, 0, 0.8)',
+                                        zIndex: 5,
+                                        transform: 'translateY(-50%)'
+                                      }}
+                                    />
+                                  );
+                                }
+                              }
+                            } else {
+                              // Vertical beams (when joists run horizontally)
+                              // Add vertical lines at each column boundary
+                              let cumulativeWidth = 0;
+                              
+                              // Add a line at the left of the grid (edge beam)
+                              beamLines.push(
+                                <div 
+                                  key="beam-left"
+                                  style={{
+                                    position: 'absolute',
+                                    left: '-2px', // Slightly to the left of the grid to avoid overlapping
+                                    top: '0',
+                                    height: '100%',
+                                    width: '3px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    zIndex: 5
+                                  }}
+                                />
+                              );
+                              
+                              // Add lines between columns (internal beams)
+                              for (let i = 0; i < results.lengthwiseBays; i++) {
+                                cumulativeWidth += lengthwiseBayWidths[i];
+                                const leftPercent = (cumulativeWidth / buildingLength) * 100;
+                                
+                                // Determine if this is an edge beam (right of grid)
+                                const isEdgeBeam = i === results.lengthwiseBays - 1;
+                                
+                                if (isEdgeBeam) {
+                                  // Edge beam at the right
+                                  beamLines.push(
+                                    <div 
+                                      key={`beam-col-${i}`}
+                                      style={{
+                                        position: 'absolute',
+                                        left: 'calc(100% + 2px)',
+                                        top: '0',
+                                        height: '100%',
+                                        width: '3px',
+                                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                        zIndex: 5
+                                      }}
+                                    />
+                                  );
+                                } else {
+                                  // Internal beam - needs to be centered in the gap
+                                  // Calculate the exact position to center in the gap
+                                  beamLines.push(
+                                    <div 
+                                      key={`beam-col-${i}`}
+                                      style={{
+                                        position: 'absolute',
+                                        left: `calc(${leftPercent}% + ${gridGapHorizontal/2}px)`,
+                                        top: '0',
+                                        height: '100%',
+                                        width: '3px',
+                                        borderLeft: '3px dashed rgba(0, 0, 0, 0.8)',
+                                        zIndex: 5,
+                                        transform: 'translateX(-50%)'
+                                      }}
+                                    />
+                                  );
+                                }
+                              }
+                            }
+                            
+                            return beamLines;
+                          })()}
                         </div>
                       </div>
                     </div>
@@ -1471,10 +1681,127 @@ export default function TimberCalculator() {
                             </button>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div className="mt-2">
-                        <span style={{ color: '#4B5563' }}>↔ &#47; ↕ Arrows indicate joist span direction</span> <span className="text-xs">(click arrows or use toggle above to change direction)</span>
+                        
+                        {/* Arrows explanation */}
+                        <div className="text-xs text-center mt-2" style={{ color: 'var(--apple-text-secondary)' }}>
+                          ↔ / ↕ Arrows indicate joist span direction <span className="text-gray-400">(click arrows or use toggle above to change direction)</span>
+                        </div>
+                        
+                        {/* Beam Legend */}
+                        <div className="flex items-center justify-center mt-2">
+                          <div className="flex items-center mr-4">
+                            <div style={{ 
+                              width: '20px', 
+                              height: '3px', 
+                              backgroundColor: 'rgba(0, 0, 0, 0.8)', 
+                              display: 'inline-block',
+                              marginRight: '6px'
+                            }}></div>
+                            <span className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
+                              Edge beams
+                            </span>
+                          </div>
+                          <div className="flex items-center">
+                            <div style={{ 
+                              width: '20px', 
+                              height: '3px', 
+                              borderTop: '3px dashed rgba(0, 0, 0, 0.8)',
+                              display: 'inline-block',
+                              marginRight: '6px'
+                            }}></div>
+                            <span className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
+                              Internal beams
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {useCustomBayDimensions && (
+                          <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                            {/* Lengthwise Bay Controls */}
+                            <div>
+                              <h4 className="text-sm font-medium mb-2">Column Widths (m)</h4>
+                              <div className="space-y-2">
+                                {customLengthwiseBayWidths.map((width, index) => (
+                                  <div key={`length-${index}`} className="flex items-center">
+                                    <span className="text-xs w-16 md:w-24">{String.fromCharCode(65 + index)}:</span>
+                                    <input
+                                      type="number"
+                                      className="apple-input mb-0 text-sm w-full"
+                                      min="0.5"
+                                      max={MAX_BAY_SPAN}
+                                      step="0.1"
+                                      value={width.toFixed(2)}
+                                      onChange={(e) => handleLengthwiseBayWidthChange(index, e.target.value)}
+                                      onInput={(e) => {
+                                        if (e.target.value.startsWith('0')) {
+                                          e.target.value = e.target.value.replace(/^0+/, '');
+                                        }
+                                      }}
+                                    />
+                                    <span className="text-xs ml-2">m</span>
+                                  </div>
+                                ))}
+                                <div className="text-xs mt-3 p-2 rounded" style={{ 
+                                  backgroundColor: 'rgba(0, 113, 227, 0.05)',
+                                  color: 'var(--apple-text-secondary)'
+                                }}>
+                                  <div className="flex justify-between mb-1">
+                                    <span>Total:</span>
+                                    <span className={Math.abs(customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0) - buildingLength) > 0.01 ? 'text-red-500' : ''}>
+                                      {customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0).toFixed(2)}m
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Target:</span>
+                                    <span>{buildingLength.toFixed(2)}m</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Widthwise Bay Controls */}
+                            <div>
+                              <h4 className="text-sm font-medium mb-2">Row Heights (m)</h4>
+                              <div className="space-y-2">
+                                {customWidthwiseBayWidths.map((width, index) => (
+                                  <div key={`width-${index}`} className="flex items-center">
+                                    <span className="text-xs w-16 md:w-24">{index + 1}:</span>
+                                    <input
+                                      type="number"
+                                      className="apple-input mb-0 text-sm w-full"
+                                      min="0.5"
+                                      max={MAX_BAY_SPAN}
+                                      step="0.1"
+                                      value={width.toFixed(2)}
+                                      onChange={(e) => handleWidthwiseBayWidthChange(index, e.target.value)}
+                                      onInput={(e) => {
+                                        if (e.target.value.startsWith('0')) {
+                                          e.target.value = e.target.value.replace(/^0+/, '');
+                                        }
+                                      }}
+                                    />
+                                    <span className="text-xs ml-2">m</span>
+                                  </div>
+                                ))}
+                                <div className="text-xs mt-3 p-2 rounded" style={{ 
+                                  backgroundColor: 'rgba(0, 113, 227, 0.05)',
+                                  color: 'var(--apple-text-secondary)'
+                                }}>
+                                  <div className="flex justify-between mb-1">
+                                    <span>Total:</span>
+                                    <span className={Math.abs(customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0) - buildingWidth) > 0.01 ? 'text-red-500' : ''}>
+                                      {customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0).toFixed(2)}m
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Target:</span>
+                                    <span>{buildingWidth.toFixed(2)}m</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1560,13 +1887,29 @@ export default function TimberCalculator() {
                         {/* Beam Results */}
                         <div className="bg-white p-3 md:p-4 rounded-lg shadow">
                           <h4 className="font-semibold mb-2 text-sm md:text-base">Beams</h4>
-                          <p className="text-sm md:text-base"><strong>Size:</strong> {results.beamSize.width}mm × {results.beamSize.depth}mm</p>
-                          <p className="text-sm md:text-base"><strong>Span:</strong> {results.beamSize.span?.toFixed(2) || '0.00'}m</p>
-                          <p className="text-sm md:text-base"><strong>Tributary Width:</strong> {results.beamSize.tributaryWidth?.toFixed(2) || '0.00'}m</p>
-                          <p className="text-sm md:text-base"><strong>Load per Meter:</strong> {results.beamSize.loadPerMeter?.toFixed(2) || '0.00'} kN/m</p>
-                          <p className="text-sm md:text-base"><strong>Total Load:</strong> {results.beamSize.totalDistributedLoad?.toFixed(2) || '0.00'} kN</p>
+                          
+                          {/* Interior Beams */}
+                          <div className="mb-3">
+                            <p className="text-sm md:text-base font-medium">Interior Beams:</p>
+                            <p className="text-sm md:text-base"><strong>Size:</strong> {results.beamSize.width}mm × {results.beamSize.depth}mm</p>
+                            <p className="text-sm md:text-base"><strong>Span:</strong> {results.beamSize.span?.toFixed(2) || '0.00'}m</p>
+                            <p className="text-sm md:text-base"><strong>Tributary Width:</strong> {results.beamSize.tributaryWidth?.toFixed(2) || '0.00'}m</p>
+                            <p className="text-sm md:text-base"><strong>Load per Meter:</strong> {results.beamSize.loadPerMeter?.toFixed(2) || '0.00'} kN/m</p>
+                            <p className="text-sm md:text-base"><strong>Total Load:</strong> {(results.beamSize.loadPerMeter * results.beamSize.span)?.toFixed(2) || '0.00'} kN</p>
+                          </div>
+                          
+                          {/* Edge Beams */}
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <p className="text-sm md:text-base font-medium">Edge Beams:</p>
+                            <p className="text-sm md:text-base"><strong>Size:</strong> {results.edgeBeamSize.width}mm × {results.edgeBeamSize.depth}mm</p>
+                            <p className="text-sm md:text-base"><strong>Span:</strong> {results.edgeBeamSize.span?.toFixed(2) || '0.00'}m</p>
+                            <p className="text-sm md:text-base"><strong>Tributary Width:</strong> {results.edgeBeamSize.tributaryWidth?.toFixed(2) || '0.00'}m</p>
+                            <p className="text-sm md:text-base"><strong>Load per Meter:</strong> {results.edgeBeamSize.loadPerMeter?.toFixed(2) || '0.00'} kN/m</p>
+                            <p className="text-sm md:text-base"><strong>Total Load:</strong> {(results.edgeBeamSize.loadPerMeter * results.edgeBeamSize.span)?.toFixed(2) || '0.00'} kN</p>
+                          </div>
+                          
                           {results.beamSize.fireAllowance > 0 && (
-                            <p className="text-sm md:text-base text-blue-600">
+                            <p className="text-sm md:text-base text-blue-600 mt-3">
                               <strong>Fire Allowance:</strong> {results.beamSize.fireAllowance.toFixed(1)}mm per face
                             </p>
                           )}
@@ -1592,18 +1935,51 @@ export default function TimberCalculator() {
                                       const bayWidth = lengthwiseBayWidths[col];
                                       const bayHeight = widthwiseBayWidths[row];
                                       
-                                      // Beams span the longer distance
-                                      const beamsSpanLengthwise = bayWidth > bayHeight;
+                                      // Beams should run perpendicular to joists, not necessarily the longer distance
+                                      // Use the global joist direction setting to determine beam direction
+                                      const joistsSpanLengthwise = joistsRunLengthwise;
+                                      const beamsSpanLengthwise = !joistsSpanLengthwise; // Beams perpendicular to joists
+                                      
                                       const beamSpan = beamsSpanLengthwise ? bayWidth : bayHeight;
                                       
-                                      // Calculate beam size for this specific span
-                                      const bayBeamSize = calculateBeamSize(beamSpan, load, numFloors, fireRating);
+                                      // Determine if this is an edge beam or an interior beam
+                                      // Edge beams have smaller tributary width than interior beams
+                                      let isEdgeBeam = false;
+                                      
+                                      if (beamsSpanLengthwise) {
+                                        // Beams run lengthwise (horizontally in the grid)
+                                        // Edge beams are at the top and bottom of the grid (row 0 and last row)
+                                        isEdgeBeam = (row === 0 || row === results.widthwiseBays - 1);
+                                      } else {
+                                        // Beams run widthwise (vertically in the grid)
+                                        // Edge beams are at the left and right of the grid (column 0 and last column)
+                                        isEdgeBeam = (col === 0 || col === results.lengthwiseBays - 1);
+                                      }
+                                      
+                                      // Calculate tributary width based on beam position
+                                      let tributaryWidth;
+                                      
+                                      if (isEdgeBeam) {
+                                        // Edge beams only support load from one side
+                                        // Use half the bay dimension on one side only
+                                        tributaryWidth = beamsSpanLengthwise ? bayHeight / 4 : bayWidth / 4;
+                                      } else {
+                                        // Interior beams support load from both sides
+                                        // Use half the bay dimension on both sides (total = full bay dimension / 2)
+                                        tributaryWidth = beamsSpanLengthwise ? bayHeight / 2 : bayWidth / 2;
+                                      }
+                                      
+                                      const bayBeamSize = calculateBeamSize(beamSpan, load, timberGrade, tributaryWidth, fireRating);
+                                      
+                                      // Create a unique key that includes the beam position (edge or interior)
+                                      const beamKey = `${beamSpan.toFixed(2)}-${bayBeamSize.width}-${bayBeamSize.depth}-${isEdgeBeam ? 'edge' : 'interior'}`;
                                       
                                       // Find if this size already exists in our unique list
                                       const existingSize = uniqueBaySizes.find(item => 
                                         item.width === bayBeamSize.width && 
                                         item.depth === bayBeamSize.depth &&
-                                        Math.abs(item.span - beamSpan) < 0.01
+                                        Math.abs(item.span - beamSpan) < 0.01 &&
+                                        item.isEdgeBeam === isEdgeBeam
                                       );
                                       
                                       if (!existingSize) {
@@ -1612,6 +1988,8 @@ export default function TimberCalculator() {
                                           width: bayBeamSize.width,
                                           depth: bayBeamSize.depth,
                                           count: 1,
+                                          isEdgeBeam: isEdgeBeam,
+                                          tributaryWidth: tributaryWidth,
                                           locations: [`R${row+1}C${col+1}`]
                                         });
                                       } else {
@@ -1621,12 +1999,17 @@ export default function TimberCalculator() {
                                     }
                                   }
                                   
-                                  // Sort by span
-                                  uniqueBaySizes.sort((a, b) => b.span - a.span);
+                                  // Sort by span and then by edge/interior
+                                  uniqueBaySizes.sort((a, b) => {
+                                    // First sort by span
+                                    if (b.span !== a.span) return b.span - a.span;
+                                    // Then sort by edge/interior (interior beams first)
+                                    return a.isEdgeBeam ? 1 : -1;
+                                  });
                                   
                                   return uniqueBaySizes.map((item, index) => (
                                     <div key={`beam-size-${index}`}>
-                                      <strong>{item.span?.toFixed(2) || '0.00'}m span:</strong> {item.width}mm × {item.depth}mm
+                                      <strong>{item.span?.toFixed(2) || '0.00'}m span{item.isEdgeBeam ? ' (edge)' : ' (interior)'}:</strong> {item.width}mm × {item.depth}mm
                                       <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'grid cell' : 'grid cells'})</span>
                                     </div>
                                   ));
