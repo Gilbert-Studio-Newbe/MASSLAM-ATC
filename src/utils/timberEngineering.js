@@ -28,6 +28,15 @@ export let TIMBER_PROPERTIES = {
     modulusOfElasticity: 13300, // MPa
     density: 600 // kg/m³
   },
+  // Add ML38 as the new name for MASSLAM_SL33
+  ML38: {
+    bendingStrength: 38, // MPa
+    tensileStrength: 19, // MPa
+    compressiveStrength: 38, // MPa
+    shearStrength: 5.0, // MPa
+    modulusOfElasticity: 14500, // MPa
+    density: 600 // kg/m³
+  },
   // Keep these for backward compatibility until fully migrated
   GL18: {
     bendingStrength: 18, // MPa
@@ -69,32 +78,36 @@ export async function loadTimberProperties() {
     }
     
     // Map CSV properties to the format expected by the application
-    TIMBER_PROPERTIES.MASSLAM_SL33 = {
-      bendingStrength: properties['Bending Strength (f\'b)']?.value || 33,
-      tensileStrength: properties['Tension Strength Parallel (f\'t)']?.value || 16,
-      compressiveStrength: properties['Compression Strength Parallel (f\'c)']?.value || 26,
-      shearStrength: properties['Shear Strength (f\'s)']?.value || 4.2,
-      modulusOfElasticity: properties['Modulus of Elasticity (E_mean)']?.value || 13300,
+    const mappedProperties = {
+      bendingStrength: properties['Bending Strength (f\'b)']?.value || 38,
+      tensileStrength: properties['Tension Strength Parallel (f\'t)']?.value || 19,
+      compressiveStrength: properties['Compression Strength Parallel (f\'c)']?.value || 38,
+      shearStrength: properties['Shear Strength (f\'s)']?.value || 5.0,
+      modulusOfElasticity: properties['Modulus of Elasticity (E_mean)']?.value || 14500,
       density: properties['Density (ρ_mean)']?.value || 600,
       // Add additional properties
       tensileStrengthPerpendicular: properties['Tension Strength Perpendicular (f\'t90)']?.value || 0.5,
-      compressiveStrengthPerpendicular: properties['Compression Strength Perpendicular (f\'c90)']?.value || null,
-      bearingStrengthParallel: properties['Bearing Strength Parallel (f\'j)']?.value || 30,
+      compressiveStrengthPerpendicular: properties['Compression Strength Perpendicular (f\'c90)']?.value || 10,
+      bearingStrengthParallel: properties['Bearing Strength Parallel (f\'j)']?.value || 45,
       bearingStrengthPerpendicular: properties['Bearing Strength Perpendicular (f\'j90)']?.value || 10,
-      modulusOfElasticity5thPercentile: properties['Modulus of Elasticity 5th Percentile (E_05)']?.value || 9975,
-      modulusOfElasticityPerpendicular: properties['Modulus of Elasticity Perpendicular Mean (E₉₀,mean)']?.value || 890,
-      modulusOfRigidity: properties['Modulus of Rigidity (G)']?.value || 900,
+      modulusOfElasticity5thPercentile: properties['Modulus of Elasticity 5th Percentile (E_05)']?.value || 10875,
+      modulusOfElasticityPerpendicular: properties['Modulus of Elasticity Perpendicular Mean (E₉₀,mean)']?.value || 960,
+      modulusOfRigidity: properties['Modulus of Rigidity (G)']?.value || 960,
       jointGroup: properties['Joint Group']?.value || 'JD4',
       charringRate: properties['Charring Rate']?.value || 0.7
     };
     
-    console.log('Loaded MASSLAM SL33 properties from CSV:', TIMBER_PROPERTIES.MASSLAM_SL33);
+    // Update both MASSLAM_SL33 and ML38 with the same properties
+    TIMBER_PROPERTIES.MASSLAM_SL33 = { ...mappedProperties };
+    TIMBER_PROPERTIES.ML38 = { ...mappedProperties };
     
-    // For backward compatibility, update GL24 to match MASSLAM_SL33
+    console.log('Loaded ML38/MASSLAM SL33 properties from CSV:', TIMBER_PROPERTIES.ML38);
+    
+    // For backward compatibility, update GL24 to match ML38
     // This ensures existing code using GL24 will use the correct values
-    TIMBER_PROPERTIES.GL24 = { ...TIMBER_PROPERTIES.MASSLAM_SL33 };
+    TIMBER_PROPERTIES.GL24 = { ...TIMBER_PROPERTIES.ML38 };
     
-    return TIMBER_PROPERTIES.MASSLAM_SL33;
+    return TIMBER_PROPERTIES.ML38;
   } catch (error) {
     console.error('Error loading timber properties:', error);
   }
@@ -513,8 +526,25 @@ export function calculateCarbonSavings(weightOrResult) {
     volume = weightOrResult / averageDensity;
   }
   
-  // Placeholder implementation - approx 0.9 tonnes CO2e per m³ of timber
-  return volume * 0.9; // tonnes CO2e
+  // Calculate carbon storage (carbon sequestered in the timber)
+  const carbonStorage = volume * 0.9; // tonnes CO2e
+  
+  // Calculate embodied carbon (carbon emitted during production)
+  const embodiedCarbon = volume * 0.2; // tonnes CO2e
+  
+  // Calculate carbon savings compared to steel/concrete
+  // Steel/concrete would emit approximately 2.5 tonnes CO2e per m³
+  const steelConcreteEmissions = volume * 2.5; // tonnes CO2e
+  
+  // Carbon savings = emissions from steel/concrete - emissions from timber
+  const carbonSavings = steelConcreteEmissions - embodiedCarbon;
+  
+  return {
+    carbonStorage,
+    embodiedCarbon,
+    carbonSavings,
+    totalVolume: volume
+  };
 }
 
 export function validateStructure(joistSize, beamSize, columnSize) {

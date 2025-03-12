@@ -20,9 +20,16 @@ export async function loadMasslamSL33CharringRate() {
   try {
     // Fetch the CSV file
     console.log('Fetching mechanical properties from:', '/data/MASSLAM_SL33_Mechanical_Properties.csv');
-    const url = typeof window !== 'undefined' 
-      ? new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString()
-      : '/data/MASSLAM_SL33_Mechanical_Properties.csv';
+    
+    // Fix URL construction for both client and server environments
+    let url;
+    if (typeof window !== 'undefined') {
+      // Client-side: Use window.location.origin
+      url = new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString();
+    } else {
+      // Server-side: Use a relative path that works with Next.js API routes
+      url = './public/data/MASSLAM_SL33_Mechanical_Properties.csv';
+    }
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -249,9 +256,16 @@ export async function loadMasslamSL33MechanicalProperties() {
   try {
     // Fetch the CSV file
     console.log('Fetching mechanical properties from:', '/data/MASSLAM_SL33_Mechanical_Properties.csv');
-    const url = typeof window !== 'undefined' 
-      ? new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString()
-      : '/data/MASSLAM_SL33_Mechanical_Properties.csv';
+    
+    // Fix URL construction for both client and server environments
+    let url;
+    if (typeof window !== 'undefined') {
+      // Client-side: Use window.location.origin
+      url = new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString();
+    } else {
+      // Server-side: Use a relative path that works with Next.js API routes
+      url = './public/data/MASSLAM_SL33_Mechanical_Properties.csv';
+    }
     
     const response = await fetch(url);
     if (!response.ok) {

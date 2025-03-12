@@ -1,16 +1,24 @@
 Property,Value,Unit
-Bending Strength (f'b),33,MPa
-Tension Strength Parallel (f't),16,MPa
+Bending Strength (f'b),38,MPa
+Tension Strength Parallel (f't),19,MPa
 Tension Strength Perpendicular (f't90),0.5,MPa
-Shear Strength (f's),4.2,MPa
-Compression Strength Parallel (f'c),26,MPa
-Compression Strength Perpendicular (f'c90),N/A,MPa
-Bearing Strength Parallel (f'j),30,MPa
+Shear Strength (f's),5.0,MPa
+Compression Strength Parallel (f'c),38,MPa
+Compression Strength Perpendicular (f'c90),10,MPa
+Bearing Strength Parallel (f'j),45,MPa
 Bearing Strength Perpendicular (f'j90),10,MPa
-Modulus of Elasticity (E_mean),13300,MPa
-Modulus of Elasticity 5th Percentile (E_05),9975,MPa
-Modulus of Elasticity Perpendicular Mean (E₉₀,mean),890,MPa
-Modulus of Rigidity (G),900,MPa
+Modulus of Elasticity (E_mean),14500,MPa
+Modulus of Elasticity 5th Percentile (E_05),10875,MPa
+Modulus of Elasticity Perpendicular Mean (E₉₀,mean),960,MPa
+Modulus of Rigidity (G),960,MPa
 Density (ρ_mean),600,kg/m³
 Joint Group,JD4,-
 Charring Rate,0.7,mm/min
+Species,Plantation Oak,-
+Equivalent Grade,GL15,-
+Adhesive Type,Externally rated high-temperature PUR,-
+Formaldehyde Emissions,E-0,-
+Certification,PEFC,-
+Movement in Service - Axial,0.02,% per 1% MC
+Movement in Service - Radial,0.20,% per 1% MC
+Movement in Service - Tangential,0.31,% per 1% MC

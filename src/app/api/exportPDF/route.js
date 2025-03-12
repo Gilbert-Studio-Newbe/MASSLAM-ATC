@@ -97,8 +97,18 @@ function generatePDFReport(config, dimensions, bays, analysis) {
       yPos += 7;
     }
     
+    if (analysis.carbonStorage) {
+      doc.text(`Carbon Storage: ${analysis.carbonStorage.toFixed(2)} tonnes CO₂e`, 14, yPos);
+      yPos += 7;
+    }
+    
+    if (analysis.embodiedCarbon) {
+      doc.text(`Embodied Carbon: ${analysis.embodiedCarbon.toFixed(2)} tonnes CO₂e`, 14, yPos);
+      yPos += 7;
+    }
+    
     if (analysis.carbonSavings) {
-      doc.text(`Carbon Savings: ${analysis.carbonSavings.toFixed(2)} kg CO₂`, 14, yPos);
+      doc.text(`Carbon Savings (vs. steel/concrete): ${analysis.carbonSavings.toFixed(2)} tonnes CO₂e`, 14, yPos);
       yPos += 7;
     }
     

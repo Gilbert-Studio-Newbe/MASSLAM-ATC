@@ -1,0 +1,195 @@
+
+> timber-structure-calculator@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.24
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ✓ Ready in 1075ms
+ ○ Compiling / ...
+ ✓ Compiled / in 832ms (546 modules)
+timberEngineering.js loaded with FRL-based width mapping
+timberEngineering.js: Initializing MASSLAM sizes module
+Initializing MASSLAM sizes module
+Loading 234 hardcoded MASSLAM sizes during initialization
+Sizes by type after initialization: { joist: 78, beam: 78, column: 78 }
+getMasslamSizes called, current size count: 234
+timberEngineering.js: Initial MASSLAM sizes: [
+  { width: 120, depth: 200, type: 'joist' },
+  { width: 120, depth: 200, type: 'beam' },
+  { width: 120, depth: 200, type: 'column' },
+  { width: 120, depth: 270, type: 'joist' },
+  { width: 120, depth: 270, type: 'beam' },
+  { width: 120, depth: 270, type: 'column' },
+  { width: 120, depth: 335, type: 'joist' },
+  { width: 120, depth: 335, type: 'beam' },
+  { width: 120, depth: 335, type: 'column' },
+  { width: 120, depth: 410, type: 'joist' },
+  { width: 120, depth: 410, type: 'beam' },
+  { width: 120, depth: 410, type: 'column' },
+  { width: 120, depth: 480, type: 'joist' },
+  { width: 120, depth: 480, type: 'beam' },
+  { width: 120, depth: 480, type: 'column' },
+  { width: 120, depth: 550, type: 'joist' },
+  { width: 120, depth: 550, type: 'beam' },
+  { width: 120, depth: 550, type: 'column' },
+  { width: 120, depth: 620, type: 'joist' },
+  { width: 120, depth: 620, type: 'beam' },
+  { width: 120, depth: 620, type: 'column' },
+  { width: 165, depth: 200, type: 'joist' },
+  { width: 165, depth: 200, type: 'beam' },
+  { width: 165, depth: 200, type: 'column' },
+  { width: 165, depth: 270, type: 'joist' },
+  { width: 165, depth: 270, type: 'beam' },
+  { width: 165, depth: 270, type: 'column' },
+  { width: 165, depth: 335, type: 'joist' },
+  { width: 165, depth: 335, type: 'beam' },
+  { width: 165, depth: 335, type: 'column' },
+  { width: 165, depth: 410, type: 'joist' },
+  { width: 165, depth: 410, type: 'beam' },
+  { width: 165, depth: 410, type: 'column' },
+  { width: 165, depth: 480, type: 'joist' },
+  { width: 165, depth: 480, type: 'beam' },
+  { width: 165, depth: 480, type: 'column' },
+  { width: 165, depth: 550, type: 'joist' },
+  { width: 165, depth: 550, type: 'beam' },
+  { width: 165, depth: 550, type: 'column' },
+  { width: 165, depth: 620, type: 'joist' },
+  { width: 165, depth: 620, type: 'beam' },
+  { width: 165, depth: 620, type: 'column' },
+  { width: 205, depth: 200, type: 'joist' },
+  { width: 205, depth: 200, type: 'beam' },
+  { width: 205, depth: 200, type: 'column' },
+  { width: 205, depth: 270, type: 'joist' },
+  { width: 205, depth: 270, type: 'beam' },
+  { width: 205, depth: 270, type: 'column' },
+  { width: 205, depth: 335, type: 'joist' },
+  { width: 205, depth: 335, type: 'beam' },
+  { width: 205, depth: 335, type: 'column' },
+  { width: 205, depth: 410, type: 'joist' },
+  { width: 205, depth: 410, type: 'beam' },
+  { width: 205, depth: 410, type: 'column' },
+  { width: 205, depth: 480, type: 'joist' },
+  { width: 205, depth: 480, type: 'beam' },
+  { width: 205, depth: 480, type: 'column' },
+  { width: 205, depth: 550, type: 'joist' },
+  { width: 205, depth: 550, type: 'beam' },
+  { width: 205, depth: 550, type: 'column' },
+  { width: 205, depth: 620, type: 'joist' },
+  { width: 205, depth: 620, type: 'beam' },
+  { width: 205, depth: 620, type: 'column' },
+  { width: 250, depth: 200, type: 'joist' },
+  { width: 250, depth: 200, type: 'beam' },
+  { width: 250, depth: 200, type: 'column' },
+  { width: 250, depth: 270, type: 'joist' },
+  { width: 250, depth: 270, type: 'beam' },
+  { width: 250, depth: 270, type: 'column' },
+  { width: 250, depth: 335, type: 'joist' },
+  { width: 250, depth: 335, type: 'beam' },
+  { width: 250, depth: 335, type: 'column' },
+  { width: 250, depth: 410, type: 'joist' },
+  { width: 250, depth: 410, type: 'beam' },
+  { width: 250, depth: 410, type: 'column' },
+  { width: 250, depth: 480, type: 'joist' },
+  { width: 250, depth: 480, type: 'beam' },
+  { width: 250, depth: 480, type: 'column' },
+  { width: 250, depth: 550, type: 'joist' },
+  { width: 250, depth: 550, type: 'beam' },
+  { width: 250, depth: 550, type: 'column' },
+  { width: 250, depth: 620, type: 'joist' },
+  { width: 250, depth: 620, type: 'beam' },
+  { width: 250, depth: 620, type: 'column' },
+  { width: 290, depth: 200, type: 'joist' },
+  { width: 290, depth: 200, type: 'beam' },
+  { width: 290, depth: 200, type: 'column' },
+  { width: 290, depth: 270, type: 'joist' },
+  { width: 290, depth: 270, type: 'beam' },
+  { width: 290, depth: 270, type: 'column' },
+  { width: 290, depth: 335, type: 'joist' },
+  { width: 290, depth: 335, type: 'beam' },
+  { width: 290, depth: 335, type: 'column' },
+  { width: 290, depth: 410, type: 'joist' },
+  { width: 290, depth: 410, type: 'beam' },
+  { width: 290, depth: 410, type: 'column' },
+  { width: 290, depth: 480, type: 'joist' },
+  { width: 290, depth: 480, type: 'beam' },
+  { width: 290, depth: 480, type: 'column' },
+  { width: 290, depth: 550, type: 'joist' },
+  ... 134 more items
+]
+Loading mechanical properties from hardcoded data
+Loaded MASSLAM SL33 mechanical properties from hardcoded data
+
+=== SELF-TEST: calculateColumnSize ===
+Running self-test with: beamWidth=200mm, load=2.5kN, height=3m, fireRating=60/60/60
+===============================================
+COLUMN CALCULATION - Called with: beamWidth=200mm, load=2.5kN, height=3m, fireRating=60/60/60
+===============================================
+Minimum column width based on FRL 60/60/60: 205mm
+Final column width (max of beam width and FRL requirement): 205mm
+Theoretical column depth calculation: max(205mm, ceil(3000mm / 15)) = 205mm
+findNearestDepth called with width=205mm, targetDepth=205mm
+Total MASSLAM sizes available: 234
+Available depths for width 205 from hardcoded data: [
+  200, 200, 200, 270, 270,
+  270, 335, 335, 335, 410,
+  410, 410, 480, 480, 480,
+  550, 550, 550, 620, 620,
+  620
+]
+Number of available depths for width 205: 21
+Rounding depth 205mm up to 270mm for width 205mm
+Final column depth (after findNearestDepth): 270mm
+Column self-weight: 91.33 kg
+Total column load (with self-weight): 2.59 kN
+Column size after fire adjustment: width 205mm, depth 270mm
+Self-test result: {
+  width: 205,
+  depth: 270,
+  height: 3,
+  load: 2.5,
+  totalLoad: 2.5913275000000002,
+  selfWeight: 91.3275,
+  grade: 'GL17c',
+  fireRating: '60/60/60',
+  type: 'column'
+}
+Column width: 205mm, depth: 270mm
+=== SELF-TEST COMPLETED SUCCESSFULLY ===
+
+Loaded MASSLAM SL33 properties from CSV: {
+  bendingStrength: 33,
+  tensileStrength: 16,
+  compressiveStrength: 26,
+  shearStrength: 4.2,
+  modulusOfElasticity: 13300,
+  density: 600,
+  tensileStrengthPerpendicular: 0.5,
+  compressiveStrengthPerpendicular: null,
+  bearingStrengthParallel: 30,
+  bearingStrengthPerpendicular: 10,
+  modulusOfElasticity5thPercentile: 9975,
+  modulusOfElasticityPerpendicular: 890,
+  modulusOfRigidity: 900,
+  jointGroup: 'JD4',
+  charringRate: 0.7
+}
+timberEngineering.js: Timber properties loaded from CSV
+ GET / 200 in 927ms
+ ✓ Compiled in 113ms (264 modules)
+ GET / 200 in 18ms
+ GET / 200 in 25ms
+ GET / 200 in 22ms
+ ✓ Compiled in 232ms (546 modules)
+ ✓ Compiled in 158ms (546 modules)
+ ✓ Compiled in 208ms (546 modules)
+ ✓ Compiled in 183ms (546 modules)
+ ✓ Compiled in 173ms (546 modules)
+ ✓ Compiled in 125ms (546 modules)
+ ✓ Compiled in 188ms (546 modules)
+ ✓ Compiled in 141ms (546 modules)
+ ✓ Compiled in 88ms (264 modules)
+ ✓ Compiled in 93ms (264 modules)
+ ✓ Compiled in 76ms (264 modules)
+[?25h

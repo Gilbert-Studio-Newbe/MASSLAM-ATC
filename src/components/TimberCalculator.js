@@ -323,7 +323,7 @@ export default function TimberCalculator() {
   const structureType = 'floor'; // Fixed to floor
   
   // Add state for timber properties
-  const [timberGrade, setTimberGrade] = useState('MASSLAM_SL33');
+  const [timberGrade, setTimberGrade] = useState('ML38');
   const [propertiesLoaded, setPropertiesLoaded] = useState(false);
   const [csvLoadingErrors, setCsvLoadingErrors] = useState({
     properties: false,
@@ -542,8 +542,8 @@ export default function TimberCalculator() {
           timberGrade
         );
         
-        // Calculate carbon savings
-        const carbonSavings = calculateCarbonSavings(timberResult.totalVolume);
+        // Calculate carbon benefits
+        const carbonResults = calculateCarbonSavings(timberResult);
         
         // Calculate cost estimate
         const costEstimate = calculateCost(timberResult, joistSize, buildingLength, buildingWidth, numFloors);
@@ -572,7 +572,9 @@ export default function TimberCalculator() {
             beams: timberResult.elements.beams.volume,
             columns: timberResult.elements.columns.volume
           },
-          carbonSavings,
+          carbonStorage: carbonResults.carbonStorage,
+          embodiedCarbon: carbonResults.embodiedCarbon,
+          carbonSavings: carbonResults.carbonSavings,
           costs: costEstimate,
           elementCounts: {
             joists: timberResult.elements.joists.count,
@@ -1673,8 +1675,8 @@ export default function TimberCalculator() {
                           <div className="bg-white p-3 md:p-4 rounded-lg shadow">
                             <h5 className="font-semibold mb-2 text-sm md:text-base">Carbon Benefits</h5>
                             <div className="space-y-2">
-                              <p className="text-sm md:text-base"><strong>Carbon Storage:</strong> {(results.timberVolume * 0.9 || 0).toFixed(2)} tonnes CO₂e</p>
-                              <p className="text-sm md:text-base"><strong>Embodied Carbon:</strong> {(results.timberVolume * 0.2 || 0).toFixed(2)} tonnes CO₂e</p>
+                              <p className="text-sm md:text-base"><strong>Carbon Storage:</strong> {results.carbonStorage?.toFixed(2) || '0.00'} tonnes CO₂e</p>
+                              <p className="text-sm md:text-base"><strong>Embodied Carbon:</strong> {results.embodiedCarbon?.toFixed(2) || '0.00'} tonnes CO₂e</p>
                               
                               <div className="mt-3 pt-3 border-t border-gray-200">
                                 <p className="text-sm text-green-700"><strong>Compared to Steel/Concrete:</strong></p>

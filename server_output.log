@@ -1,0 +1,2845 @@
+
+> timber-structure-calculator@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.24
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ⚠ Duplicate page detected. src/app/page.js and src/app/page.tsx resolve to /
+ ⚠ Duplicate page detected. src/app/page.js and src/app/page.tsx resolve to /
+ ✓ Ready in 1124ms
+ ○ Compiling /timber-calculator ...
+ ✓ Compiled /timber-calculator in 893ms (547 modules)
+timberEngineering.js: Initializing MASSLAM sizes module
+Initializing MASSLAM sizes module
+Loading 234 hardcoded MASSLAM sizes during initialization
+Sizes by type after initialization: { joist: 78, beam: 78, column: 78 }
+timberEngineering.js: Initial MASSLAM sizes: [
+  { width: 120, depth: 200, type: 'joist' },
+  { width: 120, depth: 200, type: 'beam' },
+  { width: 120, depth: 200, type: 'column' },
+  { width: 120, depth: 270, type: 'joist' },
+  { width: 120, depth: 270, type: 'beam' },
+  { width: 120, depth: 270, type: 'column' },
+  { width: 120, depth: 335, type: 'joist' },
+  { width: 120, depth: 335, type: 'beam' },
+  { width: 120, depth: 335, type: 'column' },
+  { width: 120, depth: 410, type: 'joist' },
+  { width: 120, depth: 410, type: 'beam' },
+  { width: 120, depth: 410, type: 'column' },
+  { width: 120, depth: 480, type: 'joist' },
+  { width: 120, depth: 480, type: 'beam' },
+  { width: 120, depth: 480, type: 'column' },
+  { width: 120, depth: 550, type: 'joist' },
+  { width: 120, depth: 550, type: 'beam' },
+  { width: 120, depth: 550, type: 'column' },
+  { width: 120, depth: 620, type: 'joist' },
+  { width: 120, depth: 620, type: 'beam' },
+  { width: 120, depth: 620, type: 'column' },
+  { width: 165, depth: 200, type: 'joist' },
+  { width: 165, depth: 200, type: 'beam' },
+  { width: 165, depth: 200, type: 'column' },
+  { width: 165, depth: 270, type: 'joist' },
+  { width: 165, depth: 270, type: 'beam' },
+  { width: 165, depth: 270, type: 'column' },
+  { width: 165, depth: 335, type: 'joist' },
+  { width: 165, depth: 335, type: 'beam' },
+  { width: 165, depth: 335, type: 'column' },
+  { width: 165, depth: 410, type: 'joist' },
+  { width: 165, depth: 410, type: 'beam' },
+  { width: 165, depth: 410, type: 'column' },
+  { width: 165, depth: 480, type: 'joist' },
+  { width: 165, depth: 480, type: 'beam' },
+  { width: 165, depth: 480, type: 'column' },
+  { width: 165, depth: 550, type: 'joist' },
+  { width: 165, depth: 550, type: 'beam' },
+  { width: 165, depth: 550, type: 'column' },
+  { width: 165, depth: 620, type: 'joist' },
+  { width: 165, depth: 620, type: 'beam' },
+  { width: 165, depth: 620, type: 'column' },
+  { width: 205, depth: 200, type: 'joist' },
+  { width: 205, depth: 200, type: 'beam' },
+  { width: 205, depth: 200, type: 'column' },
+  { width: 205, depth: 270, type: 'joist' },
+  { width: 205, depth: 270, type: 'beam' },
+  { width: 205, depth: 270, type: 'column' },
+  { width: 205, depth: 335, type: 'joist' },
+  { width: 205, depth: 335, type: 'beam' },
+  { width: 205, depth: 335, type: 'column' },
+  { width: 205, depth: 410, type: 'joist' },
+  { width: 205, depth: 410, type: 'beam' },
+  { width: 205, depth: 410, type: 'column' },
+  { width: 205, depth: 480, type: 'joist' },
+  { width: 205, depth: 480, type: 'beam' },
+  { width: 205, depth: 480, type: 'column' },
+  { width: 205, depth: 550, type: 'joist' },
+  { width: 205, depth: 550, type: 'beam' },
+  { width: 205, depth: 550, type: 'column' },
+  { width: 205, depth: 620, type: 'joist' },
+  { width: 205, depth: 620, type: 'beam' },
+  { width: 205, depth: 620, type: 'column' },
+  { width: 250, depth: 200, type: 'joist' },
+  { width: 250, depth: 200, type: 'beam' },
+  { width: 250, depth: 200, type: 'column' },
+  { width: 250, depth: 270, type: 'joist' },
+  { width: 250, depth: 270, type: 'beam' },
+  { width: 250, depth: 270, type: 'column' },
+  { width: 250, depth: 335, type: 'joist' },
+  { width: 250, depth: 335, type: 'beam' },
+  { width: 250, depth: 335, type: 'column' },
+  { width: 250, depth: 410, type: 'joist' },
+  { width: 250, depth: 410, type: 'beam' },
+  { width: 250, depth: 410, type: 'column' },
+  { width: 250, depth: 480, type: 'joist' },
+  { width: 250, depth: 480, type: 'beam' },
+  { width: 250, depth: 480, type: 'column' },
+  { width: 250, depth: 550, type: 'joist' },
+  { width: 250, depth: 550, type: 'beam' },
+  { width: 250, depth: 550, type: 'column' },
+  { width: 250, depth: 620, type: 'joist' },
+  { width: 250, depth: 620, type: 'beam' },
+  { width: 250, depth: 620, type: 'column' },
+  { width: 290, depth: 200, type: 'joist' },
+  { width: 290, depth: 200, type: 'beam' },
+  { width: 290, depth: 200, type: 'column' },
+  { width: 290, depth: 270, type: 'joist' },
+  { width: 290, depth: 270, type: 'beam' },
+  { width: 290, depth: 270, type: 'column' },
+  { width: 290, depth: 335, type: 'joist' },
+  { width: 290, depth: 335, type: 'beam' },
+  { width: 290, depth: 335, type: 'column' },
+  { width: 290, depth: 410, type: 'joist' },
+  { width: 290, depth: 410, type: 'beam' },
+  { width: 290, depth: 410, type: 'column' },
+  { width: 290, depth: 480, type: 'joist' },
+  { width: 290, depth: 480, type: 'beam' },
+  { width: 290, depth: 480, type: 'column' },
+  { width: 290, depth: 550, type: 'joist' },
+  ... 134 more items
+]
+Loading mechanical properties from hardcoded data
+Loaded MASSLAM SL33 mechanical properties from hardcoded data
+Loaded MASSLAM SL33 properties from CSV: {
+  bendingStrength: 33,
+  tensileStrength: 16,
+  compressiveStrength: 26,
+  shearStrength: 4.2,
+  modulusOfElasticity: 13300,
+  density: 600,
+  tensileStrengthPerpendicular: 0.5,
+  compressiveStrengthPerpendicular: null,
+  bearingStrengthParallel: 30,
+  bearingStrengthPerpendicular: 10,
+  modulusOfElasticity5thPercentile: 9975,
+  modulusOfElasticityPerpendicular: 890,
+  modulusOfRigidity: 900,
+  jointGroup: 'JD4',
+  charringRate: 0.7
+}
+timberEngineering.js: Timber properties loaded from CSV
+ GET /timber-calculator 200 in 1086ms
+ ✓ Compiled in 124ms (265 modules)
+ GET /timber-calculator 200 in 19ms
+ GET /timber-calculator 200 in 19ms
+ GET /timber-calculator 200 in 16ms
+ GET /timber-calculator 200 in 16ms
+ GET /timber-calculator 200 in 14ms
+ GET /timber-calculator 200 in 10ms
+ ✓ Compiled in 268ms (547 modules)
+ ⨯ ./src/components/TimberCalculator.js
+Error: 
+  [31mx[0m the name `joistSpan` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:462:1]
+ [2m462[0m |         console.log('Max spans:', { maxLengthwiseSpan, maxWidthwiseSpan });
+ [2m463[0m |         
+ [2m464[0m |         // Determine joist span based on global direction setting
+ [2m465[0m |         const joistSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     : [31;1m              ^^^^|^^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `joistSpan` here[0m[0m
+ [2m466[0m |         console.log('Joist span:', joistSpan);
+ [2m467[0m |         
+ [2m468[0m |         // Calculate beam span based on global direction setting
+ [2m469[0m |         const beamSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m470[0m |         console.log('Beam span:', beamSpan);
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         // Add test calculation to debug
+ [2m479[0m |         console.log('Running test calculation with default values');
+ [2m480[0m |         try {
+ [2m481[0m |           // Test values
+ [2m482[0m |           const testJoistSpan = 5;
+ [2m483[0m |           const testLoad = 1.5;
+ [2m484[0m |           const testFireRating = 'none';
+ [2m485[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m486[0m |           console.log('Test joist size:', testJoistSize);
+ [2m487[0m |           
+ [2m488[0m |           const testBeamSpan = 6;
+ [2m489[0m |           const testJoistSpacing = 0.8;
+ [2m490[0m |           const testNumFloors = 3;
+ [2m491[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m492[0m |           console.log('Test beam size:', testBeamSize);
+ [2m493[0m |           
+ [2m494[0m |           const testFloorHeight = 3.2;
+ [2m495[0m |           const testBayLength = 6;
+ [2m496[0m |           const testBayWidth = 6;
+ [2m497[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m498[0m |           console.log('Test column size:', testColumnSize);
+ [2m499[0m |           
+ [2m500[0m |           const testBuildingLength = 18;
+ [2m501[0m |           const testBuildingWidth = 12;
+ [2m502[0m |           const testLengthwiseBays = 3;
+ [2m503[0m |           const testWidthwiseBays = 2;
+ [2m504[0m |           const testTimberResult = calculateTimberWeight(
+ [2m505[0m |             testJoistSize,
+ [2m506[0m |             testBeamSize,
+ [2m507[0m |             testColumnSize,
+ [2m508[0m |             testBuildingLength,
+ [2m509[0m |             testBuildingWidth,
+ [2m510[0m |             testNumFloors,
+ [2m511[0m |             testLengthwiseBays,
+ [2m512[0m |             testWidthwiseBays,
+ [2m513[0m |             true // joists run lengthwise
+ [2m514[0m |           );
+ [2m515[0m |           console.log('Test timber result:', testTimberResult);
+ [2m516[0m |           
+ [2m517[0m |           const testCostResult = calculateCost(
+ [2m518[0m |             testTimberResult,
+ [2m519[0m |             testJoistSize,
+ [2m520[0m |             testBuildingLength,
+ [2m521[0m |             testBuildingWidth,
+ [2m522[0m |             testNumFloors
+ [2m523[0m |           );
+ [2m524[0m |           console.log('Test cost result:', testCostResult);
+ [2m525[0m |         } catch (testError) {
+ [2m526[0m |           console.error('Test calculation error:', testError);
+ [2m527[0m |         }
+ [2m528[0m |         
+ [2m529[0m |         // Continue with the actual calculation...
+ [2m530[0m |         // ... existing code ...
+ [2m531[0m |         
+ [2m532[0m |         // Determine joist span based on global direction setting
+ [2m533[0m |         // instead of automatically using the shorter distance
+ [2m534[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+     : [33;1m              ^^^^|^^^^[0m
+     :                   [33;1m`-- [33;1m`joistSpan` redefined here[0m[0m
+ [2m535[0m |         
+ [2m536[0m |         // Calculate joist size based on span and load
+ [2m537[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     `----
+
+  [31mx[0m the name `joistSize` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:471:1]
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     : [31;1m              ^^^^|^^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `joistSize` here[0m[0m
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         // Add test calculation to debug
+ [2m479[0m |         console.log('Running test calculation with default values');
+ [2m480[0m |         try {
+ [2m481[0m |           // Test values
+ [2m482[0m |           const testJoistSpan = 5;
+ [2m483[0m |           const testLoad = 1.5;
+ [2m484[0m |           const testFireRating = 'none';
+ [2m485[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m486[0m |           console.log('Test joist size:', testJoistSize);
+ [2m487[0m |           
+ [2m488[0m |           const testBeamSpan = 6;
+ [2m489[0m |           const testJoistSpacing = 0.8;
+ [2m490[0m |           const testNumFloors = 3;
+ [2m491[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m492[0m |           console.log('Test beam size:', testBeamSize);
+ [2m493[0m |           
+ [2m494[0m |           const testFloorHeight = 3.2;
+ [2m495[0m |           const testBayLength = 6;
+ [2m496[0m |           const testBayWidth = 6;
+ [2m497[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m498[0m |           console.log('Test column size:', testColumnSize);
+ [2m499[0m |           
+ [2m500[0m |           const testBuildingLength = 18;
+ [2m501[0m |           const testBuildingWidth = 12;
+ [2m502[0m |           const testLengthwiseBays = 3;
+ [2m503[0m |           const testWidthwiseBays = 2;
+ [2m504[0m |           const testTimberResult = calculateTimberWeight(
+ [2m505[0m |             testJoistSize,
+ [2m506[0m |             testBeamSize,
+ [2m507[0m |             testColumnSize,
+ [2m508[0m |             testBuildingLength,
+ [2m509[0m |             testBuildingWidth,
+ [2m510[0m |             testNumFloors,
+ [2m511[0m |             testLengthwiseBays,
+ [2m512[0m |             testWidthwiseBays,
+ [2m513[0m |             true // joists run lengthwise
+ [2m514[0m |           );
+ [2m515[0m |           console.log('Test timber result:', testTimberResult);
+ [2m516[0m |           
+ [2m517[0m |           const testCostResult = calculateCost(
+ [2m518[0m |             testTimberResult,
+ [2m519[0m |             testJoistSize,
+ [2m520[0m |             testBuildingLength,
+ [2m521[0m |             testBuildingWidth,
+ [2m522[0m |             testNumFloors
+ [2m523[0m |           );
+ [2m524[0m |           console.log('Test cost result:', testCostResult);
+ [2m525[0m |         } catch (testError) {
+ [2m526[0m |           console.error('Test calculation error:', testError);
+ [2m527[0m |         }
+ [2m528[0m |         
+ [2m529[0m |         // Continue with the actual calculation...
+ [2m530[0m |         // ... existing code ...
+ [2m531[0m |         
+ [2m532[0m |         // Determine joist span based on global direction setting
+ [2m533[0m |         // instead of automatically using the shorter distance
+ [2m534[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m535[0m |         
+ [2m536[0m |         // Calculate joist size based on span and load
+ [2m537[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     : [33;1m              ^^^^|^^^^[0m
+     :                   [33;1m`-- [33;1m`joistSize` redefined here[0m[0m
+ [2m538[0m |         
+ [2m539[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m540[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     `----
+
+  [31mx[0m the name `beamSpan` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:466:1]
+ [2m466[0m |         console.log('Joist span:', joistSpan);
+ [2m467[0m |         
+ [2m468[0m |         // Calculate beam span based on global direction setting
+ [2m469[0m |         const beamSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+     : [31;1m              ^^^^|^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `beamSpan` here[0m[0m
+ [2m470[0m |         console.log('Beam span:', beamSpan);
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         // Add test calculation to debug
+ [2m479[0m |         console.log('Running test calculation with default values');
+ [2m480[0m |         try {
+ [2m481[0m |           // Test values
+ [2m482[0m |           const testJoistSpan = 5;
+ [2m483[0m |           const testLoad = 1.5;
+ [2m484[0m |           const testFireRating = 'none';
+ [2m485[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m486[0m |           console.log('Test joist size:', testJoistSize);
+ [2m487[0m |           
+ [2m488[0m |           const testBeamSpan = 6;
+ [2m489[0m |           const testJoistSpacing = 0.8;
+ [2m490[0m |           const testNumFloors = 3;
+ [2m491[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m492[0m |           console.log('Test beam size:', testBeamSize);
+ [2m493[0m |           
+ [2m494[0m |           const testFloorHeight = 3.2;
+ [2m495[0m |           const testBayLength = 6;
+ [2m496[0m |           const testBayWidth = 6;
+ [2m497[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m498[0m |           console.log('Test column size:', testColumnSize);
+ [2m499[0m |           
+ [2m500[0m |           const testBuildingLength = 18;
+ [2m501[0m |           const testBuildingWidth = 12;
+ [2m502[0m |           const testLengthwiseBays = 3;
+ [2m503[0m |           const testWidthwiseBays = 2;
+ [2m504[0m |           const testTimberResult = calculateTimberWeight(
+ [2m505[0m |             testJoistSize,
+ [2m506[0m |             testBeamSize,
+ [2m507[0m |             testColumnSize,
+ [2m508[0m |             testBuildingLength,
+ [2m509[0m |             testBuildingWidth,
+ [2m510[0m |             testNumFloors,
+ [2m511[0m |             testLengthwiseBays,
+ [2m512[0m |             testWidthwiseBays,
+ [2m513[0m |             true // joists run lengthwise
+ [2m514[0m |           );
+ [2m515[0m |           console.log('Test timber result:', testTimberResult);
+ [2m516[0m |           
+ [2m517[0m |           const testCostResult = calculateCost(
+ [2m518[0m |             testTimberResult,
+ [2m519[0m |             testJoistSize,
+ [2m520[0m |             testBuildingLength,
+ [2m521[0m |             testBuildingWidth,
+ [2m522[0m |             testNumFloors
+ [2m523[0m |           );
+ [2m524[0m |           console.log('Test cost result:', testCostResult);
+ [2m525[0m |         } catch (testError) {
+ [2m526[0m |           console.error('Test calculation error:', testError);
+ [2m527[0m |         }
+ [2m528[0m |         
+ [2m529[0m |         // Continue with the actual calculation...
+ [2m530[0m |         // ... existing code ...
+ [2m531[0m |         
+ [2m532[0m |         // Determine joist span based on global direction setting
+ [2m533[0m |         // instead of automatically using the shorter distance
+ [2m534[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m535[0m |         
+ [2m536[0m |         // Calculate joist size based on span and load
+ [2m537[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m538[0m |         
+ [2m539[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m540[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     : [33;1m              ^^^^|^^^[0m
+     :                   [33;1m`-- [33;1m`beamSpan` redefined here[0m[0m
+ [2m541[0m |         
+ [2m542[0m |         // Define joist spacing (in meters)
+ [2m543[0m |         const joistSpacing = 0.8; // 800mm spacing
+     `----
+
+Import trace for requested module:
+./src/components/TimberCalculator.js
+./src/app/timber-calculator/page.js
+ ⨯ ./src/components/TimberCalculator.js
+Error: 
+  [31mx[0m the name `joistSpan` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:462:1]
+ [2m462[0m |         console.log('Max spans:', { maxLengthwiseSpan, maxWidthwiseSpan });
+ [2m463[0m |         
+ [2m464[0m |         // Determine joist span based on global direction setting
+ [2m465[0m |         const joistSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     : [31;1m              ^^^^|^^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `joistSpan` here[0m[0m
+ [2m466[0m |         console.log('Joist span:', joistSpan);
+ [2m467[0m |         
+ [2m468[0m |         // Calculate beam span based on global direction setting
+ [2m469[0m |         const beamSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m470[0m |         console.log('Beam span:', beamSpan);
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         // Add test calculation to debug
+ [2m482[0m |         console.log('Running test calculation with default values');
+ [2m483[0m |         try {
+ [2m484[0m |           // Test values
+ [2m485[0m |           const testJoistSpan = 5;
+ [2m486[0m |           const testLoad = 1.5;
+ [2m487[0m |           const testFireRating = 'none';
+ [2m488[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m489[0m |           console.log('Test joist size:', testJoistSize);
+ [2m490[0m |           
+ [2m491[0m |           const testBeamSpan = 6;
+ [2m492[0m |           const testJoistSpacing = 0.8;
+ [2m493[0m |           const testNumFloors = 3;
+ [2m494[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m495[0m |           console.log('Test beam size:', testBeamSize);
+ [2m496[0m |           
+ [2m497[0m |           const testFloorHeight = 3.2;
+ [2m498[0m |           const testBayLength = 6;
+ [2m499[0m |           const testBayWidth = 6;
+ [2m500[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m501[0m |           console.log('Test column size:', testColumnSize);
+ [2m502[0m |           
+ [2m503[0m |           const testBuildingLength = 18;
+ [2m504[0m |           const testBuildingWidth = 12;
+ [2m505[0m |           const testLengthwiseBays = 3;
+ [2m506[0m |           const testWidthwiseBays = 2;
+ [2m507[0m |           const testTimberResult = calculateTimberWeight(
+ [2m508[0m |             testJoistSize,
+ [2m509[0m |             testBeamSize,
+ [2m510[0m |             testColumnSize,
+ [2m511[0m |             testBuildingLength,
+ [2m512[0m |             testBuildingWidth,
+ [2m513[0m |             testNumFloors,
+ [2m514[0m |             testLengthwiseBays,
+ [2m515[0m |             testWidthwiseBays,
+ [2m516[0m |             true // joists run lengthwise
+ [2m517[0m |           );
+ [2m518[0m |           console.log('Test timber result:', testTimberResult);
+ [2m519[0m |           
+ [2m520[0m |           const testCostResult = calculateCost(
+ [2m521[0m |             testTimberResult,
+ [2m522[0m |             testJoistSize,
+ [2m523[0m |             testBuildingLength,
+ [2m524[0m |             testBuildingWidth,
+ [2m525[0m |             testNumFloors
+ [2m526[0m |           );
+ [2m527[0m |           console.log('Test cost result:', testCostResult);
+ [2m528[0m |         } catch (testError) {
+ [2m529[0m |           console.error('Test calculation error:', testError);
+ [2m530[0m |         }
+ [2m531[0m |         
+ [2m532[0m |         // Continue with the actual calculation...
+ [2m533[0m |         // ... existing code ...
+ [2m534[0m |         
+ [2m535[0m |         // Determine joist span based on global direction setting
+ [2m536[0m |         // instead of automatically using the shorter distance
+ [2m537[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+     : [33;1m              ^^^^|^^^^[0m
+     :                   [33;1m`-- [33;1m`joistSpan` redefined here[0m[0m
+ [2m538[0m |         
+ [2m539[0m |         // Calculate joist size based on span and load
+ [2m540[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     `----
+
+  [31mx[0m the name `joistSize` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:471:1]
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     : [31;1m              ^^^^|^^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `joistSize` here[0m[0m
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         // Add test calculation to debug
+ [2m482[0m |         console.log('Running test calculation with default values');
+ [2m483[0m |         try {
+ [2m484[0m |           // Test values
+ [2m485[0m |           const testJoistSpan = 5;
+ [2m486[0m |           const testLoad = 1.5;
+ [2m487[0m |           const testFireRating = 'none';
+ [2m488[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m489[0m |           console.log('Test joist size:', testJoistSize);
+ [2m490[0m |           
+ [2m491[0m |           const testBeamSpan = 6;
+ [2m492[0m |           const testJoistSpacing = 0.8;
+ [2m493[0m |           const testNumFloors = 3;
+ [2m494[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m495[0m |           console.log('Test beam size:', testBeamSize);
+ [2m496[0m |           
+ [2m497[0m |           const testFloorHeight = 3.2;
+ [2m498[0m |           const testBayLength = 6;
+ [2m499[0m |           const testBayWidth = 6;
+ [2m500[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m501[0m |           console.log('Test column size:', testColumnSize);
+ [2m502[0m |           
+ [2m503[0m |           const testBuildingLength = 18;
+ [2m504[0m |           const testBuildingWidth = 12;
+ [2m505[0m |           const testLengthwiseBays = 3;
+ [2m506[0m |           const testWidthwiseBays = 2;
+ [2m507[0m |           const testTimberResult = calculateTimberWeight(
+ [2m508[0m |             testJoistSize,
+ [2m509[0m |             testBeamSize,
+ [2m510[0m |             testColumnSize,
+ [2m511[0m |             testBuildingLength,
+ [2m512[0m |             testBuildingWidth,
+ [2m513[0m |             testNumFloors,
+ [2m514[0m |             testLengthwiseBays,
+ [2m515[0m |             testWidthwiseBays,
+ [2m516[0m |             true // joists run lengthwise
+ [2m517[0m |           );
+ [2m518[0m |           console.log('Test timber result:', testTimberResult);
+ [2m519[0m |           
+ [2m520[0m |           const testCostResult = calculateCost(
+ [2m521[0m |             testTimberResult,
+ [2m522[0m |             testJoistSize,
+ [2m523[0m |             testBuildingLength,
+ [2m524[0m |             testBuildingWidth,
+ [2m525[0m |             testNumFloors
+ [2m526[0m |           );
+ [2m527[0m |           console.log('Test cost result:', testCostResult);
+ [2m528[0m |         } catch (testError) {
+ [2m529[0m |           console.error('Test calculation error:', testError);
+ [2m530[0m |         }
+ [2m531[0m |         
+ [2m532[0m |         // Continue with the actual calculation...
+ [2m533[0m |         // ... existing code ...
+ [2m534[0m |         
+ [2m535[0m |         // Determine joist span based on global direction setting
+ [2m536[0m |         // instead of automatically using the shorter distance
+ [2m537[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m538[0m |         
+ [2m539[0m |         // Calculate joist size based on span and load
+ [2m540[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     : [33;1m              ^^^^|^^^^[0m
+     :                   [33;1m`-- [33;1m`joistSize` redefined here[0m[0m
+ [2m541[0m |         
+ [2m542[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m543[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     `----
+
+  [31mx[0m the name `beamSpan` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:466:1]
+ [2m466[0m |         console.log('Joist span:', joistSpan);
+ [2m467[0m |         
+ [2m468[0m |         // Calculate beam span based on global direction setting
+ [2m469[0m |         const beamSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+     : [31;1m              ^^^^|^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `beamSpan` here[0m[0m
+ [2m470[0m |         console.log('Beam span:', beamSpan);
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         // Add test calculation to debug
+ [2m482[0m |         console.log('Running test calculation with default values');
+ [2m483[0m |         try {
+ [2m484[0m |           // Test values
+ [2m485[0m |           const testJoistSpan = 5;
+ [2m486[0m |           const testLoad = 1.5;
+ [2m487[0m |           const testFireRating = 'none';
+ [2m488[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m489[0m |           console.log('Test joist size:', testJoistSize);
+ [2m490[0m |           
+ [2m491[0m |           const testBeamSpan = 6;
+ [2m492[0m |           const testJoistSpacing = 0.8;
+ [2m493[0m |           const testNumFloors = 3;
+ [2m494[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m495[0m |           console.log('Test beam size:', testBeamSize);
+ [2m496[0m |           
+ [2m497[0m |           const testFloorHeight = 3.2;
+ [2m498[0m |           const testBayLength = 6;
+ [2m499[0m |           const testBayWidth = 6;
+ [2m500[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m501[0m |           console.log('Test column size:', testColumnSize);
+ [2m502[0m |           
+ [2m503[0m |           const testBuildingLength = 18;
+ [2m504[0m |           const testBuildingWidth = 12;
+ [2m505[0m |           const testLengthwiseBays = 3;
+ [2m506[0m |           const testWidthwiseBays = 2;
+ [2m507[0m |           const testTimberResult = calculateTimberWeight(
+ [2m508[0m |             testJoistSize,
+ [2m509[0m |             testBeamSize,
+ [2m510[0m |             testColumnSize,
+ [2m511[0m |             testBuildingLength,
+ [2m512[0m |             testBuildingWidth,
+ [2m513[0m |             testNumFloors,
+ [2m514[0m |             testLengthwiseBays,
+ [2m515[0m |             testWidthwiseBays,
+ [2m516[0m |             true // joists run lengthwise
+ [2m517[0m |           );
+ [2m518[0m |           console.log('Test timber result:', testTimberResult);
+ [2m519[0m |           
+ [2m520[0m |           const testCostResult = calculateCost(
+ [2m521[0m |             testTimberResult,
+ [2m522[0m |             testJoistSize,
+ [2m523[0m |             testBuildingLength,
+ [2m524[0m |             testBuildingWidth,
+ [2m525[0m |             testNumFloors
+ [2m526[0m |           );
+ [2m527[0m |           console.log('Test cost result:', testCostResult);
+ [2m528[0m |         } catch (testError) {
+ [2m529[0m |           console.error('Test calculation error:', testError);
+ [2m530[0m |         }
+ [2m531[0m |         
+ [2m532[0m |         // Continue with the actual calculation...
+ [2m533[0m |         // ... existing code ...
+ [2m534[0m |         
+ [2m535[0m |         // Determine joist span based on global direction setting
+ [2m536[0m |         // instead of automatically using the shorter distance
+ [2m537[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m538[0m |         
+ [2m539[0m |         // Calculate joist size based on span and load
+ [2m540[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m541[0m |         
+ [2m542[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m543[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     : [33;1m              ^^^^|^^^[0m
+     :                   [33;1m`-- [33;1m`beamSpan` redefined here[0m[0m
+ [2m544[0m |         
+ [2m545[0m |         // Define joist spacing (in meters)
+ [2m546[0m |         const joistSpacing = 0.8; // 800mm spacing
+     `----
+
+  [31mx[0m the name `joistSpacing` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:475:1]
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+     : [31;1m              ^^^^^^|^^^^^[0m
+     :                     [31;1m`-- [31;1mprevious definition of `joistSpacing` here[0m[0m
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         // Add test calculation to debug
+ [2m482[0m |         console.log('Running test calculation with default values');
+ [2m483[0m |         try {
+ [2m484[0m |           // Test values
+ [2m485[0m |           const testJoistSpan = 5;
+ [2m486[0m |           const testLoad = 1.5;
+ [2m487[0m |           const testFireRating = 'none';
+ [2m488[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m489[0m |           console.log('Test joist size:', testJoistSize);
+ [2m490[0m |           
+ [2m491[0m |           const testBeamSpan = 6;
+ [2m492[0m |           const testJoistSpacing = 0.8;
+ [2m493[0m |           const testNumFloors = 3;
+ [2m494[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m495[0m |           console.log('Test beam size:', testBeamSize);
+ [2m496[0m |           
+ [2m497[0m |           const testFloorHeight = 3.2;
+ [2m498[0m |           const testBayLength = 6;
+ [2m499[0m |           const testBayWidth = 6;
+ [2m500[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m501[0m |           console.log('Test column size:', testColumnSize);
+ [2m502[0m |           
+ [2m503[0m |           const testBuildingLength = 18;
+ [2m504[0m |           const testBuildingWidth = 12;
+ [2m505[0m |           const testLengthwiseBays = 3;
+ [2m506[0m |           const testWidthwiseBays = 2;
+ [2m507[0m |           const testTimberResult = calculateTimberWeight(
+ [2m508[0m |             testJoistSize,
+ [2m509[0m |             testBeamSize,
+ [2m510[0m |             testColumnSize,
+ [2m511[0m |             testBuildingLength,
+ [2m512[0m |             testBuildingWidth,
+ [2m513[0m |             testNumFloors,
+ [2m514[0m |             testLengthwiseBays,
+ [2m515[0m |             testWidthwiseBays,
+ [2m516[0m |             true // joists run lengthwise
+ [2m517[0m |           );
+ [2m518[0m |           console.log('Test timber result:', testTimberResult);
+ [2m519[0m |           
+ [2m520[0m |           const testCostResult = calculateCost(
+ [2m521[0m |             testTimberResult,
+ [2m522[0m |             testJoistSize,
+ [2m523[0m |             testBuildingLength,
+ [2m524[0m |             testBuildingWidth,
+ [2m525[0m |             testNumFloors
+ [2m526[0m |           );
+ [2m527[0m |           console.log('Test cost result:', testCostResult);
+ [2m528[0m |         } catch (testError) {
+ [2m529[0m |           console.error('Test calculation error:', testError);
+ [2m530[0m |         }
+ [2m531[0m |         
+ [2m532[0m |         // Continue with the actual calculation...
+ [2m533[0m |         // ... existing code ...
+ [2m534[0m |         
+ [2m535[0m |         // Determine joist span based on global direction setting
+ [2m536[0m |         // instead of automatically using the shorter distance
+ [2m537[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m538[0m |         
+ [2m539[0m |         // Calculate joist size based on span and load
+ [2m540[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m541[0m |         
+ [2m542[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m543[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+ [2m544[0m |         
+ [2m545[0m |         // Define joist spacing (in meters)
+ [2m546[0m |         const joistSpacing = 0.8; // 800mm spacing
+     : [33;1m              ^^^^^^|^^^^^[0m
+     :                     [33;1m`-- [33;1m`joistSpacing` redefined here[0m[0m
+ [2m547[0m |         
+ [2m548[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m549[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+     `----
+
+Import trace for requested module:
+./src/components/TimberCalculator.js
+./src/app/timber-calculator/page.js
+ ⨯ ./src/components/TimberCalculator.js
+Error: 
+  [31mx[0m the name `joistSpan` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:462:1]
+ [2m462[0m |         console.log('Max spans:', { maxLengthwiseSpan, maxWidthwiseSpan });
+ [2m463[0m |         
+ [2m464[0m |         // Determine joist span based on global direction setting
+ [2m465[0m |         const joistSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     : [31;1m              ^^^^|^^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `joistSpan` here[0m[0m
+ [2m466[0m |         console.log('Joist span:', joistSpan);
+ [2m467[0m |         
+ [2m468[0m |         // Calculate beam span based on global direction setting
+ [2m469[0m |         const beamSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m470[0m |         console.log('Beam span:', beamSpan);
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         // Add test calculation to debug
+ [2m485[0m |         console.log('Running test calculation with default values');
+ [2m486[0m |         try {
+ [2m487[0m |           // Test values
+ [2m488[0m |           const testJoistSpan = 5;
+ [2m489[0m |           const testLoad = 1.5;
+ [2m490[0m |           const testFireRating = 'none';
+ [2m491[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m492[0m |           console.log('Test joist size:', testJoistSize);
+ [2m493[0m |           
+ [2m494[0m |           const testBeamSpan = 6;
+ [2m495[0m |           const testJoistSpacing = 0.8;
+ [2m496[0m |           const testNumFloors = 3;
+ [2m497[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m498[0m |           console.log('Test beam size:', testBeamSize);
+ [2m499[0m |           
+ [2m500[0m |           const testFloorHeight = 3.2;
+ [2m501[0m |           const testBayLength = 6;
+ [2m502[0m |           const testBayWidth = 6;
+ [2m503[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m504[0m |           console.log('Test column size:', testColumnSize);
+ [2m505[0m |           
+ [2m506[0m |           const testBuildingLength = 18;
+ [2m507[0m |           const testBuildingWidth = 12;
+ [2m508[0m |           const testLengthwiseBays = 3;
+ [2m509[0m |           const testWidthwiseBays = 2;
+ [2m510[0m |           const testTimberResult = calculateTimberWeight(
+ [2m511[0m |             testJoistSize,
+ [2m512[0m |             testBeamSize,
+ [2m513[0m |             testColumnSize,
+ [2m514[0m |             testBuildingLength,
+ [2m515[0m |             testBuildingWidth,
+ [2m516[0m |             testNumFloors,
+ [2m517[0m |             testLengthwiseBays,
+ [2m518[0m |             testWidthwiseBays,
+ [2m519[0m |             true // joists run lengthwise
+ [2m520[0m |           );
+ [2m521[0m |           console.log('Test timber result:', testTimberResult);
+ [2m522[0m |           
+ [2m523[0m |           const testCostResult = calculateCost(
+ [2m524[0m |             testTimberResult,
+ [2m525[0m |             testJoistSize,
+ [2m526[0m |             testBuildingLength,
+ [2m527[0m |             testBuildingWidth,
+ [2m528[0m |             testNumFloors
+ [2m529[0m |           );
+ [2m530[0m |           console.log('Test cost result:', testCostResult);
+ [2m531[0m |         } catch (testError) {
+ [2m532[0m |           console.error('Test calculation error:', testError);
+ [2m533[0m |         }
+ [2m534[0m |         
+ [2m535[0m |         // Continue with the actual calculation...
+ [2m536[0m |         // ... existing code ...
+ [2m537[0m |         
+ [2m538[0m |         // Determine joist span based on global direction setting
+ [2m539[0m |         // instead of automatically using the shorter distance
+ [2m540[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+     : [33;1m              ^^^^|^^^^[0m
+     :                   [33;1m`-- [33;1m`joistSpan` redefined here[0m[0m
+ [2m541[0m |         
+ [2m542[0m |         // Calculate joist size based on span and load
+ [2m543[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     `----
+
+  [31mx[0m the name `joistSize` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:471:1]
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     : [31;1m              ^^^^|^^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `joistSize` here[0m[0m
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         // Add test calculation to debug
+ [2m485[0m |         console.log('Running test calculation with default values');
+ [2m486[0m |         try {
+ [2m487[0m |           // Test values
+ [2m488[0m |           const testJoistSpan = 5;
+ [2m489[0m |           const testLoad = 1.5;
+ [2m490[0m |           const testFireRating = 'none';
+ [2m491[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m492[0m |           console.log('Test joist size:', testJoistSize);
+ [2m493[0m |           
+ [2m494[0m |           const testBeamSpan = 6;
+ [2m495[0m |           const testJoistSpacing = 0.8;
+ [2m496[0m |           const testNumFloors = 3;
+ [2m497[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m498[0m |           console.log('Test beam size:', testBeamSize);
+ [2m499[0m |           
+ [2m500[0m |           const testFloorHeight = 3.2;
+ [2m501[0m |           const testBayLength = 6;
+ [2m502[0m |           const testBayWidth = 6;
+ [2m503[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m504[0m |           console.log('Test column size:', testColumnSize);
+ [2m505[0m |           
+ [2m506[0m |           const testBuildingLength = 18;
+ [2m507[0m |           const testBuildingWidth = 12;
+ [2m508[0m |           const testLengthwiseBays = 3;
+ [2m509[0m |           const testWidthwiseBays = 2;
+ [2m510[0m |           const testTimberResult = calculateTimberWeight(
+ [2m511[0m |             testJoistSize,
+ [2m512[0m |             testBeamSize,
+ [2m513[0m |             testColumnSize,
+ [2m514[0m |             testBuildingLength,
+ [2m515[0m |             testBuildingWidth,
+ [2m516[0m |             testNumFloors,
+ [2m517[0m |             testLengthwiseBays,
+ [2m518[0m |             testWidthwiseBays,
+ [2m519[0m |             true // joists run lengthwise
+ [2m520[0m |           );
+ [2m521[0m |           console.log('Test timber result:', testTimberResult);
+ [2m522[0m |           
+ [2m523[0m |           const testCostResult = calculateCost(
+ [2m524[0m |             testTimberResult,
+ [2m525[0m |             testJoistSize,
+ [2m526[0m |             testBuildingLength,
+ [2m527[0m |             testBuildingWidth,
+ [2m528[0m |             testNumFloors
+ [2m529[0m |           );
+ [2m530[0m |           console.log('Test cost result:', testCostResult);
+ [2m531[0m |         } catch (testError) {
+ [2m532[0m |           console.error('Test calculation error:', testError);
+ [2m533[0m |         }
+ [2m534[0m |         
+ [2m535[0m |         // Continue with the actual calculation...
+ [2m536[0m |         // ... existing code ...
+ [2m537[0m |         
+ [2m538[0m |         // Determine joist span based on global direction setting
+ [2m539[0m |         // instead of automatically using the shorter distance
+ [2m540[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m541[0m |         
+ [2m542[0m |         // Calculate joist size based on span and load
+ [2m543[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     : [33;1m              ^^^^|^^^^[0m
+     :                   [33;1m`-- [33;1m`joistSize` redefined here[0m[0m
+ [2m544[0m |         
+ [2m545[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m546[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     `----
+
+  [31mx[0m the name `beamSpan` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:466:1]
+ [2m466[0m |         console.log('Joist span:', joistSpan);
+ [2m467[0m |         
+ [2m468[0m |         // Calculate beam span based on global direction setting
+ [2m469[0m |         const beamSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+     : [31;1m              ^^^^|^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `beamSpan` here[0m[0m
+ [2m470[0m |         console.log('Beam span:', beamSpan);
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         // Add test calculation to debug
+ [2m485[0m |         console.log('Running test calculation with default values');
+ [2m486[0m |         try {
+ [2m487[0m |           // Test values
+ [2m488[0m |           const testJoistSpan = 5;
+ [2m489[0m |           const testLoad = 1.5;
+ [2m490[0m |           const testFireRating = 'none';
+ [2m491[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m492[0m |           console.log('Test joist size:', testJoistSize);
+ [2m493[0m |           
+ [2m494[0m |           const testBeamSpan = 6;
+ [2m495[0m |           const testJoistSpacing = 0.8;
+ [2m496[0m |           const testNumFloors = 3;
+ [2m497[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m498[0m |           console.log('Test beam size:', testBeamSize);
+ [2m499[0m |           
+ [2m500[0m |           const testFloorHeight = 3.2;
+ [2m501[0m |           const testBayLength = 6;
+ [2m502[0m |           const testBayWidth = 6;
+ [2m503[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m504[0m |           console.log('Test column size:', testColumnSize);
+ [2m505[0m |           
+ [2m506[0m |           const testBuildingLength = 18;
+ [2m507[0m |           const testBuildingWidth = 12;
+ [2m508[0m |           const testLengthwiseBays = 3;
+ [2m509[0m |           const testWidthwiseBays = 2;
+ [2m510[0m |           const testTimberResult = calculateTimberWeight(
+ [2m511[0m |             testJoistSize,
+ [2m512[0m |             testBeamSize,
+ [2m513[0m |             testColumnSize,
+ [2m514[0m |             testBuildingLength,
+ [2m515[0m |             testBuildingWidth,
+ [2m516[0m |             testNumFloors,
+ [2m517[0m |             testLengthwiseBays,
+ [2m518[0m |             testWidthwiseBays,
+ [2m519[0m |             true // joists run lengthwise
+ [2m520[0m |           );
+ [2m521[0m |           console.log('Test timber result:', testTimberResult);
+ [2m522[0m |           
+ [2m523[0m |           const testCostResult = calculateCost(
+ [2m524[0m |             testTimberResult,
+ [2m525[0m |             testJoistSize,
+ [2m526[0m |             testBuildingLength,
+ [2m527[0m |             testBuildingWidth,
+ [2m528[0m |             testNumFloors
+ [2m529[0m |           );
+ [2m530[0m |           console.log('Test cost result:', testCostResult);
+ [2m531[0m |         } catch (testError) {
+ [2m532[0m |           console.error('Test calculation error:', testError);
+ [2m533[0m |         }
+ [2m534[0m |         
+ [2m535[0m |         // Continue with the actual calculation...
+ [2m536[0m |         // ... existing code ...
+ [2m537[0m |         
+ [2m538[0m |         // Determine joist span based on global direction setting
+ [2m539[0m |         // instead of automatically using the shorter distance
+ [2m540[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m541[0m |         
+ [2m542[0m |         // Calculate joist size based on span and load
+ [2m543[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m544[0m |         
+ [2m545[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m546[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     : [33;1m              ^^^^|^^^[0m
+     :                   [33;1m`-- [33;1m`beamSpan` redefined here[0m[0m
+ [2m547[0m |         
+ [2m548[0m |         // Define joist spacing (in meters)
+ [2m549[0m |         const joistSpacing = 0.8; // 800mm spacing
+     `----
+
+  [31mx[0m the name `joistSpacing` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:475:1]
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+     : [31;1m              ^^^^^^|^^^^^[0m
+     :                     [31;1m`-- [31;1mprevious definition of `joistSpacing` here[0m[0m
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         // Add test calculation to debug
+ [2m485[0m |         console.log('Running test calculation with default values');
+ [2m486[0m |         try {
+ [2m487[0m |           // Test values
+ [2m488[0m |           const testJoistSpan = 5;
+ [2m489[0m |           const testLoad = 1.5;
+ [2m490[0m |           const testFireRating = 'none';
+ [2m491[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m492[0m |           console.log('Test joist size:', testJoistSize);
+ [2m493[0m |           
+ [2m494[0m |           const testBeamSpan = 6;
+ [2m495[0m |           const testJoistSpacing = 0.8;
+ [2m496[0m |           const testNumFloors = 3;
+ [2m497[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m498[0m |           console.log('Test beam size:', testBeamSize);
+ [2m499[0m |           
+ [2m500[0m |           const testFloorHeight = 3.2;
+ [2m501[0m |           const testBayLength = 6;
+ [2m502[0m |           const testBayWidth = 6;
+ [2m503[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m504[0m |           console.log('Test column size:', testColumnSize);
+ [2m505[0m |           
+ [2m506[0m |           const testBuildingLength = 18;
+ [2m507[0m |           const testBuildingWidth = 12;
+ [2m508[0m |           const testLengthwiseBays = 3;
+ [2m509[0m |           const testWidthwiseBays = 2;
+ [2m510[0m |           const testTimberResult = calculateTimberWeight(
+ [2m511[0m |             testJoistSize,
+ [2m512[0m |             testBeamSize,
+ [2m513[0m |             testColumnSize,
+ [2m514[0m |             testBuildingLength,
+ [2m515[0m |             testBuildingWidth,
+ [2m516[0m |             testNumFloors,
+ [2m517[0m |             testLengthwiseBays,
+ [2m518[0m |             testWidthwiseBays,
+ [2m519[0m |             true // joists run lengthwise
+ [2m520[0m |           );
+ [2m521[0m |           console.log('Test timber result:', testTimberResult);
+ [2m522[0m |           
+ [2m523[0m |           const testCostResult = calculateCost(
+ [2m524[0m |             testTimberResult,
+ [2m525[0m |             testJoistSize,
+ [2m526[0m |             testBuildingLength,
+ [2m527[0m |             testBuildingWidth,
+ [2m528[0m |             testNumFloors
+ [2m529[0m |           );
+ [2m530[0m |           console.log('Test cost result:', testCostResult);
+ [2m531[0m |         } catch (testError) {
+ [2m532[0m |           console.error('Test calculation error:', testError);
+ [2m533[0m |         }
+ [2m534[0m |         
+ [2m535[0m |         // Continue with the actual calculation...
+ [2m536[0m |         // ... existing code ...
+ [2m537[0m |         
+ [2m538[0m |         // Determine joist span based on global direction setting
+ [2m539[0m |         // instead of automatically using the shorter distance
+ [2m540[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m541[0m |         
+ [2m542[0m |         // Calculate joist size based on span and load
+ [2m543[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m544[0m |         
+ [2m545[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m546[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+ [2m547[0m |         
+ [2m548[0m |         // Define joist spacing (in meters)
+ [2m549[0m |         const joistSpacing = 0.8; // 800mm spacing
+     : [33;1m              ^^^^^^|^^^^^[0m
+     :                     [33;1m`-- [33;1m`joistSpacing` redefined here[0m[0m
+ [2m550[0m |         
+ [2m551[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m552[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+     `----
+
+  [31mx[0m the name `beamSize` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:479:1]
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+     : [31;1m              ^^^^|^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `beamSize` here[0m[0m
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         // Add test calculation to debug
+ [2m485[0m |         console.log('Running test calculation with default values');
+ [2m486[0m |         try {
+ [2m487[0m |           // Test values
+ [2m488[0m |           const testJoistSpan = 5;
+ [2m489[0m |           const testLoad = 1.5;
+ [2m490[0m |           const testFireRating = 'none';
+ [2m491[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m492[0m |           console.log('Test joist size:', testJoistSize);
+ [2m493[0m |           
+ [2m494[0m |           const testBeamSpan = 6;
+ [2m495[0m |           const testJoistSpacing = 0.8;
+ [2m496[0m |           const testNumFloors = 3;
+ [2m497[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m498[0m |           console.log('Test beam size:', testBeamSize);
+ [2m499[0m |           
+ [2m500[0m |           const testFloorHeight = 3.2;
+ [2m501[0m |           const testBayLength = 6;
+ [2m502[0m |           const testBayWidth = 6;
+ [2m503[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m504[0m |           console.log('Test column size:', testColumnSize);
+ [2m505[0m |           
+ [2m506[0m |           const testBuildingLength = 18;
+ [2m507[0m |           const testBuildingWidth = 12;
+ [2m508[0m |           const testLengthwiseBays = 3;
+ [2m509[0m |           const testWidthwiseBays = 2;
+ [2m510[0m |           const testTimberResult = calculateTimberWeight(
+ [2m511[0m |             testJoistSize,
+ [2m512[0m |             testBeamSize,
+ [2m513[0m |             testColumnSize,
+ [2m514[0m |             testBuildingLength,
+ [2m515[0m |             testBuildingWidth,
+ [2m516[0m |             testNumFloors,
+ [2m517[0m |             testLengthwiseBays,
+ [2m518[0m |             testWidthwiseBays,
+ [2m519[0m |             true // joists run lengthwise
+ [2m520[0m |           );
+ [2m521[0m |           console.log('Test timber result:', testTimberResult);
+ [2m522[0m |           
+ [2m523[0m |           const testCostResult = calculateCost(
+ [2m524[0m |             testTimberResult,
+ [2m525[0m |             testJoistSize,
+ [2m526[0m |             testBuildingLength,
+ [2m527[0m |             testBuildingWidth,
+ [2m528[0m |             testNumFloors
+ [2m529[0m |           );
+ [2m530[0m |           console.log('Test cost result:', testCostResult);
+ [2m531[0m |         } catch (testError) {
+ [2m532[0m |           console.error('Test calculation error:', testError);
+ [2m533[0m |         }
+ [2m534[0m |         
+ [2m535[0m |         // Continue with the actual calculation...
+ [2m536[0m |         // ... existing code ...
+ [2m537[0m |         
+ [2m538[0m |         // Determine joist span based on global direction setting
+ [2m539[0m |         // instead of automatically using the shorter distance
+ [2m540[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m541[0m |         
+ [2m542[0m |         // Calculate joist size based on span and load
+ [2m543[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m544[0m |         
+ [2m545[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m546[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+ [2m547[0m |         
+ [2m548[0m |         // Define joist spacing (in meters)
+ [2m549[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m550[0m |         
+ [2m551[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m552[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+     : [33;1m              ^^^^|^^^[0m
+     :                   [33;1m`-- [33;1m`beamSize` redefined here[0m[0m
+ [2m553[0m |         
+ [2m554[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m555[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+     `----
+
+Import trace for requested module:
+./src/components/TimberCalculator.js
+./src/app/timber-calculator/page.js
+ ⨯ ./src/components/TimberCalculator.js
+Error: 
+  [31mx[0m the name `joistSpan` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:462:1]
+ [2m462[0m |         console.log('Max spans:', { maxLengthwiseSpan, maxWidthwiseSpan });
+ [2m463[0m |         
+ [2m464[0m |         // Determine joist span based on global direction setting
+ [2m465[0m |         const joistSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     : [31;1m              ^^^^|^^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `joistSpan` here[0m[0m
+ [2m466[0m |         console.log('Joist span:', joistSpan);
+ [2m467[0m |         
+ [2m468[0m |         // Calculate beam span based on global direction setting
+ [2m469[0m |         const beamSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m470[0m |         console.log('Beam span:', beamSpan);
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         // Add test calculation to debug
+ [2m493[0m |         console.log('Running test calculation with default values');
+ [2m494[0m |         try {
+ [2m495[0m |           // Test values
+ [2m496[0m |           const testJoistSpan = 5;
+ [2m497[0m |           const testLoad = 1.5;
+ [2m498[0m |           const testFireRating = 'none';
+ [2m499[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m500[0m |           console.log('Test joist size:', testJoistSize);
+ [2m501[0m |           
+ [2m502[0m |           const testBeamSpan = 6;
+ [2m503[0m |           const testJoistSpacing = 0.8;
+ [2m504[0m |           const testNumFloors = 3;
+ [2m505[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m506[0m |           console.log('Test beam size:', testBeamSize);
+ [2m507[0m |           
+ [2m508[0m |           const testFloorHeight = 3.2;
+ [2m509[0m |           const testBayLength = 6;
+ [2m510[0m |           const testBayWidth = 6;
+ [2m511[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m512[0m |           console.log('Test column size:', testColumnSize);
+ [2m513[0m |           
+ [2m514[0m |           const testBuildingLength = 18;
+ [2m515[0m |           const testBuildingWidth = 12;
+ [2m516[0m |           const testLengthwiseBays = 3;
+ [2m517[0m |           const testWidthwiseBays = 2;
+ [2m518[0m |           const testTimberResult = calculateTimberWeight(
+ [2m519[0m |             testJoistSize,
+ [2m520[0m |             testBeamSize,
+ [2m521[0m |             testColumnSize,
+ [2m522[0m |             testBuildingLength,
+ [2m523[0m |             testBuildingWidth,
+ [2m524[0m |             testNumFloors,
+ [2m525[0m |             testLengthwiseBays,
+ [2m526[0m |             testWidthwiseBays,
+ [2m527[0m |             true // joists run lengthwise
+ [2m528[0m |           );
+ [2m529[0m |           console.log('Test timber result:', testTimberResult);
+ [2m530[0m |           
+ [2m531[0m |           const testCostResult = calculateCost(
+ [2m532[0m |             testTimberResult,
+ [2m533[0m |             testJoistSize,
+ [2m534[0m |             testBuildingLength,
+ [2m535[0m |             testBuildingWidth,
+ [2m536[0m |             testNumFloors
+ [2m537[0m |           );
+ [2m538[0m |           console.log('Test cost result:', testCostResult);
+ [2m539[0m |         } catch (testError) {
+ [2m540[0m |           console.error('Test calculation error:', testError);
+ [2m541[0m |         }
+ [2m542[0m |         
+ [2m543[0m |         // Continue with the actual calculation...
+ [2m544[0m |         // ... existing code ...
+ [2m545[0m |         
+ [2m546[0m |         // Determine joist span based on global direction setting
+ [2m547[0m |         // instead of automatically using the shorter distance
+ [2m548[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+     : [33;1m              ^^^^|^^^^[0m
+     :                   [33;1m`-- [33;1m`joistSpan` redefined here[0m[0m
+ [2m549[0m |         
+ [2m550[0m |         // Calculate joist size based on span and load
+ [2m551[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     `----
+
+  [31mx[0m the name `joistSize` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:471:1]
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     : [31;1m              ^^^^|^^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `joistSize` here[0m[0m
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         // Add test calculation to debug
+ [2m493[0m |         console.log('Running test calculation with default values');
+ [2m494[0m |         try {
+ [2m495[0m |           // Test values
+ [2m496[0m |           const testJoistSpan = 5;
+ [2m497[0m |           const testLoad = 1.5;
+ [2m498[0m |           const testFireRating = 'none';
+ [2m499[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m500[0m |           console.log('Test joist size:', testJoistSize);
+ [2m501[0m |           
+ [2m502[0m |           const testBeamSpan = 6;
+ [2m503[0m |           const testJoistSpacing = 0.8;
+ [2m504[0m |           const testNumFloors = 3;
+ [2m505[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m506[0m |           console.log('Test beam size:', testBeamSize);
+ [2m507[0m |           
+ [2m508[0m |           const testFloorHeight = 3.2;
+ [2m509[0m |           const testBayLength = 6;
+ [2m510[0m |           const testBayWidth = 6;
+ [2m511[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m512[0m |           console.log('Test column size:', testColumnSize);
+ [2m513[0m |           
+ [2m514[0m |           const testBuildingLength = 18;
+ [2m515[0m |           const testBuildingWidth = 12;
+ [2m516[0m |           const testLengthwiseBays = 3;
+ [2m517[0m |           const testWidthwiseBays = 2;
+ [2m518[0m |           const testTimberResult = calculateTimberWeight(
+ [2m519[0m |             testJoistSize,
+ [2m520[0m |             testBeamSize,
+ [2m521[0m |             testColumnSize,
+ [2m522[0m |             testBuildingLength,
+ [2m523[0m |             testBuildingWidth,
+ [2m524[0m |             testNumFloors,
+ [2m525[0m |             testLengthwiseBays,
+ [2m526[0m |             testWidthwiseBays,
+ [2m527[0m |             true // joists run lengthwise
+ [2m528[0m |           );
+ [2m529[0m |           console.log('Test timber result:', testTimberResult);
+ [2m530[0m |           
+ [2m531[0m |           const testCostResult = calculateCost(
+ [2m532[0m |             testTimberResult,
+ [2m533[0m |             testJoistSize,
+ [2m534[0m |             testBuildingLength,
+ [2m535[0m |             testBuildingWidth,
+ [2m536[0m |             testNumFloors
+ [2m537[0m |           );
+ [2m538[0m |           console.log('Test cost result:', testCostResult);
+ [2m539[0m |         } catch (testError) {
+ [2m540[0m |           console.error('Test calculation error:', testError);
+ [2m541[0m |         }
+ [2m542[0m |         
+ [2m543[0m |         // Continue with the actual calculation...
+ [2m544[0m |         // ... existing code ...
+ [2m545[0m |         
+ [2m546[0m |         // Determine joist span based on global direction setting
+ [2m547[0m |         // instead of automatically using the shorter distance
+ [2m548[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m549[0m |         
+ [2m550[0m |         // Calculate joist size based on span and load
+ [2m551[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     : [33;1m              ^^^^|^^^^[0m
+     :                   [33;1m`-- [33;1m`joistSize` redefined here[0m[0m
+ [2m552[0m |         
+ [2m553[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m554[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     `----
+
+  [31mx[0m the name `beamSpan` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:466:1]
+ [2m466[0m |         console.log('Joist span:', joistSpan);
+ [2m467[0m |         
+ [2m468[0m |         // Calculate beam span based on global direction setting
+ [2m469[0m |         const beamSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+     : [31;1m              ^^^^|^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `beamSpan` here[0m[0m
+ [2m470[0m |         console.log('Beam span:', beamSpan);
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         // Add test calculation to debug
+ [2m493[0m |         console.log('Running test calculation with default values');
+ [2m494[0m |         try {
+ [2m495[0m |           // Test values
+ [2m496[0m |           const testJoistSpan = 5;
+ [2m497[0m |           const testLoad = 1.5;
+ [2m498[0m |           const testFireRating = 'none';
+ [2m499[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m500[0m |           console.log('Test joist size:', testJoistSize);
+ [2m501[0m |           
+ [2m502[0m |           const testBeamSpan = 6;
+ [2m503[0m |           const testJoistSpacing = 0.8;
+ [2m504[0m |           const testNumFloors = 3;
+ [2m505[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m506[0m |           console.log('Test beam size:', testBeamSize);
+ [2m507[0m |           
+ [2m508[0m |           const testFloorHeight = 3.2;
+ [2m509[0m |           const testBayLength = 6;
+ [2m510[0m |           const testBayWidth = 6;
+ [2m511[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m512[0m |           console.log('Test column size:', testColumnSize);
+ [2m513[0m |           
+ [2m514[0m |           const testBuildingLength = 18;
+ [2m515[0m |           const testBuildingWidth = 12;
+ [2m516[0m |           const testLengthwiseBays = 3;
+ [2m517[0m |           const testWidthwiseBays = 2;
+ [2m518[0m |           const testTimberResult = calculateTimberWeight(
+ [2m519[0m |             testJoistSize,
+ [2m520[0m |             testBeamSize,
+ [2m521[0m |             testColumnSize,
+ [2m522[0m |             testBuildingLength,
+ [2m523[0m |             testBuildingWidth,
+ [2m524[0m |             testNumFloors,
+ [2m525[0m |             testLengthwiseBays,
+ [2m526[0m |             testWidthwiseBays,
+ [2m527[0m |             true // joists run lengthwise
+ [2m528[0m |           );
+ [2m529[0m |           console.log('Test timber result:', testTimberResult);
+ [2m530[0m |           
+ [2m531[0m |           const testCostResult = calculateCost(
+ [2m532[0m |             testTimberResult,
+ [2m533[0m |             testJoistSize,
+ [2m534[0m |             testBuildingLength,
+ [2m535[0m |             testBuildingWidth,
+ [2m536[0m |             testNumFloors
+ [2m537[0m |           );
+ [2m538[0m |           console.log('Test cost result:', testCostResult);
+ [2m539[0m |         } catch (testError) {
+ [2m540[0m |           console.error('Test calculation error:', testError);
+ [2m541[0m |         }
+ [2m542[0m |         
+ [2m543[0m |         // Continue with the actual calculation...
+ [2m544[0m |         // ... existing code ...
+ [2m545[0m |         
+ [2m546[0m |         // Determine joist span based on global direction setting
+ [2m547[0m |         // instead of automatically using the shorter distance
+ [2m548[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m549[0m |         
+ [2m550[0m |         // Calculate joist size based on span and load
+ [2m551[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m552[0m |         
+ [2m553[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m554[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     : [33;1m              ^^^^|^^^[0m
+     :                   [33;1m`-- [33;1m`beamSpan` redefined here[0m[0m
+ [2m555[0m |         
+ [2m556[0m |         // Define joist spacing (in meters)
+ [2m557[0m |         const joistSpacing = 0.8; // 800mm spacing
+     `----
+
+  [31mx[0m the name `joistSpacing` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:475:1]
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+     : [31;1m              ^^^^^^|^^^^^[0m
+     :                     [31;1m`-- [31;1mprevious definition of `joistSpacing` here[0m[0m
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         // Add test calculation to debug
+ [2m493[0m |         console.log('Running test calculation with default values');
+ [2m494[0m |         try {
+ [2m495[0m |           // Test values
+ [2m496[0m |           const testJoistSpan = 5;
+ [2m497[0m |           const testLoad = 1.5;
+ [2m498[0m |           const testFireRating = 'none';
+ [2m499[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m500[0m |           console.log('Test joist size:', testJoistSize);
+ [2m501[0m |           
+ [2m502[0m |           const testBeamSpan = 6;
+ [2m503[0m |           const testJoistSpacing = 0.8;
+ [2m504[0m |           const testNumFloors = 3;
+ [2m505[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m506[0m |           console.log('Test beam size:', testBeamSize);
+ [2m507[0m |           
+ [2m508[0m |           const testFloorHeight = 3.2;
+ [2m509[0m |           const testBayLength = 6;
+ [2m510[0m |           const testBayWidth = 6;
+ [2m511[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m512[0m |           console.log('Test column size:', testColumnSize);
+ [2m513[0m |           
+ [2m514[0m |           const testBuildingLength = 18;
+ [2m515[0m |           const testBuildingWidth = 12;
+ [2m516[0m |           const testLengthwiseBays = 3;
+ [2m517[0m |           const testWidthwiseBays = 2;
+ [2m518[0m |           const testTimberResult = calculateTimberWeight(
+ [2m519[0m |             testJoistSize,
+ [2m520[0m |             testBeamSize,
+ [2m521[0m |             testColumnSize,
+ [2m522[0m |             testBuildingLength,
+ [2m523[0m |             testBuildingWidth,
+ [2m524[0m |             testNumFloors,
+ [2m525[0m |             testLengthwiseBays,
+ [2m526[0m |             testWidthwiseBays,
+ [2m527[0m |             true // joists run lengthwise
+ [2m528[0m |           );
+ [2m529[0m |           console.log('Test timber result:', testTimberResult);
+ [2m530[0m |           
+ [2m531[0m |           const testCostResult = calculateCost(
+ [2m532[0m |             testTimberResult,
+ [2m533[0m |             testJoistSize,
+ [2m534[0m |             testBuildingLength,
+ [2m535[0m |             testBuildingWidth,
+ [2m536[0m |             testNumFloors
+ [2m537[0m |           );
+ [2m538[0m |           console.log('Test cost result:', testCostResult);
+ [2m539[0m |         } catch (testError) {
+ [2m540[0m |           console.error('Test calculation error:', testError);
+ [2m541[0m |         }
+ [2m542[0m |         
+ [2m543[0m |         // Continue with the actual calculation...
+ [2m544[0m |         // ... existing code ...
+ [2m545[0m |         
+ [2m546[0m |         // Determine joist span based on global direction setting
+ [2m547[0m |         // instead of automatically using the shorter distance
+ [2m548[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m549[0m |         
+ [2m550[0m |         // Calculate joist size based on span and load
+ [2m551[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m552[0m |         
+ [2m553[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m554[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+ [2m555[0m |         
+ [2m556[0m |         // Define joist spacing (in meters)
+ [2m557[0m |         const joistSpacing = 0.8; // 800mm spacing
+     : [33;1m              ^^^^^^|^^^^^[0m
+     :                     [33;1m`-- [33;1m`joistSpacing` redefined here[0m[0m
+ [2m558[0m |         
+ [2m559[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m560[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+     `----
+
+  [31mx[0m the name `beamSize` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:479:1]
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+     : [31;1m              ^^^^|^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `beamSize` here[0m[0m
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         // Add test calculation to debug
+ [2m493[0m |         console.log('Running test calculation with default values');
+ [2m494[0m |         try {
+ [2m495[0m |           // Test values
+ [2m496[0m |           const testJoistSpan = 5;
+ [2m497[0m |           const testLoad = 1.5;
+ [2m498[0m |           const testFireRating = 'none';
+ [2m499[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m500[0m |           console.log('Test joist size:', testJoistSize);
+ [2m501[0m |           
+ [2m502[0m |           const testBeamSpan = 6;
+ [2m503[0m |           const testJoistSpacing = 0.8;
+ [2m504[0m |           const testNumFloors = 3;
+ [2m505[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m506[0m |           console.log('Test beam size:', testBeamSize);
+ [2m507[0m |           
+ [2m508[0m |           const testFloorHeight = 3.2;
+ [2m509[0m |           const testBayLength = 6;
+ [2m510[0m |           const testBayWidth = 6;
+ [2m511[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m512[0m |           console.log('Test column size:', testColumnSize);
+ [2m513[0m |           
+ [2m514[0m |           const testBuildingLength = 18;
+ [2m515[0m |           const testBuildingWidth = 12;
+ [2m516[0m |           const testLengthwiseBays = 3;
+ [2m517[0m |           const testWidthwiseBays = 2;
+ [2m518[0m |           const testTimberResult = calculateTimberWeight(
+ [2m519[0m |             testJoistSize,
+ [2m520[0m |             testBeamSize,
+ [2m521[0m |             testColumnSize,
+ [2m522[0m |             testBuildingLength,
+ [2m523[0m |             testBuildingWidth,
+ [2m524[0m |             testNumFloors,
+ [2m525[0m |             testLengthwiseBays,
+ [2m526[0m |             testWidthwiseBays,
+ [2m527[0m |             true // joists run lengthwise
+ [2m528[0m |           );
+ [2m529[0m |           console.log('Test timber result:', testTimberResult);
+ [2m530[0m |           
+ [2m531[0m |           const testCostResult = calculateCost(
+ [2m532[0m |             testTimberResult,
+ [2m533[0m |             testJoistSize,
+ [2m534[0m |             testBuildingLength,
+ [2m535[0m |             testBuildingWidth,
+ [2m536[0m |             testNumFloors
+ [2m537[0m |           );
+ [2m538[0m |           console.log('Test cost result:', testCostResult);
+ [2m539[0m |         } catch (testError) {
+ [2m540[0m |           console.error('Test calculation error:', testError);
+ [2m541[0m |         }
+ [2m542[0m |         
+ [2m543[0m |         // Continue with the actual calculation...
+ [2m544[0m |         // ... existing code ...
+ [2m545[0m |         
+ [2m546[0m |         // Determine joist span based on global direction setting
+ [2m547[0m |         // instead of automatically using the shorter distance
+ [2m548[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m549[0m |         
+ [2m550[0m |         // Calculate joist size based on span and load
+ [2m551[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m552[0m |         
+ [2m553[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m554[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+ [2m555[0m |         
+ [2m556[0m |         // Define joist spacing (in meters)
+ [2m557[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m558[0m |         
+ [2m559[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m560[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+     : [33;1m              ^^^^|^^^[0m
+     :                   [33;1m`-- [33;1m`beamSize` redefined here[0m[0m
+ [2m561[0m |         
+ [2m562[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m563[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+     `----
+
+  [31mx[0m the name `avgBayLength` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:483:1]
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+     : [31;1m              ^^^^^^|^^^^^[0m
+     :                     [31;1m`-- [31;1mprevious definition of `avgBayLength` here[0m[0m
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         // Add test calculation to debug
+ [2m493[0m |         console.log('Running test calculation with default values');
+ [2m494[0m |         try {
+ [2m495[0m |           // Test values
+ [2m496[0m |           const testJoistSpan = 5;
+ [2m497[0m |           const testLoad = 1.5;
+ [2m498[0m |           const testFireRating = 'none';
+ [2m499[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m500[0m |           console.log('Test joist size:', testJoistSize);
+ [2m501[0m |           
+ [2m502[0m |           const testBeamSpan = 6;
+ [2m503[0m |           const testJoistSpacing = 0.8;
+ [2m504[0m |           const testNumFloors = 3;
+ [2m505[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m506[0m |           console.log('Test beam size:', testBeamSize);
+ [2m507[0m |           
+ [2m508[0m |           const testFloorHeight = 3.2;
+ [2m509[0m |           const testBayLength = 6;
+ [2m510[0m |           const testBayWidth = 6;
+ [2m511[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m512[0m |           console.log('Test column size:', testColumnSize);
+ [2m513[0m |           
+ [2m514[0m |           const testBuildingLength = 18;
+ [2m515[0m |           const testBuildingWidth = 12;
+ [2m516[0m |           const testLengthwiseBays = 3;
+ [2m517[0m |           const testWidthwiseBays = 2;
+ [2m518[0m |           const testTimberResult = calculateTimberWeight(
+ [2m519[0m |             testJoistSize,
+ [2m520[0m |             testBeamSize,
+ [2m521[0m |             testColumnSize,
+ [2m522[0m |             testBuildingLength,
+ [2m523[0m |             testBuildingWidth,
+ [2m524[0m |             testNumFloors,
+ [2m525[0m |             testLengthwiseBays,
+ [2m526[0m |             testWidthwiseBays,
+ [2m527[0m |             true // joists run lengthwise
+ [2m528[0m |           );
+ [2m529[0m |           console.log('Test timber result:', testTimberResult);
+ [2m530[0m |           
+ [2m531[0m |           const testCostResult = calculateCost(
+ [2m532[0m |             testTimberResult,
+ [2m533[0m |             testJoistSize,
+ [2m534[0m |             testBuildingLength,
+ [2m535[0m |             testBuildingWidth,
+ [2m536[0m |             testNumFloors
+ [2m537[0m |           );
+ [2m538[0m |           console.log('Test cost result:', testCostResult);
+ [2m539[0m |         } catch (testError) {
+ [2m540[0m |           console.error('Test calculation error:', testError);
+ [2m541[0m |         }
+ [2m542[0m |         
+ [2m543[0m |         // Continue with the actual calculation...
+ [2m544[0m |         // ... existing code ...
+ [2m545[0m |         
+ [2m546[0m |         // Determine joist span based on global direction setting
+ [2m547[0m |         // instead of automatically using the shorter distance
+ [2m548[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m549[0m |         
+ [2m550[0m |         // Calculate joist size based on span and load
+ [2m551[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m552[0m |         
+ [2m553[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m554[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+ [2m555[0m |         
+ [2m556[0m |         // Define joist spacing (in meters)
+ [2m557[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m558[0m |         
+ [2m559[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m560[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m561[0m |         
+ [2m562[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m563[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+     : [33;1m              ^^^^^^|^^^^^[0m
+     :                     [33;1m`-- [33;1m`avgBayLength` redefined here[0m[0m
+ [2m564[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m565[0m |         
+ [2m566[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+     `----
+
+  [31mx[0m the name `avgBayWidth` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:484:1]
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+     : [31;1m              ^^^^^|^^^^^[0m
+     :                    [31;1m`-- [31;1mprevious definition of `avgBayWidth` here[0m[0m
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         // Add test calculation to debug
+ [2m493[0m |         console.log('Running test calculation with default values');
+ [2m494[0m |         try {
+ [2m495[0m |           // Test values
+ [2m496[0m |           const testJoistSpan = 5;
+ [2m497[0m |           const testLoad = 1.5;
+ [2m498[0m |           const testFireRating = 'none';
+ [2m499[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m500[0m |           console.log('Test joist size:', testJoistSize);
+ [2m501[0m |           
+ [2m502[0m |           const testBeamSpan = 6;
+ [2m503[0m |           const testJoistSpacing = 0.8;
+ [2m504[0m |           const testNumFloors = 3;
+ [2m505[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m506[0m |           console.log('Test beam size:', testBeamSize);
+ [2m507[0m |           
+ [2m508[0m |           const testFloorHeight = 3.2;
+ [2m509[0m |           const testBayLength = 6;
+ [2m510[0m |           const testBayWidth = 6;
+ [2m511[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m512[0m |           console.log('Test column size:', testColumnSize);
+ [2m513[0m |           
+ [2m514[0m |           const testBuildingLength = 18;
+ [2m515[0m |           const testBuildingWidth = 12;
+ [2m516[0m |           const testLengthwiseBays = 3;
+ [2m517[0m |           const testWidthwiseBays = 2;
+ [2m518[0m |           const testTimberResult = calculateTimberWeight(
+ [2m519[0m |             testJoistSize,
+ [2m520[0m |             testBeamSize,
+ [2m521[0m |             testColumnSize,
+ [2m522[0m |             testBuildingLength,
+ [2m523[0m |             testBuildingWidth,
+ [2m524[0m |             testNumFloors,
+ [2m525[0m |             testLengthwiseBays,
+ [2m526[0m |             testWidthwiseBays,
+ [2m527[0m |             true // joists run lengthwise
+ [2m528[0m |           );
+ [2m529[0m |           console.log('Test timber result:', testTimberResult);
+ [2m530[0m |           
+ [2m531[0m |           const testCostResult = calculateCost(
+ [2m532[0m |             testTimberResult,
+ [2m533[0m |             testJoistSize,
+ [2m534[0m |             testBuildingLength,
+ [2m535[0m |             testBuildingWidth,
+ [2m536[0m |             testNumFloors
+ [2m537[0m |           );
+ [2m538[0m |           console.log('Test cost result:', testCostResult);
+ [2m539[0m |         } catch (testError) {
+ [2m540[0m |           console.error('Test calculation error:', testError);
+ [2m541[0m |         }
+ [2m542[0m |         
+ [2m543[0m |         // Continue with the actual calculation...
+ [2m544[0m |         // ... existing code ...
+ [2m545[0m |         
+ [2m546[0m |         // Determine joist span based on global direction setting
+ [2m547[0m |         // instead of automatically using the shorter distance
+ [2m548[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m549[0m |         
+ [2m550[0m |         // Calculate joist size based on span and load
+ [2m551[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m552[0m |         
+ [2m553[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m554[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+ [2m555[0m |         
+ [2m556[0m |         // Define joist spacing (in meters)
+ [2m557[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m558[0m |         
+ [2m559[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m560[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m561[0m |         
+ [2m562[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m563[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m564[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+     : [33;1m              ^^^^^|^^^^^[0m
+     :                    [33;1m`-- [33;1m`avgBayWidth` redefined here[0m[0m
+ [2m565[0m |         
+ [2m566[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m567[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+     `----
+
+  [31mx[0m the name `columnSize` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:488:1]
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+     : [31;1m              ^^^^^|^^^^[0m
+     :                    [31;1m`-- [31;1mprevious definition of `columnSize` here[0m[0m
+ [2m492[0m |         // Add test calculation to debug
+ [2m493[0m |         console.log('Running test calculation with default values');
+ [2m494[0m |         try {
+ [2m495[0m |           // Test values
+ [2m496[0m |           const testJoistSpan = 5;
+ [2m497[0m |           const testLoad = 1.5;
+ [2m498[0m |           const testFireRating = 'none';
+ [2m499[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m500[0m |           console.log('Test joist size:', testJoistSize);
+ [2m501[0m |           
+ [2m502[0m |           const testBeamSpan = 6;
+ [2m503[0m |           const testJoistSpacing = 0.8;
+ [2m504[0m |           const testNumFloors = 3;
+ [2m505[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m506[0m |           console.log('Test beam size:', testBeamSize);
+ [2m507[0m |           
+ [2m508[0m |           const testFloorHeight = 3.2;
+ [2m509[0m |           const testBayLength = 6;
+ [2m510[0m |           const testBayWidth = 6;
+ [2m511[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m512[0m |           console.log('Test column size:', testColumnSize);
+ [2m513[0m |           
+ [2m514[0m |           const testBuildingLength = 18;
+ [2m515[0m |           const testBuildingWidth = 12;
+ [2m516[0m |           const testLengthwiseBays = 3;
+ [2m517[0m |           const testWidthwiseBays = 2;
+ [2m518[0m |           const testTimberResult = calculateTimberWeight(
+ [2m519[0m |             testJoistSize,
+ [2m520[0m |             testBeamSize,
+ [2m521[0m |             testColumnSize,
+ [2m522[0m |             testBuildingLength,
+ [2m523[0m |             testBuildingWidth,
+ [2m524[0m |             testNumFloors,
+ [2m525[0m |             testLengthwiseBays,
+ [2m526[0m |             testWidthwiseBays,
+ [2m527[0m |             true // joists run lengthwise
+ [2m528[0m |           );
+ [2m529[0m |           console.log('Test timber result:', testTimberResult);
+ [2m530[0m |           
+ [2m531[0m |           const testCostResult = calculateCost(
+ [2m532[0m |             testTimberResult,
+ [2m533[0m |             testJoistSize,
+ [2m534[0m |             testBuildingLength,
+ [2m535[0m |             testBuildingWidth,
+ [2m536[0m |             testNumFloors
+ [2m537[0m |           );
+ [2m538[0m |           console.log('Test cost result:', testCostResult);
+ [2m539[0m |         } catch (testError) {
+ [2m540[0m |           console.error('Test calculation error:', testError);
+ [2m541[0m |         }
+ [2m542[0m |         
+ [2m543[0m |         // Continue with the actual calculation...
+ [2m544[0m |         // ... existing code ...
+ [2m545[0m |         
+ [2m546[0m |         // Determine joist span based on global direction setting
+ [2m547[0m |         // instead of automatically using the shorter distance
+ [2m548[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m549[0m |         
+ [2m550[0m |         // Calculate joist size based on span and load
+ [2m551[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m552[0m |         
+ [2m553[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m554[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+ [2m555[0m |         
+ [2m556[0m |         // Define joist spacing (in meters)
+ [2m557[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m558[0m |         
+ [2m559[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m560[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m561[0m |         
+ [2m562[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m563[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m564[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m565[0m |         
+ [2m566[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m567[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+     : [33;1m              ^^^^^|^^^^[0m
+     :                    [33;1m`-- [33;1m`columnSize` redefined here[0m[0m
+ [2m568[0m |         
+ [2m569[0m |         // Calculate timber weight and volumes
+ [2m570[0m |         const timberResult = calculateTimberWeight(
+     `----
+
+Import trace for requested module:
+./src/components/TimberCalculator.js
+./src/app/timber-calculator/page.js
+ ⨯ ./src/components/TimberCalculator.js
+Error: 
+  [31mx[0m the name `joistSpan` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:462:1]
+ [2m462[0m |         console.log('Max spans:', { maxLengthwiseSpan, maxWidthwiseSpan });
+ [2m463[0m |         
+ [2m464[0m |         // Determine joist span based on global direction setting
+ [2m465[0m |         const joistSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     : [31;1m              ^^^^|^^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `joistSpan` here[0m[0m
+ [2m466[0m |         console.log('Joist span:', joistSpan);
+ [2m467[0m |         
+ [2m468[0m |         // Calculate beam span based on global direction setting
+ [2m469[0m |         const beamSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m470[0m |         console.log('Beam span:', beamSpan);
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         console.log('Calculated column size:', columnSize);
+ [2m493[0m |         // Add test calculation to debug
+ [2m494[0m |         console.log('Running test calculation with default values');
+ [2m495[0m |         try {
+ [2m496[0m |           // Test values
+ [2m497[0m |           const testJoistSpan = 5;
+ [2m498[0m |           const testLoad = 1.5;
+ [2m499[0m |           const testFireRating = 'none';
+ [2m500[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m501[0m |           console.log('Test joist size:', testJoistSize);
+ [2m502[0m |           
+ [2m503[0m |           const testBeamSpan = 6;
+ [2m504[0m |           const testJoistSpacing = 0.8;
+ [2m505[0m |           const testNumFloors = 3;
+ [2m506[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m507[0m |           console.log('Test beam size:', testBeamSize);
+ [2m508[0m |           
+ [2m509[0m |           const testFloorHeight = 3.2;
+ [2m510[0m |           const testBayLength = 6;
+ [2m511[0m |           const testBayWidth = 6;
+ [2m512[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m513[0m |           console.log('Test column size:', testColumnSize);
+ [2m514[0m |           
+ [2m515[0m |           const testBuildingLength = 18;
+ [2m516[0m |           const testBuildingWidth = 12;
+ [2m517[0m |           const testLengthwiseBays = 3;
+ [2m518[0m |           const testWidthwiseBays = 2;
+ [2m519[0m |           const testTimberResult = calculateTimberWeight(
+ [2m520[0m |             testJoistSize,
+ [2m521[0m |             testBeamSize,
+ [2m522[0m |             testColumnSize,
+ [2m523[0m |             testBuildingLength,
+ [2m524[0m |             testBuildingWidth,
+ [2m525[0m |             testNumFloors,
+ [2m526[0m |             testLengthwiseBays,
+ [2m527[0m |             testWidthwiseBays,
+ [2m528[0m |             true // joists run lengthwise
+ [2m529[0m |           );
+ [2m530[0m |           console.log('Test timber result:', testTimberResult);
+ [2m531[0m |           
+ [2m532[0m |           const testCostResult = calculateCost(
+ [2m533[0m |             testTimberResult,
+ [2m534[0m |             testJoistSize,
+ [2m535[0m |             testBuildingLength,
+ [2m536[0m |             testBuildingWidth,
+ [2m537[0m |             testNumFloors
+ [2m538[0m |           );
+ [2m539[0m |           console.log('Test cost result:', testCostResult);
+ [2m540[0m |         } catch (testError) {
+ [2m541[0m |           console.error('Test calculation error:', testError);
+ [2m542[0m |         }
+ [2m543[0m |         
+ [2m544[0m |         // Continue with the actual calculation...
+ [2m545[0m |         // ... existing code ...
+ [2m546[0m |         
+ [2m547[0m |         // Determine joist span based on global direction setting
+ [2m548[0m |         // instead of automatically using the shorter distance
+ [2m549[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+     : [33;1m              ^^^^|^^^^[0m
+     :                   [33;1m`-- [33;1m`joistSpan` redefined here[0m[0m
+ [2m550[0m |         
+ [2m551[0m |         // Calculate joist size based on span and load
+ [2m552[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     `----
+
+  [31mx[0m the name `joistSize` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:471:1]
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     : [31;1m              ^^^^|^^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `joistSize` here[0m[0m
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         console.log('Calculated column size:', columnSize);
+ [2m493[0m |         // Add test calculation to debug
+ [2m494[0m |         console.log('Running test calculation with default values');
+ [2m495[0m |         try {
+ [2m496[0m |           // Test values
+ [2m497[0m |           const testJoistSpan = 5;
+ [2m498[0m |           const testLoad = 1.5;
+ [2m499[0m |           const testFireRating = 'none';
+ [2m500[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m501[0m |           console.log('Test joist size:', testJoistSize);
+ [2m502[0m |           
+ [2m503[0m |           const testBeamSpan = 6;
+ [2m504[0m |           const testJoistSpacing = 0.8;
+ [2m505[0m |           const testNumFloors = 3;
+ [2m506[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m507[0m |           console.log('Test beam size:', testBeamSize);
+ [2m508[0m |           
+ [2m509[0m |           const testFloorHeight = 3.2;
+ [2m510[0m |           const testBayLength = 6;
+ [2m511[0m |           const testBayWidth = 6;
+ [2m512[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m513[0m |           console.log('Test column size:', testColumnSize);
+ [2m514[0m |           
+ [2m515[0m |           const testBuildingLength = 18;
+ [2m516[0m |           const testBuildingWidth = 12;
+ [2m517[0m |           const testLengthwiseBays = 3;
+ [2m518[0m |           const testWidthwiseBays = 2;
+ [2m519[0m |           const testTimberResult = calculateTimberWeight(
+ [2m520[0m |             testJoistSize,
+ [2m521[0m |             testBeamSize,
+ [2m522[0m |             testColumnSize,
+ [2m523[0m |             testBuildingLength,
+ [2m524[0m |             testBuildingWidth,
+ [2m525[0m |             testNumFloors,
+ [2m526[0m |             testLengthwiseBays,
+ [2m527[0m |             testWidthwiseBays,
+ [2m528[0m |             true // joists run lengthwise
+ [2m529[0m |           );
+ [2m530[0m |           console.log('Test timber result:', testTimberResult);
+ [2m531[0m |           
+ [2m532[0m |           const testCostResult = calculateCost(
+ [2m533[0m |             testTimberResult,
+ [2m534[0m |             testJoistSize,
+ [2m535[0m |             testBuildingLength,
+ [2m536[0m |             testBuildingWidth,
+ [2m537[0m |             testNumFloors
+ [2m538[0m |           );
+ [2m539[0m |           console.log('Test cost result:', testCostResult);
+ [2m540[0m |         } catch (testError) {
+ [2m541[0m |           console.error('Test calculation error:', testError);
+ [2m542[0m |         }
+ [2m543[0m |         
+ [2m544[0m |         // Continue with the actual calculation...
+ [2m545[0m |         // ... existing code ...
+ [2m546[0m |         
+ [2m547[0m |         // Determine joist span based on global direction setting
+ [2m548[0m |         // instead of automatically using the shorter distance
+ [2m549[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m550[0m |         
+ [2m551[0m |         // Calculate joist size based on span and load
+ [2m552[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+     : [33;1m              ^^^^|^^^^[0m
+     :                   [33;1m`-- [33;1m`joistSize` redefined here[0m[0m
+ [2m553[0m |         
+ [2m554[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m555[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     `----
+
+  [31mx[0m the name `beamSpan` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:466:1]
+ [2m466[0m |         console.log('Joist span:', joistSpan);
+ [2m467[0m |         
+ [2m468[0m |         // Calculate beam span based on global direction setting
+ [2m469[0m |         const beamSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+     : [31;1m              ^^^^|^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `beamSpan` here[0m[0m
+ [2m470[0m |         console.log('Beam span:', beamSpan);
+ [2m471[0m |         
+ [2m472[0m |         // Calculate joist size based on span and load
+ [2m473[0m |         console.log('Calculating joist size with params:', { joistSpan, load, fireRating });
+ [2m474[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         console.log('Calculated column size:', columnSize);
+ [2m493[0m |         // Add test calculation to debug
+ [2m494[0m |         console.log('Running test calculation with default values');
+ [2m495[0m |         try {
+ [2m496[0m |           // Test values
+ [2m497[0m |           const testJoistSpan = 5;
+ [2m498[0m |           const testLoad = 1.5;
+ [2m499[0m |           const testFireRating = 'none';
+ [2m500[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m501[0m |           console.log('Test joist size:', testJoistSize);
+ [2m502[0m |           
+ [2m503[0m |           const testBeamSpan = 6;
+ [2m504[0m |           const testJoistSpacing = 0.8;
+ [2m505[0m |           const testNumFloors = 3;
+ [2m506[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m507[0m |           console.log('Test beam size:', testBeamSize);
+ [2m508[0m |           
+ [2m509[0m |           const testFloorHeight = 3.2;
+ [2m510[0m |           const testBayLength = 6;
+ [2m511[0m |           const testBayWidth = 6;
+ [2m512[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m513[0m |           console.log('Test column size:', testColumnSize);
+ [2m514[0m |           
+ [2m515[0m |           const testBuildingLength = 18;
+ [2m516[0m |           const testBuildingWidth = 12;
+ [2m517[0m |           const testLengthwiseBays = 3;
+ [2m518[0m |           const testWidthwiseBays = 2;
+ [2m519[0m |           const testTimberResult = calculateTimberWeight(
+ [2m520[0m |             testJoistSize,
+ [2m521[0m |             testBeamSize,
+ [2m522[0m |             testColumnSize,
+ [2m523[0m |             testBuildingLength,
+ [2m524[0m |             testBuildingWidth,
+ [2m525[0m |             testNumFloors,
+ [2m526[0m |             testLengthwiseBays,
+ [2m527[0m |             testWidthwiseBays,
+ [2m528[0m |             true // joists run lengthwise
+ [2m529[0m |           );
+ [2m530[0m |           console.log('Test timber result:', testTimberResult);
+ [2m531[0m |           
+ [2m532[0m |           const testCostResult = calculateCost(
+ [2m533[0m |             testTimberResult,
+ [2m534[0m |             testJoistSize,
+ [2m535[0m |             testBuildingLength,
+ [2m536[0m |             testBuildingWidth,
+ [2m537[0m |             testNumFloors
+ [2m538[0m |           );
+ [2m539[0m |           console.log('Test cost result:', testCostResult);
+ [2m540[0m |         } catch (testError) {
+ [2m541[0m |           console.error('Test calculation error:', testError);
+ [2m542[0m |         }
+ [2m543[0m |         
+ [2m544[0m |         // Continue with the actual calculation...
+ [2m545[0m |         // ... existing code ...
+ [2m546[0m |         
+ [2m547[0m |         // Determine joist span based on global direction setting
+ [2m548[0m |         // instead of automatically using the shorter distance
+ [2m549[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m550[0m |         
+ [2m551[0m |         // Calculate joist size based on span and load
+ [2m552[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m553[0m |         
+ [2m554[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m555[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+     : [33;1m              ^^^^|^^^[0m
+     :                   [33;1m`-- [33;1m`beamSpan` redefined here[0m[0m
+ [2m556[0m |         
+ [2m557[0m |         // Define joist spacing (in meters)
+ [2m558[0m |         const joistSpacing = 0.8; // 800mm spacing
+     `----
+
+  [31mx[0m the name `joistSpacing` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:475:1]
+ [2m475[0m |         console.log('Calculated joist size:', joistSize);
+ [2m476[0m |         
+ [2m477[0m |         // Define joist spacing (in meters)
+ [2m478[0m |         const joistSpacing = 0.8; // 800mm spacing
+     : [31;1m              ^^^^^^|^^^^^[0m
+     :                     [31;1m`-- [31;1mprevious definition of `joistSpacing` here[0m[0m
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         console.log('Calculated column size:', columnSize);
+ [2m493[0m |         // Add test calculation to debug
+ [2m494[0m |         console.log('Running test calculation with default values');
+ [2m495[0m |         try {
+ [2m496[0m |           // Test values
+ [2m497[0m |           const testJoistSpan = 5;
+ [2m498[0m |           const testLoad = 1.5;
+ [2m499[0m |           const testFireRating = 'none';
+ [2m500[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m501[0m |           console.log('Test joist size:', testJoistSize);
+ [2m502[0m |           
+ [2m503[0m |           const testBeamSpan = 6;
+ [2m504[0m |           const testJoistSpacing = 0.8;
+ [2m505[0m |           const testNumFloors = 3;
+ [2m506[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m507[0m |           console.log('Test beam size:', testBeamSize);
+ [2m508[0m |           
+ [2m509[0m |           const testFloorHeight = 3.2;
+ [2m510[0m |           const testBayLength = 6;
+ [2m511[0m |           const testBayWidth = 6;
+ [2m512[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m513[0m |           console.log('Test column size:', testColumnSize);
+ [2m514[0m |           
+ [2m515[0m |           const testBuildingLength = 18;
+ [2m516[0m |           const testBuildingWidth = 12;
+ [2m517[0m |           const testLengthwiseBays = 3;
+ [2m518[0m |           const testWidthwiseBays = 2;
+ [2m519[0m |           const testTimberResult = calculateTimberWeight(
+ [2m520[0m |             testJoistSize,
+ [2m521[0m |             testBeamSize,
+ [2m522[0m |             testColumnSize,
+ [2m523[0m |             testBuildingLength,
+ [2m524[0m |             testBuildingWidth,
+ [2m525[0m |             testNumFloors,
+ [2m526[0m |             testLengthwiseBays,
+ [2m527[0m |             testWidthwiseBays,
+ [2m528[0m |             true // joists run lengthwise
+ [2m529[0m |           );
+ [2m530[0m |           console.log('Test timber result:', testTimberResult);
+ [2m531[0m |           
+ [2m532[0m |           const testCostResult = calculateCost(
+ [2m533[0m |             testTimberResult,
+ [2m534[0m |             testJoistSize,
+ [2m535[0m |             testBuildingLength,
+ [2m536[0m |             testBuildingWidth,
+ [2m537[0m |             testNumFloors
+ [2m538[0m |           );
+ [2m539[0m |           console.log('Test cost result:', testCostResult);
+ [2m540[0m |         } catch (testError) {
+ [2m541[0m |           console.error('Test calculation error:', testError);
+ [2m542[0m |         }
+ [2m543[0m |         
+ [2m544[0m |         // Continue with the actual calculation...
+ [2m545[0m |         // ... existing code ...
+ [2m546[0m |         
+ [2m547[0m |         // Determine joist span based on global direction setting
+ [2m548[0m |         // instead of automatically using the shorter distance
+ [2m549[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m550[0m |         
+ [2m551[0m |         // Calculate joist size based on span and load
+ [2m552[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m553[0m |         
+ [2m554[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m555[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+ [2m556[0m |         
+ [2m557[0m |         // Define joist spacing (in meters)
+ [2m558[0m |         const joistSpacing = 0.8; // 800mm spacing
+     : [33;1m              ^^^^^^|^^^^^[0m
+     :                     [33;1m`-- [33;1m`joistSpacing` redefined here[0m[0m
+ [2m559[0m |         
+ [2m560[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m561[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+     `----
+
+  [31mx[0m the name `beamSize` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:479:1]
+ [2m479[0m |         
+ [2m480[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m481[0m |         console.log('Calculating beam size with params:', { beamSpan, load, joistSpacing, numFloors, fireRating });
+ [2m482[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+     : [31;1m              ^^^^|^^^[0m
+     :                   [31;1m`-- [31;1mprevious definition of `beamSize` here[0m[0m
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         console.log('Calculated column size:', columnSize);
+ [2m493[0m |         // Add test calculation to debug
+ [2m494[0m |         console.log('Running test calculation with default values');
+ [2m495[0m |         try {
+ [2m496[0m |           // Test values
+ [2m497[0m |           const testJoistSpan = 5;
+ [2m498[0m |           const testLoad = 1.5;
+ [2m499[0m |           const testFireRating = 'none';
+ [2m500[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m501[0m |           console.log('Test joist size:', testJoistSize);
+ [2m502[0m |           
+ [2m503[0m |           const testBeamSpan = 6;
+ [2m504[0m |           const testJoistSpacing = 0.8;
+ [2m505[0m |           const testNumFloors = 3;
+ [2m506[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m507[0m |           console.log('Test beam size:', testBeamSize);
+ [2m508[0m |           
+ [2m509[0m |           const testFloorHeight = 3.2;
+ [2m510[0m |           const testBayLength = 6;
+ [2m511[0m |           const testBayWidth = 6;
+ [2m512[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m513[0m |           console.log('Test column size:', testColumnSize);
+ [2m514[0m |           
+ [2m515[0m |           const testBuildingLength = 18;
+ [2m516[0m |           const testBuildingWidth = 12;
+ [2m517[0m |           const testLengthwiseBays = 3;
+ [2m518[0m |           const testWidthwiseBays = 2;
+ [2m519[0m |           const testTimberResult = calculateTimberWeight(
+ [2m520[0m |             testJoistSize,
+ [2m521[0m |             testBeamSize,
+ [2m522[0m |             testColumnSize,
+ [2m523[0m |             testBuildingLength,
+ [2m524[0m |             testBuildingWidth,
+ [2m525[0m |             testNumFloors,
+ [2m526[0m |             testLengthwiseBays,
+ [2m527[0m |             testWidthwiseBays,
+ [2m528[0m |             true // joists run lengthwise
+ [2m529[0m |           );
+ [2m530[0m |           console.log('Test timber result:', testTimberResult);
+ [2m531[0m |           
+ [2m532[0m |           const testCostResult = calculateCost(
+ [2m533[0m |             testTimberResult,
+ [2m534[0m |             testJoistSize,
+ [2m535[0m |             testBuildingLength,
+ [2m536[0m |             testBuildingWidth,
+ [2m537[0m |             testNumFloors
+ [2m538[0m |           );
+ [2m539[0m |           console.log('Test cost result:', testCostResult);
+ [2m540[0m |         } catch (testError) {
+ [2m541[0m |           console.error('Test calculation error:', testError);
+ [2m542[0m |         }
+ [2m543[0m |         
+ [2m544[0m |         // Continue with the actual calculation...
+ [2m545[0m |         // ... existing code ...
+ [2m546[0m |         
+ [2m547[0m |         // Determine joist span based on global direction setting
+ [2m548[0m |         // instead of automatically using the shorter distance
+ [2m549[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m550[0m |         
+ [2m551[0m |         // Calculate joist size based on span and load
+ [2m552[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m553[0m |         
+ [2m554[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m555[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+ [2m556[0m |         
+ [2m557[0m |         // Define joist spacing (in meters)
+ [2m558[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m559[0m |         
+ [2m560[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m561[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+     : [33;1m              ^^^^|^^^[0m
+     :                   [33;1m`-- [33;1m`beamSize` redefined here[0m[0m
+ [2m562[0m |         
+ [2m563[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m564[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+     `----
+
+  [31mx[0m the name `avgBayLength` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:483:1]
+ [2m483[0m |         console.log('Calculated beam size:', beamSize);
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+     : [31;1m              ^^^^^^|^^^^^[0m
+     :                     [31;1m`-- [31;1mprevious definition of `avgBayLength` here[0m[0m
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         console.log('Calculated column size:', columnSize);
+ [2m493[0m |         // Add test calculation to debug
+ [2m494[0m |         console.log('Running test calculation with default values');
+ [2m495[0m |         try {
+ [2m496[0m |           // Test values
+ [2m497[0m |           const testJoistSpan = 5;
+ [2m498[0m |           const testLoad = 1.5;
+ [2m499[0m |           const testFireRating = 'none';
+ [2m500[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m501[0m |           console.log('Test joist size:', testJoistSize);
+ [2m502[0m |           
+ [2m503[0m |           const testBeamSpan = 6;
+ [2m504[0m |           const testJoistSpacing = 0.8;
+ [2m505[0m |           const testNumFloors = 3;
+ [2m506[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m507[0m |           console.log('Test beam size:', testBeamSize);
+ [2m508[0m |           
+ [2m509[0m |           const testFloorHeight = 3.2;
+ [2m510[0m |           const testBayLength = 6;
+ [2m511[0m |           const testBayWidth = 6;
+ [2m512[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m513[0m |           console.log('Test column size:', testColumnSize);
+ [2m514[0m |           
+ [2m515[0m |           const testBuildingLength = 18;
+ [2m516[0m |           const testBuildingWidth = 12;
+ [2m517[0m |           const testLengthwiseBays = 3;
+ [2m518[0m |           const testWidthwiseBays = 2;
+ [2m519[0m |           const testTimberResult = calculateTimberWeight(
+ [2m520[0m |             testJoistSize,
+ [2m521[0m |             testBeamSize,
+ [2m522[0m |             testColumnSize,
+ [2m523[0m |             testBuildingLength,
+ [2m524[0m |             testBuildingWidth,
+ [2m525[0m |             testNumFloors,
+ [2m526[0m |             testLengthwiseBays,
+ [2m527[0m |             testWidthwiseBays,
+ [2m528[0m |             true // joists run lengthwise
+ [2m529[0m |           );
+ [2m530[0m |           console.log('Test timber result:', testTimberResult);
+ [2m531[0m |           
+ [2m532[0m |           const testCostResult = calculateCost(
+ [2m533[0m |             testTimberResult,
+ [2m534[0m |             testJoistSize,
+ [2m535[0m |             testBuildingLength,
+ [2m536[0m |             testBuildingWidth,
+ [2m537[0m |             testNumFloors
+ [2m538[0m |           );
+ [2m539[0m |           console.log('Test cost result:', testCostResult);
+ [2m540[0m |         } catch (testError) {
+ [2m541[0m |           console.error('Test calculation error:', testError);
+ [2m542[0m |         }
+ [2m543[0m |         
+ [2m544[0m |         // Continue with the actual calculation...
+ [2m545[0m |         // ... existing code ...
+ [2m546[0m |         
+ [2m547[0m |         // Determine joist span based on global direction setting
+ [2m548[0m |         // instead of automatically using the shorter distance
+ [2m549[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m550[0m |         
+ [2m551[0m |         // Calculate joist size based on span and load
+ [2m552[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m553[0m |         
+ [2m554[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m555[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+ [2m556[0m |         
+ [2m557[0m |         // Define joist spacing (in meters)
+ [2m558[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m559[0m |         
+ [2m560[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m561[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m562[0m |         
+ [2m563[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m564[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+     : [33;1m              ^^^^^^|^^^^^[0m
+     :                     [33;1m`-- [33;1m`avgBayLength` redefined here[0m[0m
+ [2m565[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m566[0m |         
+ [2m567[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+     `----
+
+  [31mx[0m the name `avgBayWidth` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:484:1]
+ [2m484[0m |         
+ [2m485[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m486[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m487[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+     : [31;1m              ^^^^^|^^^^^[0m
+     :                    [31;1m`-- [31;1mprevious definition of `avgBayWidth` here[0m[0m
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+ [2m492[0m |         console.log('Calculated column size:', columnSize);
+ [2m493[0m |         // Add test calculation to debug
+ [2m494[0m |         console.log('Running test calculation with default values');
+ [2m495[0m |         try {
+ [2m496[0m |           // Test values
+ [2m497[0m |           const testJoistSpan = 5;
+ [2m498[0m |           const testLoad = 1.5;
+ [2m499[0m |           const testFireRating = 'none';
+ [2m500[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m501[0m |           console.log('Test joist size:', testJoistSize);
+ [2m502[0m |           
+ [2m503[0m |           const testBeamSpan = 6;
+ [2m504[0m |           const testJoistSpacing = 0.8;
+ [2m505[0m |           const testNumFloors = 3;
+ [2m506[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m507[0m |           console.log('Test beam size:', testBeamSize);
+ [2m508[0m |           
+ [2m509[0m |           const testFloorHeight = 3.2;
+ [2m510[0m |           const testBayLength = 6;
+ [2m511[0m |           const testBayWidth = 6;
+ [2m512[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m513[0m |           console.log('Test column size:', testColumnSize);
+ [2m514[0m |           
+ [2m515[0m |           const testBuildingLength = 18;
+ [2m516[0m |           const testBuildingWidth = 12;
+ [2m517[0m |           const testLengthwiseBays = 3;
+ [2m518[0m |           const testWidthwiseBays = 2;
+ [2m519[0m |           const testTimberResult = calculateTimberWeight(
+ [2m520[0m |             testJoistSize,
+ [2m521[0m |             testBeamSize,
+ [2m522[0m |             testColumnSize,
+ [2m523[0m |             testBuildingLength,
+ [2m524[0m |             testBuildingWidth,
+ [2m525[0m |             testNumFloors,
+ [2m526[0m |             testLengthwiseBays,
+ [2m527[0m |             testWidthwiseBays,
+ [2m528[0m |             true // joists run lengthwise
+ [2m529[0m |           );
+ [2m530[0m |           console.log('Test timber result:', testTimberResult);
+ [2m531[0m |           
+ [2m532[0m |           const testCostResult = calculateCost(
+ [2m533[0m |             testTimberResult,
+ [2m534[0m |             testJoistSize,
+ [2m535[0m |             testBuildingLength,
+ [2m536[0m |             testBuildingWidth,
+ [2m537[0m |             testNumFloors
+ [2m538[0m |           );
+ [2m539[0m |           console.log('Test cost result:', testCostResult);
+ [2m540[0m |         } catch (testError) {
+ [2m541[0m |           console.error('Test calculation error:', testError);
+ [2m542[0m |         }
+ [2m543[0m |         
+ [2m544[0m |         // Continue with the actual calculation...
+ [2m545[0m |         // ... existing code ...
+ [2m546[0m |         
+ [2m547[0m |         // Determine joist span based on global direction setting
+ [2m548[0m |         // instead of automatically using the shorter distance
+ [2m549[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m550[0m |         
+ [2m551[0m |         // Calculate joist size based on span and load
+ [2m552[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m553[0m |         
+ [2m554[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m555[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+ [2m556[0m |         
+ [2m557[0m |         // Define joist spacing (in meters)
+ [2m558[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m559[0m |         
+ [2m560[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m561[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m562[0m |         
+ [2m563[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m564[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m565[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+     : [33;1m              ^^^^^|^^^^^[0m
+     :                    [33;1m`-- [33;1m`avgBayWidth` redefined here[0m[0m
+ [2m566[0m |         
+ [2m567[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m568[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+     `----
+
+  [31mx[0m the name `columnSize` is defined multiple times
+     ,-[[36;1;4m/Users/chrisgilbert/Documents/Cursor/Clone of timber calculator /MASSLAM-ATC/src/components/TimberCalculator.js[0m:488:1]
+ [2m488[0m |         
+ [2m489[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m490[0m |         console.log('Calculating column size with params:', { beamWidth: beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth });
+ [2m491[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+     : [31;1m              ^^^^^|^^^^[0m
+     :                    [31;1m`-- [31;1mprevious definition of `columnSize` here[0m[0m
+ [2m492[0m |         console.log('Calculated column size:', columnSize);
+ [2m493[0m |         // Add test calculation to debug
+ [2m494[0m |         console.log('Running test calculation with default values');
+ [2m495[0m |         try {
+ [2m496[0m |           // Test values
+ [2m497[0m |           const testJoistSpan = 5;
+ [2m498[0m |           const testLoad = 1.5;
+ [2m499[0m |           const testFireRating = 'none';
+ [2m500[0m |           const testJoistSize = calculateJoistSize(testJoistSpan, testLoad, testFireRating);
+ [2m501[0m |           console.log('Test joist size:', testJoistSize);
+ [2m502[0m |           
+ [2m503[0m |           const testBeamSpan = 6;
+ [2m504[0m |           const testJoistSpacing = 0.8;
+ [2m505[0m |           const testNumFloors = 3;
+ [2m506[0m |           const testBeamSize = calculateMultiFloorBeamSize(testBeamSpan, testLoad, testJoistSpacing, testNumFloors, testFireRating);
+ [2m507[0m |           console.log('Test beam size:', testBeamSize);
+ [2m508[0m |           
+ [2m509[0m |           const testFloorHeight = 3.2;
+ [2m510[0m |           const testBayLength = 6;
+ [2m511[0m |           const testBayWidth = 6;
+ [2m512[0m |           const testColumnSize = calculateMultiFloorColumnSize(testBeamSize.width, testLoad, testFloorHeight, testNumFloors, testFireRating, testBayLength, testBayWidth);
+ [2m513[0m |           console.log('Test column size:', testColumnSize);
+ [2m514[0m |           
+ [2m515[0m |           const testBuildingLength = 18;
+ [2m516[0m |           const testBuildingWidth = 12;
+ [2m517[0m |           const testLengthwiseBays = 3;
+ [2m518[0m |           const testWidthwiseBays = 2;
+ [2m519[0m |           const testTimberResult = calculateTimberWeight(
+ [2m520[0m |             testJoistSize,
+ [2m521[0m |             testBeamSize,
+ [2m522[0m |             testColumnSize,
+ [2m523[0m |             testBuildingLength,
+ [2m524[0m |             testBuildingWidth,
+ [2m525[0m |             testNumFloors,
+ [2m526[0m |             testLengthwiseBays,
+ [2m527[0m |             testWidthwiseBays,
+ [2m528[0m |             true // joists run lengthwise
+ [2m529[0m |           );
+ [2m530[0m |           console.log('Test timber result:', testTimberResult);
+ [2m531[0m |           
+ [2m532[0m |           const testCostResult = calculateCost(
+ [2m533[0m |             testTimberResult,
+ [2m534[0m |             testJoistSize,
+ [2m535[0m |             testBuildingLength,
+ [2m536[0m |             testBuildingWidth,
+ [2m537[0m |             testNumFloors
+ [2m538[0m |           );
+ [2m539[0m |           console.log('Test cost result:', testCostResult);
+ [2m540[0m |         } catch (testError) {
+ [2m541[0m |           console.error('Test calculation error:', testError);
+ [2m542[0m |         }
+ [2m543[0m |         
+ [2m544[0m |         // Continue with the actual calculation...
+ [2m545[0m |         // ... existing code ...
+ [2m546[0m |         
+ [2m547[0m |         // Determine joist span based on global direction setting
+ [2m548[0m |         // instead of automatically using the shorter distance
+ [2m549[0m |         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+ [2m550[0m |         
+ [2m551[0m |         // Calculate joist size based on span and load
+ [2m552[0m |         const joistSize = calculateJoistSize(joistSpan, load, fireRating);
+ [2m553[0m |         
+ [2m554[0m |         // Calculate beam span (beams span perpendicular to joists)
+ [2m555[0m |         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+ [2m556[0m |         
+ [2m557[0m |         // Define joist spacing (in meters)
+ [2m558[0m |         const joistSpacing = 0.8; // 800mm spacing
+ [2m559[0m |         
+ [2m560[0m |         // Calculate beam size based on span, load, joist spacing, and number of floors
+ [2m561[0m |         const beamSize = calculateMultiFloorBeamSize(beamSpan, load, joistSpacing, numFloors, fireRating);
+ [2m562[0m |         
+ [2m563[0m |         // Calculate average bay dimensions for tributary area calculation
+ [2m564[0m |         const avgBayLength = buildingLength / lengthwiseBays;
+ [2m565[0m |         const avgBayWidth = buildingWidth / widthwiseBays;
+ [2m566[0m |         
+ [2m567[0m |         // Calculate column size based on beam width, load, floor height, and number of floors
+ [2m568[0m |         const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
+     : [33;1m              ^^^^^|^^^^[0m
+     :                    [33;1m`-- [33;1m`columnSize` redefined here[0m[0m
+ [2m569[0m |         
+ [2m570[0m |         // Calculate timber weight and volumes
+ [2m571[0m |         const timberResult = calculateTimberWeight(
+     `----
+
+Import trace for requested module:
+./src/components/TimberCalculator.js
+./src/app/timber-calculator/page.js
+ ✓ Compiled in 339ms (547 modules)
+ ✓ Compiled in 174ms (547 modules)
+timberEngineering.js: Initializing MASSLAM sizes module
+Initializing MASSLAM sizes module
+Loading 234 hardcoded MASSLAM sizes during initialization
+Sizes by type after initialization: { joist: 78, beam: 78, column: 78 }
+timberEngineering.js: Initial MASSLAM sizes: [
+  { width: 120, depth: 200, type: 'joist' },
+  { width: 120, depth: 200, type: 'beam' },
+  { width: 120, depth: 200, type: 'column' },
+  { width: 120, depth: 270, type: 'joist' },
+  { width: 120, depth: 270, type: 'beam' },
+  { width: 120, depth: 270, type: 'column' },
+  { width: 120, depth: 335, type: 'joist' },
+  { width: 120, depth: 335, type: 'beam' },
+  { width: 120, depth: 335, type: 'column' },
+  { width: 120, depth: 410, type: 'joist' },
+  { width: 120, depth: 410, type: 'beam' },
+  { width: 120, depth: 410, type: 'column' },
+  { width: 120, depth: 480, type: 'joist' },
+  { width: 120, depth: 480, type: 'beam' },
+  { width: 120, depth: 480, type: 'column' },
+  { width: 120, depth: 550, type: 'joist' },
+  { width: 120, depth: 550, type: 'beam' },
+  { width: 120, depth: 550, type: 'column' },
+  { width: 120, depth: 620, type: 'joist' },
+  { width: 120, depth: 620, type: 'beam' },
+  { width: 120, depth: 620, type: 'column' },
+  { width: 165, depth: 200, type: 'joist' },
+  { width: 165, depth: 200, type: 'beam' },
+  { width: 165, depth: 200, type: 'column' },
+  { width: 165, depth: 270, type: 'joist' },
+  { width: 165, depth: 270, type: 'beam' },
+  { width: 165, depth: 270, type: 'column' },
+  { width: 165, depth: 335, type: 'joist' },
+  { width: 165, depth: 335, type: 'beam' },
+  { width: 165, depth: 335, type: 'column' },
+  { width: 165, depth: 410, type: 'joist' },
+  { width: 165, depth: 410, type: 'beam' },
+  { width: 165, depth: 410, type: 'column' },
+  { width: 165, depth: 480, type: 'joist' },
+  { width: 165, depth: 480, type: 'beam' },
+  { width: 165, depth: 480, type: 'column' },
+  { width: 165, depth: 550, type: 'joist' },
+  { width: 165, depth: 550, type: 'beam' },
+  { width: 165, depth: 550, type: 'column' },
+  { width: 165, depth: 620, type: 'joist' },
+  { width: 165, depth: 620, type: 'beam' },
+  { width: 165, depth: 620, type: 'column' },
+  { width: 205, depth: 200, type: 'joist' },
+  { width: 205, depth: 200, type: 'beam' },
+  { width: 205, depth: 200, type: 'column' },
+  { width: 205, depth: 270, type: 'joist' },
+  { width: 205, depth: 270, type: 'beam' },
+  { width: 205, depth: 270, type: 'column' },
+  { width: 205, depth: 335, type: 'joist' },
+  { width: 205, depth: 335, type: 'beam' },
+  { width: 205, depth: 335, type: 'column' },
+  { width: 205, depth: 410, type: 'joist' },
+  { width: 205, depth: 410, type: 'beam' },
+  { width: 205, depth: 410, type: 'column' },
+  { width: 205, depth: 480, type: 'joist' },
+  { width: 205, depth: 480, type: 'beam' },
+  { width: 205, depth: 480, type: 'column' },
+  { width: 205, depth: 550, type: 'joist' },
+  { width: 205, depth: 550, type: 'beam' },
+  { width: 205, depth: 550, type: 'column' },
+  { width: 205, depth: 620, type: 'joist' },
+  { width: 205, depth: 620, type: 'beam' },
+  { width: 205, depth: 620, type: 'column' },
+  { width: 250, depth: 200, type: 'joist' },
+  { width: 250, depth: 200, type: 'beam' },
+  { width: 250, depth: 200, type: 'column' },
+  { width: 250, depth: 270, type: 'joist' },
+  { width: 250, depth: 270, type: 'beam' },
+  { width: 250, depth: 270, type: 'column' },
+  { width: 250, depth: 335, type: 'joist' },
+  { width: 250, depth: 335, type: 'beam' },
+  { width: 250, depth: 335, type: 'column' },
+  { width: 250, depth: 410, type: 'joist' },
+  { width: 250, depth: 410, type: 'beam' },
+  { width: 250, depth: 410, type: 'column' },
+  { width: 250, depth: 480, type: 'joist' },
+  { width: 250, depth: 480, type: 'beam' },
+  { width: 250, depth: 480, type: 'column' },
+  { width: 250, depth: 550, type: 'joist' },
+  { width: 250, depth: 550, type: 'beam' },
+  { width: 250, depth: 550, type: 'column' },
+  { width: 250, depth: 620, type: 'joist' },
+  { width: 250, depth: 620, type: 'beam' },
+  { width: 250, depth: 620, type: 'column' },
+  { width: 290, depth: 200, type: 'joist' },
+  { width: 290, depth: 200, type: 'beam' },
+  { width: 290, depth: 200, type: 'column' },
+  { width: 290, depth: 270, type: 'joist' },
+  { width: 290, depth: 270, type: 'beam' },
+  { width: 290, depth: 270, type: 'column' },
+  { width: 290, depth: 335, type: 'joist' },
+  { width: 290, depth: 335, type: 'beam' },
+  { width: 290, depth: 335, type: 'column' },
+  { width: 290, depth: 410, type: 'joist' },
+  { width: 290, depth: 410, type: 'beam' },
+  { width: 290, depth: 410, type: 'column' },
+  { width: 290, depth: 480, type: 'joist' },
+  { width: 290, depth: 480, type: 'beam' },
+  { width: 290, depth: 480, type: 'column' },
+  { width: 290, depth: 550, type: 'joist' },
+  ... 134 more items
+]
+Loading mechanical properties from hardcoded data
+Loaded MASSLAM SL33 mechanical properties from hardcoded data
+Loaded MASSLAM SL33 properties from CSV: {
+  bendingStrength: 33,
+  tensileStrength: 16,
+  compressiveStrength: 26,
+  shearStrength: 4.2,
+  modulusOfElasticity: 13300,
+  density: 600,
+  tensileStrengthPerpendicular: 0.5,
+  compressiveStrengthPerpendicular: null,
+  bearingStrengthParallel: 30,
+  bearingStrengthPerpendicular: 10,
+  modulusOfElasticity5thPercentile: 9975,
+  modulusOfElasticityPerpendicular: 890,
+  modulusOfRigidity: 900,
+  jointGroup: 'JD4',
+  charringRate: 0.7
+}
+timberEngineering.js: Timber properties loaded from CSV
+ GET /timber-calculator 200 in 37ms
+ ✓ Compiled in 174ms (547 modules)
+ ✓ Compiled in 199ms (547 modules)
+ ✓ Compiled in 212ms (547 modules)
+[?25h
