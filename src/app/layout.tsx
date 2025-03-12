@@ -136,6 +136,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <Link href="/" className="apple-nav-link">Member Calculator</Link> 
                     </li>
                     <li className="w-full md:w-auto"> 
+                      <Link href="/carbon-calculator" className="apple-nav-link">Carbon Calculator</Link> 
+                    </li>
+                    <li className="w-full md:w-auto"> 
                       <Link href="/saved-projects" className="apple-nav-link">Saved Projects</Link> 
                     </li>
                     <li className="w-full md:w-auto"> 

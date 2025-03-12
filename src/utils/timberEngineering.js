@@ -3,7 +3,7 @@
  */
 
 import { 
-  validateMasslamSize, 
+  validateMasslamSize,
   getMasslamSizes,
   initializeMasslamSizes,
   loadMasslamSizes,
@@ -281,7 +281,7 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   // Calculate actual deflection (mm)
   // δ = (5 × w × L⁴) / (384 × E × I)
   const modulusOfElasticity = timberProps.modulusOfElasticity; // MPa (N/mm²)
-  const loadPerMm = loadPerMeter / 1000; // Convert kN/m to N/mm
+  const loadPerMm = loadPerMeter; // kN/m is equivalent to N/mm
   const spanMm = span * 1000; // Convert m to mm
   
   const actualDeflection = (5 * loadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * momentOfInertia);
@@ -293,6 +293,7 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   
   // Step 9: Adjust depth for deflection if necessary
   let adjustedDepth = requiredDepth;
+  let isDeflectionGoverning = false;
   
   if (actualDeflection > maxAllowableDeflection) {
     // Deflection is proportional to 1/I, and I is proportional to depth³
@@ -300,7 +301,10 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
     const deflectionRatio = actualDeflection / maxAllowableDeflection;
     const depthIncreaseFactor = Math.pow(deflectionRatio, 1/3);
     adjustedDepth = requiredDepth * depthIncreaseFactor;
-    console.log(`Adjusting depth for deflection: ${requiredDepth.toFixed(0)} mm × ${depthIncreaseFactor.toFixed(2)} = ${adjustedDepth.toFixed(0)} mm`);
+    isDeflectionGoverning = true;
+    console.log(`DEFLECTION GOVERNS: Adjusting depth for deflection: ${requiredDepth.toFixed(0)} mm × ${depthIncreaseFactor.toFixed(2)} = ${adjustedDepth.toFixed(0)} mm`);
+  } else {
+    console.log(`Bending strength governs design (deflection is within limits)`);
   }
   
   // Step 10: Calculate fire resistance allowance if needed
@@ -319,15 +323,61 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   
   // Step 12: Find nearest available standard size
   const width = initialWidth; // Use the initial width based on fire rating
-  console.log(`Finding nearest depth for width ${width}mm and target depth ${fireAdjustedDepth}mm`);
-  const depth = findNearestDepth(width, fireAdjustedDepth, 'joist');
-  console.log(`findNearestDepth returned: ${depth}mm`);
+  console.log(`Finding nearest depth for width ${width}mm and target depth ${fireAdjustedDepth}mm for joist`);
   
-  console.log(`Final joist size: ${width}mm width × ${depth}mm depth (standard size from CSV)`);
+  // Get all available joist sizes to check what's available
+  const allJoistSizes = getMasslamSizes().filter(size => size.type === 'joist');
+  const availableJoistWidths = [...new Set(allJoistSizes.map(size => size.width))].sort((a, b) => a - b);
+  const availableJoistDepths = allJoistSizes
+    .filter(size => size.width === width)
+    .map(size => size.depth)
+    .sort((a, b) => a - b);
+  
+  console.log(`Available joist widths: ${availableJoistWidths.join(', ')}mm`);
+  console.log(`Available joist depths for width ${width}mm: ${availableJoistDepths.join(', ')}mm`);
+  
+  // If no depths available for this width, use the nearest width
+  let widthToUse = width;
+  let depthsToUse = availableJoistDepths;
+  
+  if (availableJoistDepths.length === 0) {
+    console.warn(`No joist depths available for width ${width}mm, finding nearest width`);
+    
+    // Find the nearest width that has depths available
+    const nearestWidth = availableJoistWidths.reduce((prev, curr) => {
+      return Math.abs(curr - width) < Math.abs(prev - width) ? curr : prev;
+    }, availableJoistWidths[0]);
+    
+    widthToUse = nearestWidth;
+    console.log(`Using nearest available width: ${widthToUse}mm`);
+    
+    // Get depths for this width
+    depthsToUse = allJoistSizes
+      .filter(size => size.width === widthToUse)
+      .map(size => size.depth)
+      .sort((a, b) => a - b);
+    
+    console.log(`Available joist depths for width ${widthToUse}mm: ${depthsToUse.join(', ')}mm`);
+  }
+  
+  // Find the smallest depth that is >= targetDepth
+  let depth;
+  if (depthsToUse.length > 0) {
+    depth = depthsToUse.find(d => d >= fireAdjustedDepth) || depthsToUse[depthsToUse.length - 1];
+    console.log(`Selected joist depth: ${depth}mm for width ${widthToUse}mm`);
+  } else {
+    // Fallback to standard depths if no depths available
+    console.warn('No joist depths available in CSV, using fallback value');
+    const standardDepths = [200, 270, 335, 410, 480, 550, 620];
+    depth = standardDepths.find(d => d >= fireAdjustedDepth) || standardDepths[standardDepths.length - 1];
+    console.log(`Using fallback joist depth: ${depth}mm`);
+  }
+  
+  console.log(`Final joist size: ${widthToUse}mm width × ${depth}mm depth (standard size from CSV)`);
   
   // Step 13: Calculate self-weight based on final size
   // Convert dimensions to meters
-  const joistWidth = width / 1000; // m
+  const joistWidth = widthToUse / 1000; // m
   const joistDepth = depth / 1000; // m
   
   // Get timber density from properties (kg/m³)
@@ -357,8 +407,8 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   console.log(`Final load per meter (with self-weight): ${loadPerMeter.toFixed(2)} kN/m`);
   
   // Recalculate final section properties
-  const finalSectionModulus = (width * Math.pow(depth, 2)) / 6;
-  const finalMomentOfInertia = (width * Math.pow(depth, 3)) / 12;
+  const finalSectionModulus = (widthToUse * Math.pow(depth, 2)) / 6;
+  const finalMomentOfInertia = (widthToUse * Math.pow(depth, 3)) / 12;
   
   // Recalculate final bending moment with self-weight
   const finalBendingMoment = (loadPerMeter * Math.pow(span, 2)) / 8;
@@ -368,21 +418,28 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   const bendingUtilization = finalBendingMomentNmm / (bendingStrength * finalSectionModulus);
   const finalShearForce = (loadPerMeter * span) / 2 * 1000;
   const finalRequiredShearArea = finalShearForce / shearStrength;
-  const finalShearArea = width * depth;
+  const finalShearArea = widthToUse * depth;
   const finalShearUtilization = finalRequiredShearArea / finalShearArea;
   
   // Calculate final deflection
-  const finalLoadPerMm = loadPerMeter / 1000;
+  const finalLoadPerMm = loadPerMeter; // kN/m is equivalent to N/mm
   const finalDeflection = (5 * finalLoadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * finalMomentOfInertia);
   const finalDeflectionUtilization = finalDeflection / maxAllowableDeflection;
+  
+  // Log the final governing criteria
+  if (isDeflectionGoverning) {
+    console.log(`Final design is governed by DEFLECTION: ${finalDeflection.toFixed(2)}mm vs allowable ${maxAllowableDeflection.toFixed(1)}mm (${(finalDeflectionUtilization * 100).toFixed(1)}%)`);
+  } else {
+    console.log(`Final design is governed by BENDING: ${(bendingUtilization * 100).toFixed(1)}% utilization`);
+  }
   
   // Check if we're using fallback values
   const usingFallback = false;
   
   // Return comprehensive result object
   return {
-    width,
-    depth,
+    width: widthToUse,
+    depth: depth,
     span,
     spacing,
     load,
@@ -393,6 +450,7 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
     fireRating,
     fireAllowance,
     usingFallback,
+    governingCriteria: isDeflectionGoverning ? 'deflection' : 'bending',
     engineering: {
       bendingMoment: finalBendingMoment,
       requiredSectionModulus,
@@ -469,13 +527,14 @@ function calculateFallbackJoistSizeEngineered(span, spacing, load, timberGrade, 
   // Calculate actual deflection (mm)
   // δ = (5 × w × L⁴) / (384 × E × I)
   const modulusOfElasticity = timberProps.modulusOfElasticity; // MPa (N/mm²)
-  const loadPerMm = loadPerMeter / 1000; // Convert kN/m to N/mm
+  const loadPerMm = loadPerMeter; // kN/m is equivalent to N/mm
   const spanMm = span * 1000; // Convert m to mm
   
   const actualDeflection = (5 * loadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * momentOfInertia);
   
   // Step 8: Adjust depth for deflection if necessary
   let adjustedDepth = requiredDepth;
+  let isDeflectionGoverning = false;
   
   if (actualDeflection > maxAllowableDeflection) {
     // Deflection is proportional to 1/I, and I is proportional to depth³
@@ -483,6 +542,7 @@ function calculateFallbackJoistSizeEngineered(span, spacing, load, timberGrade, 
     const deflectionRatio = actualDeflection / maxAllowableDeflection;
     const depthIncreaseFactor = Math.pow(deflectionRatio, 1/3);
     adjustedDepth = requiredDepth * depthIncreaseFactor;
+    isDeflectionGoverning = true;
   }
   
   // Step 9: Calculate fire resistance allowance if needed
@@ -528,7 +588,7 @@ function calculateFallbackJoistSizeEngineered(span, spacing, load, timberGrade, 
   
   // Calculate final deflection
   const finalLoadPerMeter = totalLoad * spacingM;
-  const finalLoadPerMm = finalLoadPerMeter / 1000;
+  const finalLoadPerMm = finalLoadPerMeter; // kN/m is equivalent to N/mm
   const finalDeflection = (5 * finalLoadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * finalMomentOfInertia);
   
   return {
@@ -544,6 +604,7 @@ function calculateFallbackJoistSizeEngineered(span, spacing, load, timberGrade, 
     fireRating,
     fireAllowance,
     usingFallback: true,
+    governingCriteria: isDeflectionGoverning ? 'deflection' : 'bending',
     engineering: {
       bendingMoment: (finalLoadPerMeter * Math.pow(span, 2)) / 8,
       requiredSectionModulus,
@@ -644,7 +705,7 @@ export function calculateBeamSize(span, load, timberGrade, tributaryWidth, fireR
   // Calculate actual deflection (mm)
   // δ = (5 × w × L⁴) / (384 × E × I)
   const modulusOfElasticity = timberProps.modulusOfElasticity; // MPa (N/mm²)
-  const loadPerMm = loadPerMeter / 1000; // Convert kN/m to N/mm
+  const loadPerMm = loadPerMeter; // kN/m is equivalent to N/mm
   const spanMm = span * 1000; // Convert m to mm
   
   const actualDeflection = (5 * loadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * momentOfInertia);
@@ -696,7 +757,9 @@ export function calculateBeamSize(span, load, timberGrade, tributaryWidth, fireR
   const finalShearUtilization = requiredShearArea / finalShearArea;
   
   // Calculate final deflection
-  const finalDeflection = (5 * loadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * finalMomentOfInertia);
+  const finalLoadPerMeter = loadPerMeter; // Use the existing loadPerMeter instead of totalLoad * spacingM
+  const finalLoadPerMm = finalLoadPerMeter; // kN/m is equivalent to N/mm
+  const finalDeflection = (5 * finalLoadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * finalMomentOfInertia);
   const finalDeflectionUtilization = finalDeflection / maxAllowableDeflection;
   
   // Check if we're using fallback values
@@ -775,6 +838,14 @@ function calculateFallbackBeamSizeEngineered(span, load, timberGrade, tributaryW
   // Solve for depth: depth = √(6Z / width)
   const requiredDepth = Math.sqrt((6 * requiredSectionModulus) / initialWidth);
   
+  // Step 5: Check shear capacity
+  // Maximum shear force (N)
+  const maxShearForce = (loadPerMeter * span) / 2 * 1000; // Convert kN to N
+  
+  // Required shear area (mm²)
+  const shearStrength = timberProps.shearStrength; // MPa (N/mm²)
+  const requiredShearArea = maxShearForce / shearStrength;
+  
   // Step 5: Check deflection
   // Maximum allowable deflection (mm)
   const maxAllowableDeflection = (span * 1000) / 300; // span/300 in mm
@@ -785,7 +856,7 @@ function calculateFallbackBeamSizeEngineered(span, load, timberGrade, tributaryW
   // Calculate actual deflection (mm)
   // δ = (5 × w × L⁴) / (384 × E × I)
   const modulusOfElasticity = timberProps.modulusOfElasticity; // MPa (N/mm²)
-  const loadPerMm = loadPerMeter / 1000; // Convert kN/m to N/mm
+  const loadPerMm = loadPerMeter; // kN/m is equivalent to N/mm
   const spanMm = span * 1000; // Convert m to mm
   
   const actualDeflection = (5 * loadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * momentOfInertia);
@@ -829,7 +900,9 @@ function calculateFallbackBeamSizeEngineered(span, load, timberGrade, tributaryW
   const finalShearUtilization = requiredShearArea / finalShearArea;
   
   // Calculate final deflection
-  const finalDeflection = (5 * loadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * finalMomentOfInertia);
+  const finalLoadPerMeter = loadPerMeter; // Use the existing loadPerMeter instead of totalLoad * spacingM
+  const finalLoadPerMm = finalLoadPerMeter; // kN/m is equivalent to N/mm
+  const finalDeflection = (5 * finalLoadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * finalMomentOfInertia);
   const finalDeflectionUtilization = finalDeflection / maxAllowableDeflection;
   
   // Check if we're using fallback values

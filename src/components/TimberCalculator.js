@@ -1132,36 +1132,7 @@ export default function TimberCalculator() {
               </div>
               
               <div className="apple-results-body">
-                {/* Building Information */}
-                <div className="apple-results-section p-4 md:p-6 rounded-lg" style={{ backgroundColor: 'rgba(0, 113, 227, 0.05)' }}>
-                  <h3 className="font-medium mb-3 md:mb-4">Building Information</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                    <div>
-                      <p className="text-sm mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Dimensions:</p>
-                      <p className="font-medium">{results.buildingLength}m × {results.buildingWidth}m</p>
-                    </div>
-                    <div>
-                      <p className="text-sm mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Number of Floors:</p>
-                      <p className="font-medium">{results.numFloors}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Bay Size:</p>
-                      <p className="font-medium">{(results.buildingLength / results.lengthwiseBays).toFixed(2)}m × {(results.buildingWidth / results.widthwiseBays).toFixed(2)}m</p>
-                    </div>
-                    <div>
-                      <p className="text-sm mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Load:</p>
-                      <p className="font-medium">{results.load} kPa ({results.load === 2 ? 'Residential' : 'Commercial'})</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Timber Sizes Table - Moved above visualizations */}
-                <div className="apple-results-section">
-                  <h3 className="text-md md:text-lg font-semibold mb-3 md:mb-4">Selected Timber Sizes</h3>
-                  <div className="overflow-x-auto max-w-full">
-                    <TimberSizesTable results={results} compact={true} />
-                  </div>
-                </div>
+                {/* Building Information section removed - will be included in future PDF export */}
                 
                 {/* Visualizations - Side by side */}
                 <div className="apple-results-section grid grid-cols-1 gap-4 md:gap-8">
@@ -1275,9 +1246,9 @@ export default function TimberCalculator() {
                       
                       <div className="flex justify-center">
                         <div className="relative w-full" style={{ 
-                          maxWidth: '600px',
+                          maxWidth: '100%',
                           aspectRatio: `${buildingLength} / ${buildingWidth}`,
-                          maxHeight: '400px'
+                          maxHeight: '500px'
                         }}>
                           {/* Calculate bay dimensions */}
                           {(() => {
@@ -1461,8 +1432,8 @@ export default function TimberCalculator() {
                                       top: `${topPercent}%`,
                                       left: `${leftPercent}%`,
                                       transform: 'translate(-50%, -50%)',
-                                      width: `${(bayWidth / buildingLength) * 70}%`,
-                                      height: '20%'
+                                      width: '30px',
+                                      height: '30px'
                                     }}
                                     onClick={toggleJoistDirection}
                                   >
@@ -1479,9 +1450,8 @@ export default function TimberCalculator() {
                                       left: `${leftPercent}%`,
                                       top: `${topPercent}%`,
                                       transform: 'translate(-50%, -50%)',
-                                      height: `${(bayHeight / buildingWidth) * 70}%`,
-                                      width: '20%',
-                                      flexDirection: 'column'
+                                      width: '30px',
+                                      height: '30px'
                                     }}
                                     onClick={toggleJoistDirection}
                                   >
@@ -1660,9 +1630,9 @@ export default function TimberCalculator() {
                       {/* Joist Direction Toggle UI */}
                       <div className="mt-3 mb-3">
                         <div className="flex items-center justify-center">
-                          <div className="flex items-center bg-gray-100 rounded-lg p-1" style={{ border: '1px solid var(--apple-border)' }}>
+                          <div className="flex items-center bg-gray-100 rounded-lg p-1 w-full max-w-xs" style={{ border: '1px solid var(--apple-border)' }}>
                             <button 
-                              className={`px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-medium transition-colors ${joistsRunLengthwise ? 'bg-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+                              className={`px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-medium transition-colors flex-1 ${joistsRunLengthwise ? 'bg-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
                               style={{ 
                                 color: joistsRunLengthwise ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
                               }}
@@ -1671,7 +1641,7 @@ export default function TimberCalculator() {
                               Horizontal Joists ↔
                             </button>
                             <button 
-                              className={`px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-medium transition-colors ${!joistsRunLengthwise ? 'bg-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
+                              className={`px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-medium transition-colors flex-1 ${!joistsRunLengthwise ? 'bg-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
                               style={{ 
                                 color: !joistsRunLengthwise ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
                               }}
@@ -1810,6 +1780,41 @@ export default function TimberCalculator() {
                 {/* Results Section */}
                 {results && (
                   <div className="apple-section mt-4">
+                    {/* Project Estimate - Moved above Calculated Timber Sizes */}
+                    <div className="mb-6">
+                      <h3 className="apple-section-title text-lg md:text-xl font-semibold mb-3 md:mb-4">Project Estimate</h3>
+                      <div className="apple-section-content">
+                        <div className="grid grid-cols-1 bg-white p-3 md:p-4 rounded-lg shadow">
+                          <div className="border-b pb-3 mb-3">
+                            <h5 className="font-semibold mb-2 text-sm md:text-base">Total Cost Estimate</h5>
+                            <p className="text-xl md:text-2xl font-bold text-green-700">{formatCurrency(results.costs?.totalCost || 0)}</p>
+                            <p className="text-xs md:text-sm text-gray-500 mt-1">Excluding GST and installation</p>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                              <p className="text-xs md:text-sm text-gray-600">Joists</p>
+                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.elements?.joists?.cost || 0)}</p>
+                              <p className="text-xs text-gray-500">{results.elementCounts?.joists || 0} pieces</p>
+                              <p className="text-xs text-gray-500">{(buildingLength * buildingWidth * numFloors).toFixed(1)} m²</p>
+                            </div>
+                            <div>
+                              <p className="text-xs md:text-sm text-gray-600">Beams</p>
+                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.elements?.beams?.cost || 0)}</p>
+                              <p className="text-xs text-gray-500">{results.elementCounts?.beams || 0} pieces</p>
+                              <p className="text-xs text-gray-500">{results.elementVolumes?.beams?.toFixed(1) || 0} m³</p>
+                            </div>
+                            <div>
+                              <p className="text-xs md:text-sm text-gray-600">Columns</p>
+                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.elements?.columns?.cost || 0)}</p>
+                              <p className="text-xs text-gray-500">{results.elementCounts?.columns || 0} pieces</p>
+                              <p className="text-xs text-gray-500">{results.elementVolumes?.columns?.toFixed(1) || 0} m³</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
                     <h3 className="apple-section-title text-lg md:text-xl font-semibold mb-3 md:mb-4">Calculated Timber Sizes</h3>
                     <div className="apple-section-content">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -2069,36 +2074,6 @@ export default function TimberCalculator() {
                                   Based on average embodied carbon differential between mass timber and conventional structural systems.
                                 </p>
                               </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Project Estimate */}
-                      <div className="mt-4 bg-white p-4 rounded-lg shadow">
-                        <h4 className="font-semibold mb-2">Project Estimate</h4>
-                        <div className="grid grid-cols-1 bg-white p-3 md:p-4 rounded-lg shadow">
-                          <div className="border-b pb-3 mb-3">
-                            <h5 className="font-semibold mb-2 text-sm md:text-base">Total Cost Estimate</h5>
-                            <p className="text-xl md:text-2xl font-bold text-green-700">{formatCurrency(results.costs?.totalCost || 0)}</p>
-                            <p className="text-xs md:text-sm text-gray-500 mt-1">Excluding GST and installation</p>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <div>
-                              <p className="text-xs md:text-sm text-gray-600">Joists</p>
-                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.elements?.joists?.cost || 0)}</p>
-                              <p className="text-xs text-gray-500">{results.elementCounts?.joists || 0} pieces</p>
-                            </div>
-                            <div>
-                              <p className="text-xs md:text-sm text-gray-600">Beams</p>
-                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.elements?.beams?.cost || 0)}</p>
-                              <p className="text-xs text-gray-500">{results.elementCounts?.beams || 0} pieces</p>
-                            </div>
-                            <div>
-                              <p className="text-xs md:text-sm text-gray-600">Columns</p>
-                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.elements?.columns?.cost || 0)}</p>
-                              <p className="text-xs text-gray-500">{results.elementCounts?.columns || 0} pieces</p>
                             </div>
                           </div>
                         </div>
