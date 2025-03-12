@@ -291,36 +291,250 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
 }
 
 /**
- * Calculate beam size based on span and load
+ * Calculate beam size based on span, load, and tributary width using proper structural engineering principles
+ * @param {number} span - Span in meters
+ * @param {number} load - Load in kPa
+ * @param {string} timberGrade - Timber grade (e.g., 'ML38')
+ * @param {number} tributaryWidth - Tributary width in meters (required)
+ *                                  For interior beams: (Bay1Width + Bay2Width) / 2
+ *                                  For edge beams: BayWidth / 2
+ * @param {string} fireRating - Fire rating ('none', '30/30/30', '60/60/60', '90/90/90', '120/120/120')
+ * @returns {Object} Beam size and calculation details
  */
-export function calculateBeamSize(span, load, timberGrade, fireRating = 'none') {
-  console.log(`Calculating beam size for span: ${span}m, load: ${load}kPa, grade: ${timberGrade}, fire rating: ${fireRating}`);
+export function calculateBeamSize(span, load, timberGrade, tributaryWidth, fireRating = 'none') {
+  // Validate tributary width is provided
+  if (tributaryWidth === undefined || tributaryWidth <= 0) {
+    console.error('Tributary width must be provided and greater than 0');
+    throw new Error('Tributary width must be provided and greater than 0');
+  }
+  
+  console.log(`Calculating beam size for span: ${span}m, load: ${load}kPa, grade: ${timberGrade}, tributary width: ${tributaryWidth}m, fire rating: ${fireRating}`);
   
   // Check if MASSLAM sizes are loaded
   const sizesLoaded = checkMasslamSizesLoaded();
   if (!sizesLoaded) {
     console.warn('MASSLAM sizes not loaded, using fallback values for beam calculation');
     // Return a fallback size with a flag indicating fallback was used
-    return {
-      width: getFixedWidthForFireRating(fireRating),
-      depth: calculateFallbackBeamDepth(span),
-      type: 'beam',
-      utilization: 0.85,
-      deflection: span / 300,
-      usingFallback: true
-    };
+    return calculateFallbackBeamSizeEngineered(span, load, timberGrade, tributaryWidth, fireRating);
   }
   
-  // Continue with the existing calculation logic
-  // Placeholder implementation
-  const spanMm = span * 1000; // Convert to mm
+  // Get timber properties for the specified grade
+  const timberProps = TIMBER_PROPERTIES[timberGrade] || TIMBER_PROPERTIES.ML38;
+  console.log(`Using timber properties for ${timberGrade}:`, timberProps);
   
-  // Get fixed width based on fire rating
-  const fixedWidth = getFixedWidthForFireRating(fireRating);
-  console.log(`Using fixed width of ${fixedWidth}mm based on fire rating: ${fireRating}`);
+  // Step 1: Calculate load per meter (kN/m)
+  const loadPerMeter = load * tributaryWidth;
+  console.log(`Load per meter: ${load} kPa × ${tributaryWidth} m = ${loadPerMeter.toFixed(2)} kN/m`);
   
-  // Calculate theoretical depth only (width is now fixed)
-  const theoreticalDepth = Math.max(240, Math.ceil(spanMm / 12)); // Simplified calculation
+  // Step 2: Calculate total distributed load
+  const totalDistributedLoad = loadPerMeter * span;
+  console.log(`Total distributed load: ${loadPerMeter.toFixed(2)} kN/m × ${span} m = ${totalDistributedLoad.toFixed(2)} kN`);
+  
+  // Step 3: Calculate maximum bending moment (kNm)
+  const maxBendingMoment = (loadPerMeter * Math.pow(span, 2)) / 8;
+  console.log(`Maximum bending moment: (${loadPerMeter.toFixed(2)} kN/m × ${span}² m²) / 8 = ${maxBendingMoment.toFixed(2)} kNm`);
+  
+  // Convert to Nmm for section modulus calculation
+  const maxBendingMomentNmm = maxBendingMoment * 1000000; // 1 kNm = 1,000,000 Nmm
+  
+  // Step 4: Calculate required section modulus (mm³)
+  const bendingStrength = timberProps.bendingStrength; // MPa (N/mm²)
+  const requiredSectionModulus = maxBendingMomentNmm / bendingStrength;
+  console.log(`Required section modulus: ${maxBendingMomentNmm.toFixed(0)} Nmm / ${bendingStrength} N/mm² = ${requiredSectionModulus.toFixed(0)} mm³`);
+  
+  // Step 5: Calculate beam dimensions based on section modulus
+  // Start with a practical width based on fire rating
+  const initialWidth = getFixedWidthForFireRating(fireRating);
+  console.log(`Initial width based on fire rating: ${initialWidth} mm`);
+  
+  // Calculate required depth based on section modulus and width
+  // Z = (width × depth²) / 6
+  // Solve for depth: depth = √(6Z / width)
+  const requiredDepth = Math.sqrt((6 * requiredSectionModulus) / initialWidth);
+  console.log(`Required depth based on section modulus: √((6 × ${requiredSectionModulus.toFixed(0)}) / ${initialWidth}) = ${requiredDepth.toFixed(0)} mm`);
+  
+  // Step 6: Check shear capacity
+  // Maximum shear force (N)
+  const maxShearForce = (loadPerMeter * span) / 2 * 1000; // Convert kN to N
+  console.log(`Maximum shear force: (${loadPerMeter.toFixed(2)} kN/m × ${span} m) / 2 = ${(maxShearForce/1000).toFixed(2)} kN (${maxShearForce.toFixed(0)} N)`);
+  
+  // Required shear area (mm²)
+  const shearStrength = timberProps.shearStrength; // MPa (N/mm²)
+  const requiredShearArea = maxShearForce / shearStrength;
+  console.log(`Required shear area: ${maxShearForce.toFixed(0)} N / ${shearStrength} N/mm² = ${requiredShearArea.toFixed(0)} mm²`);
+  
+  // Check if shear area is satisfied by the section
+  const shearArea = initialWidth * requiredDepth;
+  const shearUtilization = requiredShearArea / shearArea;
+  console.log(`Shear area check: Required ${requiredShearArea.toFixed(0)} mm² vs. Available ${shearArea.toFixed(0)} mm² (Utilization: ${(shearUtilization * 100).toFixed(1)}%)`);
+  
+  // Step 7: Check deflection
+  // Maximum allowable deflection (mm)
+  const maxAllowableDeflection = (span * 1000) / 300; // span/300 in mm
+  console.log(`Maximum allowable deflection: ${span * 1000} mm / 300 = ${maxAllowableDeflection.toFixed(1)} mm`);
+  
+  // Calculate second moment of area (mm⁴)
+  const momentOfInertia = (initialWidth * Math.pow(requiredDepth, 3)) / 12;
+  
+  // Calculate actual deflection (mm)
+  // δ = (5 × w × L⁴) / (384 × E × I)
+  const modulusOfElasticity = timberProps.modulusOfElasticity; // MPa (N/mm²)
+  const loadPerMm = loadPerMeter / 1000; // Convert kN/m to N/mm
+  const spanMm = span * 1000; // Convert m to mm
+  
+  const actualDeflection = (5 * loadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * momentOfInertia);
+  console.log(`Actual deflection: ${actualDeflection.toFixed(2)} mm (Allowable: ${maxAllowableDeflection.toFixed(1)} mm)`);
+  
+  // Check if deflection is within limits
+  const deflectionUtilization = actualDeflection / maxAllowableDeflection;
+  console.log(`Deflection utilization: ${(deflectionUtilization * 100).toFixed(1)}%`);
+  
+  // Step 8: Adjust depth for deflection if necessary
+  let adjustedDepth = requiredDepth;
+  
+  if (actualDeflection > maxAllowableDeflection) {
+    // Deflection is proportional to 1/I, and I is proportional to depth³
+    // So if we need to reduce deflection by a factor of X, we need to increase depth by ∛X
+    const deflectionRatio = actualDeflection / maxAllowableDeflection;
+    const depthIncreaseFactor = Math.pow(deflectionRatio, 1/3);
+    adjustedDepth = requiredDepth * depthIncreaseFactor;
+    console.log(`Adjusting depth for deflection: ${requiredDepth.toFixed(0)} mm × ${depthIncreaseFactor.toFixed(2)} = ${adjustedDepth.toFixed(0)} mm`);
+  }
+  
+  // Step 9: Calculate fire resistance allowance if needed
+  let fireAllowance = 0;
+  if (fireRating && fireRating !== 'none') {
+    fireAllowance = calculateFireResistanceAllowance(fireRating);
+    console.log(`Fire resistance allowance: ${fireAllowance} mm per exposed face`);
+  }
+  
+  // Step 10: Add fire resistance allowance to dimensions
+  // For beams, typically 3 sides are exposed (bottom and two sides)
+  const fireAdjustedWidth = initialWidth + (2 * fireAllowance); // Both sides exposed
+  const fireAdjustedDepth = Math.max(240, Math.ceil(adjustedDepth)) + fireAllowance; // Only bottom exposed
+  
+  console.log(`Fire adjusted dimensions: ${fireAdjustedWidth}mm width × ${fireAdjustedDepth}mm depth`);
+  
+  // Step 11: Find nearest available standard size
+  const width = findNearestWidth(fireAdjustedWidth);
+  const depth = findNearestDepth(width, fireAdjustedDepth);
+  
+  console.log(`Final beam size: ${width}mm width × ${depth}mm depth (standard size from CSV)`);
+  
+  // Calculate final section properties
+  const finalSectionModulus = (width * Math.pow(depth, 2)) / 6;
+  const finalMomentOfInertia = (width * Math.pow(depth, 3)) / 12;
+  
+  // Calculate final utilization ratios
+  const bendingUtilization = maxBendingMomentNmm / (bendingStrength * finalSectionModulus);
+  const finalShearArea = width * depth;
+  const finalShearUtilization = requiredShearArea / finalShearArea;
+  
+  // Calculate final deflection
+  const finalDeflection = (5 * loadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * finalMomentOfInertia);
+  const finalDeflectionUtilization = finalDeflection / maxAllowableDeflection;
+  
+  // Check if we're using fallback values
+  const usingFallback = false;
+  
+  // Return comprehensive result object
+  return {
+    width,
+    depth,
+    span,
+    load,
+    tributaryWidth,
+    loadPerMeter,
+    grade: timberGrade,
+    fireRating,
+    fireAllowance,
+    usingFallback,
+    engineering: {
+      bendingMoment: maxBendingMoment,
+      requiredSectionModulus,
+      finalSectionModulus,
+      shearForce: maxShearForce / 1000, // Convert back to kN
+      requiredShearArea,
+      momentOfInertia: finalMomentOfInertia,
+      allowableDeflection: maxAllowableDeflection,
+      actualDeflection: finalDeflection,
+      utilization: {
+        bending: bendingUtilization,
+        shear: finalShearUtilization,
+        deflection: finalDeflectionUtilization,
+        overall: Math.max(bendingUtilization, finalShearUtilization, finalDeflectionUtilization)
+      }
+    }
+  };
+}
+
+/**
+ * Calculate beam size using proper engineering principles when CSV data isn't available
+ * This is a fallback function that uses the same engineering principles but with hardcoded standard sizes
+ * @param {number} span - Span in meters
+ * @param {number} load - Load in kPa
+ * @param {string} timberGrade - Timber grade
+ * @param {number} tributaryWidth - Tributary width in meters (required)
+ * @param {string} fireRating - Fire rating
+ * @returns {Object} Beam size and calculation details
+ */
+function calculateFallbackBeamSizeEngineered(span, load, timberGrade, tributaryWidth, fireRating = 'none') {
+  // Validate tributary width is provided
+  if (tributaryWidth === undefined || tributaryWidth <= 0) {
+    console.error('Tributary width must be provided and greater than 0');
+    throw new Error('Tributary width must be provided and greater than 0');
+  }
+  
+  // Get timber properties for the specified grade
+  const timberProps = TIMBER_PROPERTIES[timberGrade] || TIMBER_PROPERTIES.ML38;
+  
+  // Step 1: Calculate load per meter (kN/m)
+  const loadPerMeter = load * tributaryWidth;
+  
+  // Step 2: Calculate maximum bending moment (kNm)
+  const maxBendingMoment = (loadPerMeter * Math.pow(span, 2)) / 8;
+  
+  // Convert to Nmm for section modulus calculation
+  const maxBendingMomentNmm = maxBendingMoment * 1000000; // 1 kNm = 1,000,000 Nmm
+  
+  // Step 3: Calculate required section modulus (mm³)
+  const bendingStrength = timberProps.bendingStrength; // MPa (N/mm²)
+  const requiredSectionModulus = maxBendingMomentNmm / bendingStrength;
+  
+  // Step 4: Calculate beam dimensions based on section modulus
+  // Start with a practical width based on fire rating
+  const initialWidth = getFixedWidthForFireRating(fireRating);
+  
+  // Calculate required depth based on section modulus and width
+  // Z = (width × depth²) / 6
+  // Solve for depth: depth = √(6Z / width)
+  const requiredDepth = Math.sqrt((6 * requiredSectionModulus) / initialWidth);
+  
+  // Step 5: Check deflection
+  // Maximum allowable deflection (mm)
+  const maxAllowableDeflection = (span * 1000) / 300; // span/300 in mm
+  
+  // Calculate second moment of area (mm⁴)
+  const momentOfInertia = (initialWidth * Math.pow(requiredDepth, 3)) / 12;
+  
+  // Calculate actual deflection (mm)
+  // δ = (5 × w × L⁴) / (384 × E × I)
+  const modulusOfElasticity = timberProps.modulusOfElasticity; // MPa (N/mm²)
+  const loadPerMm = loadPerMeter / 1000; // Convert kN/m to N/mm
+  const spanMm = span * 1000; // Convert m to mm
+  
+  const actualDeflection = (5 * loadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * momentOfInertia);
+  
+  // Adjust depth for deflection if necessary
+  let adjustedDepth = requiredDepth;
+  
+  if (actualDeflection > maxAllowableDeflection) {
+    // Deflection is proportional to 1/I, and I is proportional to depth³
+    // So if we need to reduce deflection by a factor of X, we need to increase depth by ∛X
+    const deflectionRatio = actualDeflection / maxAllowableDeflection;
+    const depthIncreaseFactor = Math.pow(deflectionRatio, 1/3);
+    adjustedDepth = requiredDepth * depthIncreaseFactor;
+  }
   
   // Calculate fire resistance allowance if needed
   let fireAllowance = 0;
@@ -328,27 +542,39 @@ export function calculateBeamSize(span, load, timberGrade, fireRating = 'none') 
     fireAllowance = calculateFireResistanceAllowance(fireRating);
   }
   
-  // Add fire resistance allowance to depth only (width is fixed)
-  // For beams, typically only bottom is exposed for depth
-  const fireAdjustedDepth = theoreticalDepth + fireAllowance; // Only bottom exposed
+  // Add fire resistance allowance to dimensions
+  const fireAdjustedDepth = Math.max(240, Math.ceil(adjustedDepth)) + fireAllowance;
   
-  console.log(`Beam size: ${fixedWidth}x${fireAdjustedDepth}mm (fixed width based on fire rating)`);
+  // Round to nearest standard depth
+  const standardDepths = [200, 270, 335, 410, 480, 550, 620, 690, 760, 830];
+  const depth = findNearestValue(fireAdjustedDepth, standardDepths);
   
-  // Find the nearest available depth for the fixed width
-  const depth = findNearestDepth(fixedWidth, fireAdjustedDepth);
+  // Calculate final section properties
+  const finalSectionModulus = (initialWidth * Math.pow(depth, 2)) / 6;
+  const finalMomentOfInertia = (initialWidth * Math.pow(depth, 3)) / 12;
   
-  // Check if we're using fallback values
-  const usingFallback = depth === fireAdjustedDepth;
+  // Calculate final deflection
+  const finalDeflection = (5 * loadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * finalMomentOfInertia);
   
   return {
-    width: fixedWidth,
+    width: initialWidth,
     depth: depth,
-    span: span,
-    load: load,
+    span,
+    load,
+    tributaryWidth,
+    loadPerMeter,
     grade: timberGrade,
-    fireRating: fireRating,
-    fireAllowance: fireAllowance,
-    usingFallback: usingFallback // Add flag to indicate if fallback values are being used
+    fireRating,
+    fireAllowance,
+    usingFallback: true,
+    engineering: {
+      bendingMoment: maxBendingMoment,
+      requiredSectionModulus,
+      finalSectionModulus,
+      momentOfInertia: finalMomentOfInertia,
+      allowableDeflection: maxAllowableDeflection,
+      actualDeflection: finalDeflection
+    }
   };
 }
 
