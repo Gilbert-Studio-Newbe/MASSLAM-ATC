@@ -19,25 +19,54 @@ export const CHARRING_RATES = {
 export async function loadMasslamSL33CharringRate() {
   try {
     // Fetch the CSV file
-    console.log('Fetching mechanical properties from:', '/data/MASSLAM_SL33_Mechanical_Properties.csv');
+    console.log('Fetching charring rate from CSV...');
     
-    // Fix URL construction for both client and server environments
-    let url;
+    // Handle different environments (client vs server)
+    let csvText;
+    
     if (typeof window !== 'undefined') {
       // Client-side: Use window.location.origin
-      url = new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString();
+      const url = new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString();
+      console.log('Client-side: Fetching CSV from:', url);
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
+        return CHARRING_RATES.masslam_sl33; // Return default value if fetch fails
+      }
+      
+      csvText = await response.text();
     } else {
-      // Server-side: Use a relative path that works with Next.js API routes
-      url = './public/data/MASSLAM_SL33_Mechanical_Properties.csv';
+      // Server-side: Use Node.js file system API
+      console.log('Server-side: Reading CSV file directly for charring rate');
+      
+      try {
+        // Try to use the fs module if available (only works in Node.js environment)
+        const fs = require('fs');
+        const path = require('path');
+        
+        // Attempt to read the CSV file from the public directory
+        const csvPath = path.join(process.cwd(), 'public', 'data', 'MASSLAM_SL33_Mechanical_Properties.csv');
+        console.log('Attempting to read CSV from server path:', csvPath);
+        
+        if (fs.existsSync(csvPath)) {
+          csvText = fs.readFileSync(csvPath, 'utf8');
+          console.log('Successfully read mechanical properties CSV file for charring rate, length:', csvText.length);
+        } else {
+          console.warn('Mechanical properties CSV file not found at path:', csvPath);
+          return CHARRING_RATES.masslam_sl33;
+        }
+      } catch (fsError) {
+        console.warn('Failed to load mechanical properties CSV on server side:', fsError.message);
+        return CHARRING_RATES.masslam_sl33;
+      }
     }
     
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
-      return CHARRING_RATES.masslam_sl33; // Return default value if fetch fails
+    if (!csvText || csvText.trim().length === 0) {
+      console.error('Mechanical properties CSV file is empty');
+      return CHARRING_RATES.masslam_sl33;
     }
     
-    const csvText = await response.text();
     const lines = csvText.trim().split('\n');
     
     // Find the line with the charring rate
@@ -61,14 +90,14 @@ export async function loadMasslamSL33CharringRate() {
       return CHARRING_RATES.masslam_sl33; // Return default value if value is invalid
     }
     
-    console.log(`Loaded MASSLAM SL33 charring rate from CSV: ${charringRate} mm/min`);
+    console.log(`Loaded ML38 charring rate from CSV: ${charringRate} mm/min`);
     
     // Update the default charring rate
     CHARRING_RATES.masslam_sl33 = charringRate;
     
     return charringRate;
   } catch (error) {
-    console.error('Error loading MASSLAM SL33 charring rate:', error);
+    console.error('Error loading ML38 charring rate:', error);
     return CHARRING_RATES.masslam_sl33; // Return default value if an error occurs
   }
 }
@@ -255,25 +284,54 @@ export function getMasslamProductProperties(productCode) {
 export async function loadMasslamSL33MechanicalProperties() {
   try {
     // Fetch the CSV file
-    console.log('Fetching mechanical properties from:', '/data/MASSLAM_SL33_Mechanical_Properties.csv');
+    console.log('Fetching mechanical properties from CSV...');
     
-    // Fix URL construction for both client and server environments
-    let url;
+    // Handle different environments (client vs server)
+    let csvText;
+    
     if (typeof window !== 'undefined') {
       // Client-side: Use window.location.origin
-      url = new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString();
+      const url = new URL('/data/MASSLAM_SL33_Mechanical_Properties.csv', window.location.origin).toString();
+      console.log('Client-side: Fetching CSV from:', url);
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
+        return null; // Return null if fetch fails
+      }
+      
+      csvText = await response.text();
     } else {
-      // Server-side: Use a relative path that works with Next.js API routes
-      url = './public/data/MASSLAM_SL33_Mechanical_Properties.csv';
+      // Server-side: Use Node.js file system API
+      console.log('Server-side: Reading CSV file directly');
+      
+      try {
+        // Try to use the fs module if available (only works in Node.js environment)
+        const fs = require('fs');
+        const path = require('path');
+        
+        // Attempt to read the CSV file from the public directory
+        const csvPath = path.join(process.cwd(), 'public', 'data', 'MASSLAM_SL33_Mechanical_Properties.csv');
+        console.log('Attempting to read CSV from server path:', csvPath);
+        
+        if (fs.existsSync(csvPath)) {
+          csvText = fs.readFileSync(csvPath, 'utf8');
+          console.log('Successfully read mechanical properties CSV file, length:', csvText.length);
+        } else {
+          console.warn('Mechanical properties CSV file not found at path:', csvPath);
+          return null;
+        }
+      } catch (fsError) {
+        console.warn('Failed to load mechanical properties CSV on server side:', fsError.message);
+        return null;
+      }
     }
     
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
-      return null; // Return null if fetch fails
+    if (!csvText || csvText.trim().length === 0) {
+      console.error('Mechanical properties CSV file is empty');
+      return null;
     }
     
-    const csvText = await response.text();
     const lines = csvText.trim().split('\n');
     
     // Skip the header line and process each property line
@@ -304,10 +362,10 @@ export async function loadMasslamSL33MechanicalProperties() {
       };
     }
     
-    console.log('Loaded MASSLAM SL33 mechanical properties:', properties);
+    console.log('Loaded ML38 mechanical properties:', properties);
     return properties;
   } catch (error) {
-    console.error('Error loading MASSLAM SL33 mechanical properties:', error);
+    console.error('Error loading ML38 mechanical properties:', error);
     return null; // Return null if an error occurs
   }
 }
