@@ -3,11 +3,13 @@
  */
 
 import { 
-  findNearestWidth, 
-  findNearestDepth, 
-  validateMasslamSize,
+  validateMasslamSize, 
   getMasslamSizes,
-  initializeMasslamSizes
+  initializeMasslamSizes,
+  loadMasslamSizes,
+  checkMasslamSizesLoaded,
+  findNearestWidth,
+  findNearestDepth
 } from './timberSizes';
 import { 
   calculateFireResistanceAllowance, 
@@ -101,7 +103,16 @@ export async function loadTimberProperties() {
 // Initialize the module when this file is imported
 console.log('timberEngineering.js: Initializing MASSLAM sizes module');
 initializeMasslamSizes();
-console.log('timberEngineering.js: Initial MASSLAM sizes:', getMasslamSizes());
+
+// Load MASSLAM sizes from CSV
+loadMasslamSizes().then(sizes => {
+  console.log(`timberEngineering.js: Loaded ${sizes.length} MASSLAM sizes from CSV`);
+  if (sizes.length === 0) {
+    console.warn('timberEngineering.js: Failed to load MASSLAM sizes from CSV, calculations will use fallback values');
+  }
+}).catch(error => {
+  console.error('timberEngineering.js: Error loading MASSLAM sizes:', error);
+});
 
 // Load timber properties from CSV
 loadTimberProperties().then(() => {
@@ -111,16 +122,83 @@ loadTimberProperties().then(() => {
 });
 
 /**
- * Calculate the required joist size based on span, spacing, and load
- * 
- * @param {number} span - Span in meters
- * @param {number} spacing - Spacing in mm
- * @param {number} load - Load in kPa
- * @param {string} timberGrade - Timber grade (GL18, GL21, GL24)
- * @param {string} fireRating - Fire rating (e.g., "60/60/60", "90/90/90")
- * @returns {Object} Calculated joist size and properties
+ * Helper function to calculate fallback joist depth based on span
+ */
+function calculateFallbackJoistDepth(span) {
+  // Rule of thumb: depth ≈ span(mm) / 20 for joists
+  // This is a simplified approximation
+  const depthMm = (span * 1000) / 20;
+  
+  // Round to nearest standard depth
+  const standardDepths = [200, 270, 335, 410, 480, 550, 620];
+  return findNearestValue(depthMm, standardDepths);
+}
+
+/**
+ * Helper function to calculate fallback beam depth based on span
+ */
+function calculateFallbackBeamDepth(span) {
+  // Rule of thumb: depth ≈ span(mm) / 15 for beams
+  // This is a simplified approximation
+  const depthMm = (span * 1000) / 15;
+  
+  // Round to nearest standard depth
+  const standardDepths = [200, 270, 335, 410, 480, 550, 620];
+  return findNearestValue(depthMm, standardDepths);
+}
+
+/**
+ * Helper function to find the nearest value in an array
+ */
+function findNearestValue(target, values) {
+  return values.reduce((prev, curr) => {
+    return Math.abs(curr - target) < Math.abs(prev - target) ? curr : prev;
+  });
+}
+
+/**
+ * Maps fire rating level (FRL) to fixed joist width
+ * @param {string} fireRating - Fire rating ('none', '30/30/30', '60/60/60', '90/90/90', '120/120/120')
+ * @returns {number} Fixed width in mm based on fire rating
+ */
+function getFixedWidthForFireRating(fireRating) {
+  switch (fireRating) {
+    case 'none':
+      return 120; // Available in CSV
+    case '30/30/30':
+    case '60/60/60':
+      return 165; // Available in CSV
+    case '90/90/90':
+      return 205; // Available in CSV (closest to 200)
+    case '120/120/120':
+      return 250; // Available in CSV
+    default:
+      return 120; // Default to 120mm if unknown rating
+  }
+}
+
+/**
+ * Calculate joist size based on span, spacing, and load
  */
 export function calculateJoistSize(span, spacing, load, timberGrade, fireRating = 'none') {
+  console.log(`Calculating joist size for span: ${span}m, spacing: ${spacing}mm, load: ${load}kPa, grade: ${timberGrade}, fire rating: ${fireRating}`);
+  
+  // Check if MASSLAM sizes are loaded
+  const sizesLoaded = checkMasslamSizesLoaded();
+  if (!sizesLoaded) {
+    console.warn('MASSLAM sizes not loaded, using fallback values for joist calculation');
+    // Return a fallback size with a flag indicating fallback was used
+    return {
+      width: getFixedWidthForFireRating(fireRating),
+      depth: calculateFallbackJoistDepth(span),
+      type: 'joist',
+      utilization: 0.85,
+      deflection: span / 300,
+      usingFallback: true
+    };
+  }
+  
+  // Continue with the existing calculation logic
   // Convert spacing from mm to m for calculations
   const spacingM = spacing / 1000;
   
@@ -131,8 +209,11 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   // Placeholder implementation
   const spanMm = span * 1000; // Convert to mm
   
-  // Calculate theoretical width and depth
-  const theoreticalWidth = Math.max(45, Math.ceil(spanMm / 30)); // Simplified calculation
+  // Get fixed width based on fire rating
+  const fixedWidth = getFixedWidthForFireRating(fireRating);
+  console.log(`Using fixed width of ${fixedWidth}mm based on fire rating: ${fireRating}`);
+  
+  // Calculate theoretical depth only (width is now fixed)
   const theoreticalDepth = Math.max(140, Math.ceil(spanMm / 15)); // Simplified calculation
   
   // Calculate fire resistance allowance if needed
@@ -141,18 +222,19 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
     fireAllowance = calculateFireResistanceAllowance(fireRating);
   }
   
-  // Add fire resistance allowance to width and depth
-  // For joists, typically only 3 sides are exposed (bottom and two sides)
-  const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
+  // Add fire resistance allowance to depth only (width is fixed)
+  // For joists, typically only bottom is exposed for depth
   const fireAdjustedDepth = theoreticalDepth + fireAllowance; // Only bottom exposed
   
-  // Find the nearest available width and depth
-  const width = findNearestWidth(fireAdjustedWidth);
-  const depth = findNearestDepth(width, fireAdjustedDepth);
+  // Find the nearest available depth for the fixed width
+  const depth = findNearestDepth(fixedWidth, fireAdjustedDepth);
+  
+  // Check if we're using fallback values
+  const usingFallback = depth === fireAdjustedDepth;
   
   // Calculate self-weight based on size estimate
   // Convert dimensions to meters
-  const joistWidth = width / 1000; // m
+  const joistWidth = fixedWidth / 1000; // m
   const joistDepth = depth / 1000; // m
   
   // Get timber density from properties (kg/m³)
@@ -177,11 +259,10 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   totalLoad += selfWeightLoad;
   console.log(`Total load (with self-weight): ${totalLoad.toFixed(2)} kPa`);
   
-  console.log(`Joist size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
-  console.log(`Joist size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
+  console.log(`Joist size: ${fixedWidth}x${depth}mm (fixed width based on fire rating)`);
   
   return {
-    width: width,
+    width: fixedWidth,
     depth: depth,
     span: span,
     spacing: spacing,
@@ -191,25 +272,41 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
     selfWeightLoad: selfWeightLoad,
     grade: timberGrade,
     fireRating: fireRating,
-    fireAllowance: fireAllowance
+    fireAllowance: fireAllowance,
+    usingFallback: usingFallback // Add flag to indicate if fallback values are being used
   };
 }
 
 /**
- * Calculate the required beam size based on span and load
- * 
- * @param {number} span - Span in meters
- * @param {number} load - Load in kPa
- * @param {string} timberGrade - Timber grade (GL18, GL21, GL24)
- * @param {string} fireRating - Fire rating (e.g., "60/60/60", "90/90/90")
- * @returns {Object} Calculated beam size and properties
+ * Calculate beam size based on span and load
  */
 export function calculateBeamSize(span, load, timberGrade, fireRating = 'none') {
+  console.log(`Calculating beam size for span: ${span}m, load: ${load}kPa, grade: ${timberGrade}, fire rating: ${fireRating}`);
+  
+  // Check if MASSLAM sizes are loaded
+  const sizesLoaded = checkMasslamSizesLoaded();
+  if (!sizesLoaded) {
+    console.warn('MASSLAM sizes not loaded, using fallback values for beam calculation');
+    // Return a fallback size with a flag indicating fallback was used
+    return {
+      width: getFixedWidthForFireRating(fireRating),
+      depth: calculateFallbackBeamDepth(span),
+      type: 'beam',
+      utilization: 0.85,
+      deflection: span / 300,
+      usingFallback: true
+    };
+  }
+  
+  // Continue with the existing calculation logic
   // Placeholder implementation
   const spanMm = span * 1000; // Convert to mm
   
-  // Calculate theoretical width and depth
-  const theoreticalWidth = Math.max(65, Math.ceil(spanMm / 25)); // Simplified calculation
+  // Get fixed width based on fire rating
+  const fixedWidth = getFixedWidthForFireRating(fireRating);
+  console.log(`Using fixed width of ${fixedWidth}mm based on fire rating: ${fireRating}`);
+  
+  // Calculate theoretical depth only (width is now fixed)
   const theoreticalDepth = Math.max(240, Math.ceil(spanMm / 12)); // Simplified calculation
   
   // Calculate fire resistance allowance if needed
@@ -218,45 +315,60 @@ export function calculateBeamSize(span, load, timberGrade, fireRating = 'none') 
     fireAllowance = calculateFireResistanceAllowance(fireRating);
   }
   
-  // Add fire resistance allowance to width and depth
-  // For beams, typically 3 sides are exposed (bottom and two sides)
-  const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
+  // Add fire resistance allowance to depth only (width is fixed)
+  // For beams, typically only bottom is exposed for depth
   const fireAdjustedDepth = theoreticalDepth + fireAllowance; // Only bottom exposed
   
-  console.log(`Beam size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
-  console.log(`Beam size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
+  console.log(`Beam size: ${fixedWidth}x${fireAdjustedDepth}mm (fixed width based on fire rating)`);
   
-  // Find the nearest available width and depth
-  const width = findNearestWidth(fireAdjustedWidth);
-  const depth = findNearestDepth(width, fireAdjustedDepth);
+  // Find the nearest available depth for the fixed width
+  const depth = findNearestDepth(fixedWidth, fireAdjustedDepth);
+  
+  // Check if we're using fallback values
+  const usingFallback = depth === fireAdjustedDepth;
   
   return {
-    width: width,
+    width: fixedWidth,
     depth: depth,
     span: span,
     load: load,
     grade: timberGrade,
     fireRating: fireRating,
-    fireAllowance: fireAllowance
+    fireAllowance: fireAllowance,
+    usingFallback: usingFallback // Add flag to indicate if fallback values are being used
   };
 }
 
 /**
- * Calculate the required column size based on height and load
- * 
- * @param {number} height - Height in meters
- * @param {number} load - Load in kN
- * @param {string} timberGrade - Timber grade (GL18, GL21, GL24)
- * @param {string} fireRating - Fire rating (e.g., "60/60/60", "90/90/90")
- * @returns {Object} Calculated column size and properties
+ * Calculate column size based on height and load
  */
 export function calculateColumnSize(height, load, timberGrade, fireRating = 'none') {
+  console.log(`Calculating column size for height: ${height}m, load: ${load}kN, grade: ${timberGrade}, fire rating: ${fireRating}`);
+  
+  // Check if MASSLAM sizes are loaded
+  const sizesLoaded = checkMasslamSizesLoaded();
+  if (!sizesLoaded) {
+    console.warn('MASSLAM sizes not loaded, using fallback values for column calculation');
+    // Return a fallback size with a flag indicating fallback was used
+    return {
+      width: getFixedWidthForFireRating(fireRating),
+      depth: getFixedWidthForFireRating(fireRating), // For columns, use same width for depth to keep square
+      type: 'column',
+      utilization: 0.85,
+      usingFallback: true
+    };
+  }
+  
+  // Continue with the existing calculation logic
   // Placeholder implementation
   const heightMm = height * 1000; // Convert to mm
   
-  // Calculate theoretical width and depth
-  const theoreticalWidth = Math.max(90, Math.ceil(Math.sqrt(load) * 20)); // Simplified calculation
-  const theoreticalDepth = theoreticalWidth; // Square columns for simplicity
+  // Get fixed width based on fire rating
+  const fixedWidth = getFixedWidthForFireRating(fireRating);
+  console.log(`Using fixed width of ${fixedWidth}mm based on fire rating: ${fireRating}`);
+  
+  // For columns, we typically want square sections, so use the same value for depth
+  const fixedDepth = fixedWidth;
   
   // Calculate fire resistance allowance if needed
   let fireAllowance = 0;
@@ -264,26 +376,20 @@ export function calculateColumnSize(height, load, timberGrade, fireRating = 'non
     fireAllowance = calculateFireResistanceAllowance(fireRating);
   }
   
-  // Add fire resistance allowance to width and depth
-  // For columns, all 4 sides are exposed
-  const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
-  const fireAdjustedDepth = theoreticalDepth + (2 * fireAllowance); // Both sides exposed
+  console.log(`Column size: ${fixedWidth}x${fixedDepth}mm (fixed dimensions based on fire rating)`);
   
-  console.log(`Column size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
-  console.log(`Column size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
-  
-  // Find the nearest available width and depth
-  const width = findNearestWidth(fireAdjustedWidth);
-  const depth = findNearestDepth(width, fireAdjustedDepth);
+  // Check if we're using fallback values - for columns, we're always using the fixed values
+  const usingFallback = false;
   
   return {
-    width: width,
-    depth: depth,
+    width: fixedWidth,
+    depth: fixedDepth,
     height: height,
     load: load,
     grade: timberGrade,
     fireRating: fireRating,
-    fireAllowance: fireAllowance
+    fireAllowance: fireAllowance,
+    usingFallback: usingFallback
   };
 }
 

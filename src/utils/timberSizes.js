@@ -52,103 +52,159 @@ export async function loadMasslamSizes() {
   
   try {
     // Fetch the CSV file
-    const response = await fetch('/data/masslam_sizes.csv');
-    if (!response.ok) {
-      throw new Error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
-    }
-    
-    const csvText = await response.text();
-    console.log('Raw CSV content length:', csvText.length);
-    console.log('CSV lines:', csvText.trim().split('\n').length);
-    
-    // Manual parsing to ensure we get exactly what's in the file
-    const lines = csvText.trim().split('\n');
-    const headers = lines[0].split(',');
-    
-    console.log('CSV Headers:', headers);
-    
-    // Check if we have the expected headers
-    if (!headers.includes('width') || !headers.includes('depth') || !headers.includes('type')) {
-      console.error('CSV is missing required headers (width, depth, type)');
+    let url;
+    if (typeof window !== 'undefined') {
+      // Client-side: Use window.location.origin
+      url = new URL('/data/masslam_sizes.csv', window.location.origin).toString();
+      console.log('Fetching CSV from:', url);
+    } else {
+      // Server-side: Use Node.js file system API instead of fetch
+      console.log('Server-side CSV loading detected');
+      
+      try {
+        // Try to use the fs module if available (only works in Node.js environment)
+        const fs = require('fs');
+        const path = require('path');
+        
+        // Attempt to read the CSV file from the public directory
+        const csvPath = path.join(process.cwd(), 'public', 'data', 'masslam_sizes.csv');
+        console.log('Attempting to read CSV from server path:', csvPath);
+        
+        if (fs.existsSync(csvPath)) {
+          const csvText = fs.readFileSync(csvPath, 'utf8');
+          console.log('Successfully read CSV file on server side, length:', csvText.length);
+          
+          // Process the CSV data (reuse the same parsing logic below)
+          return processCSVText(csvText);
+        } else {
+          console.warn('CSV file not found at path:', csvPath);
+        }
+      } catch (fsError) {
+        console.warn('Failed to load CSV on server side:', fsError.message);
+      }
+      
+      console.log('Server-side CSV loading not implemented, using hardcoded values');
       return [];
     }
     
-    // Get the index of each header
-    const widthIndex = headers.indexOf('width');
-    const depthIndex = headers.indexOf('depth');
-    const typeIndex = headers.indexOf('type');
-    
-    console.log(`Header indices: width=${widthIndex}, depth=${depthIndex}, type=${typeIndex}`);
-    
-    // Parse the data rows
-    const parsedData = [];
-    const skippedLines = [];
-    
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) {
-        console.log(`Line ${i} is empty, skipping`);
-        continue; // Skip empty lines
-      }
-      
-      const values = line.split(',');
-      
-      // Ensure we have enough values
-      if (values.length < Math.max(widthIndex, depthIndex, typeIndex) + 1) {
-        console.warn(`Line ${i} has insufficient values: ${line}`);
-        skippedLines.push({ line: i, reason: 'insufficient values', content: line });
-        continue;
-      }
-      
-      // Create the size object with proper type conversion
-      const size = {
-        width: Number(values[widthIndex]),
-        depth: Number(values[depthIndex]),
-        type: values[typeIndex].trim()
-      };
-      
-      // Validate the size
-      if (isNaN(size.width) || isNaN(size.depth) || !size.type) {
-        console.warn(`Line ${i} has invalid values: ${line}`);
-        skippedLines.push({ line: i, reason: 'invalid values', content: line });
-        continue;
-      }
-      
-      parsedData.push(size);
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
+      return [];
     }
     
-    console.log(`Manually parsed ${parsedData.length} sizes from CSV`);
-    if (skippedLines.length > 0) {
-      console.warn(`Skipped ${skippedLines.length} lines during parsing:`, skippedLines);
+    const csvText = await response.text();
+    if (!csvText || csvText.trim().length === 0) {
+      console.error('CSV file is empty');
+      return [];
     }
     
-    // Count by type before setting
-    const typeCountBefore = {};
-    parsedData.forEach(size => {
-      typeCountBefore[size.type] = (typeCountBefore[size.type] || 0) + 1;
-    });
-    console.log('Sizes by type before setting:', typeCountBefore);
+    console.log('Raw CSV content length:', csvText.length);
+    console.log('CSV lines:', csvText.trim().split('\n').length);
     
-    // Set the parsed data
-    _setMasslamSizes(parsedData);
-    
-    // Count by type after setting
-    const sizes = getMasslamSizes();
-    const typeCountAfter = {};
-    sizes.forEach(size => {
-      typeCountAfter[size.type] = (typeCountAfter[size.type] || 0) + 1;
-    });
-    console.log('Sizes by type after setting:', typeCountAfter);
-    
-    // Log the current state
-    console.log(`MASSLAM sizes loaded: ${_masslamSizes.length} sizes`);
-    
-    // Return a copy of the data
-    return getMasslamSizes();
+    return processCSVText(csvText);
   } catch (error) {
     console.error('Error loading MASSLAM sizes:', error);
     return [];
   }
+}
+
+// Helper function to process CSV text
+function processCSVText(csvText) {
+  // Manual parsing to ensure we get exactly what's in the file
+  const lines = csvText.trim().split('\n');
+  if (lines.length <= 1) {
+    console.error('CSV file has no data rows');
+    return [];
+  }
+  
+  const headers = lines[0].split(',');
+  
+  console.log('CSV Headers:', headers);
+  
+  // Check if we have the expected headers
+  if (!headers.includes('width') || !headers.includes('depth') || !headers.includes('type')) {
+    console.error('CSV is missing required headers (width, depth, type)');
+    return [];
+  }
+  
+  // Get the index of each header
+  const widthIndex = headers.indexOf('width');
+  const depthIndex = headers.indexOf('depth');
+  const typeIndex = headers.indexOf('type');
+  
+  console.log(`Header indices: width=${widthIndex}, depth=${depthIndex}, type=${typeIndex}`);
+  
+  // Parse the data rows
+  const parsedData = [];
+  const skippedLines = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) {
+      console.log(`Line ${i} is empty, skipping`);
+      continue; // Skip empty lines
+    }
+    
+    const values = line.split(',');
+    
+    // Ensure we have enough values
+    if (values.length < Math.max(widthIndex, depthIndex, typeIndex) + 1) {
+      console.warn(`Line ${i} has insufficient values: ${line}`);
+      skippedLines.push({ line: i, reason: 'insufficient values', content: line });
+      continue;
+    }
+    
+    // Create the size object with proper type conversion
+    const size = {
+      width: Number(values[widthIndex]),
+      depth: Number(values[depthIndex]),
+      type: values[typeIndex].trim()
+    };
+    
+    // Validate the size
+    if (isNaN(size.width) || isNaN(size.depth) || !size.type) {
+      console.warn(`Line ${i} has invalid values: ${line}`);
+      skippedLines.push({ line: i, reason: 'invalid values', content: line });
+      continue;
+    }
+    
+    parsedData.push(size);
+  }
+  
+  console.log(`Manually parsed ${parsedData.length} sizes from CSV`);
+  if (skippedLines.length > 0) {
+    console.warn(`Skipped ${skippedLines.length} lines during parsing:`, skippedLines);
+  }
+  
+  if (parsedData.length === 0) {
+    console.error('No valid data rows found in CSV');
+    return [];
+  }
+  
+  // Count by type before setting
+  const typeCountBefore = {};
+  parsedData.forEach(size => {
+    typeCountBefore[size.type] = (typeCountBefore[size.type] || 0) + 1;
+  });
+  console.log('Sizes by type before setting:', typeCountBefore);
+  
+  // Set the parsed data
+  _setMasslamSizes(parsedData);
+  
+  // Count by type after setting
+  const sizes = getMasslamSizes();
+  const typeCountAfter = {};
+  sizes.forEach(size => {
+    typeCountAfter[size.type] = (typeCountAfter[size.type] || 0) + 1;
+  });
+  console.log('Sizes by type after setting:', typeCountAfter);
+  
+  // Log the current state
+  console.log(`MASSLAM sizes loaded: ${_masslamSizes.length} sizes`);
+  
+  // Return a copy of the data
+  return getMasslamSizes();
 }
 
 /**
@@ -160,15 +216,18 @@ export function findNearestWidth(targetWidth) {
   const sizes = getMasslamSizes();
   
   if (sizes.length === 0) {
-    console.warn('MASSLAM sizes not loaded yet, cannot find nearest width');
-    return targetWidth;
+    console.warn('MASSLAM sizes not loaded yet, cannot find nearest width. Using fallback value.');
+    return targetWidth; // Fallback to the input value
   }
   
   // Extract unique widths and sort them
   const availableWidths = [...new Set(sizes.map(size => size.width))].sort((a, b) => a - b);
   console.log('Available widths from CSV:', availableWidths);
   
-  if (availableWidths.length === 0) return targetWidth;
+  if (availableWidths.length === 0) {
+    console.warn('No available widths found in CSV data. Using fallback value.');
+    return targetWidth; // Fallback to the input value
+  }
   
   // Find the smallest width that is >= targetWidth
   const roundedUpWidth = availableWidths.find(w => w >= targetWidth) || availableWidths[availableWidths.length - 1];
@@ -187,26 +246,40 @@ export function findNearestDepth(width, targetDepth) {
   const sizes = getMasslamSizes();
   
   if (sizes.length === 0) {
-    console.warn('MASSLAM sizes not loaded yet, cannot find nearest depth');
-    return targetDepth;
+    console.warn('MASSLAM sizes not loaded yet, cannot find nearest depth. Using fallback value.');
+    return targetDepth; // Fallback to the input value
+  }
+  
+  // Get all unique widths
+  const allWidths = [...new Set(sizes.map(size => size.width))].sort((a, b) => a - b);
+  
+  // Check if the exact width exists in the data
+  let widthToUse = width;
+  if (!allWidths.includes(width)) {
+    // Find the nearest width if the exact width doesn't exist
+    const nearestWidth = allWidths.reduce((prev, curr) => {
+      return Math.abs(curr - width) < Math.abs(prev - width) ? curr : prev;
+    });
+    console.warn(`Width ${width}mm not found in CSV data. Using nearest available width: ${nearestWidth}mm`);
+    widthToUse = nearestWidth;
   }
   
   // Filter depths available for the given width
   const availableDepths = sizes
-    .filter(size => size.width === width)
+    .filter(size => size.width === widthToUse)
     .map(size => size.depth)
     .sort((a, b) => a - b);
   
-  console.log(`Available depths for width ${width} from CSV:`, availableDepths);
+  console.log(`Available depths for width ${widthToUse}mm from CSV:`, availableDepths);
   
   if (availableDepths.length === 0) {
-    console.warn(`No depths available for width ${width} in the CSV file`);
-    return targetDepth;
+    console.warn(`No depths available for width ${widthToUse}mm in the CSV file. Using fallback value.`);
+    return targetDepth; // Fallback to the input value
   }
   
   // Find the smallest depth that is >= targetDepth
   const roundedUpDepth = availableDepths.find(d => d >= targetDepth) || availableDepths[availableDepths.length - 1];
-  console.log(`Rounding depth ${targetDepth}mm up to ${roundedUpDepth}mm for width ${width}mm`);
+  console.log(`Rounding depth ${targetDepth}mm up to ${roundedUpDepth}mm for width ${widthToUse}mm`);
   
   return roundedUpDepth;
 }
@@ -509,45 +582,35 @@ export function filterToStandardSizes() {
   const sizes = getMasslamSizes();
   
   if (sizes.length === 0) {
-    console.warn('MASSLAM sizes not loaded yet, cannot filter');
+    console.warn('MASSLAM sizes not loaded yet, cannot filter. CSV data must be loaded first.');
     return [];
   }
   
-  console.log('Filtering sizes to standard subset...');
+  console.log('Using all sizes from CSV without filtering...');
   
-  // Define the standard widths and depths we want to keep
-  const standardWidths = [120, 165, 205, 250, 290, 335, 380, 420, 450];
-  const standardDepths = [200, 270, 335, 410, 480, 550, 620, 690, 760, 830];
+  // Instead of filtering to predefined standard sizes, use all sizes from the CSV
+  console.log(`Using all ${sizes.length} sizes from CSV`);
   
-  // Create a standard set of sizes (one for each width/type combination)
-  const standardSizes = [];
+  if (sizes.length === 0) {
+    console.warn('No sizes found in CSV data. Please check the CSV file.');
+    return [];
+  }
   
-  // For each type
-  ['beam', 'column', 'joist'].forEach(type => {
-    // For each standard width
-    standardWidths.forEach(width => {
-      // Find the first size with this width and type
-      const existingSize = sizes.find(size => 
-        size.width === width && size.type === type
-      );
-      
-      if (existingSize) {
-        // If we found a matching size, add it to our standard sizes
-        standardSizes.push(existingSize);
-      } else {
-        // If no matching size was found, create one with the smallest standard depth
-        const depth = standardDepths[0];
-        standardSizes.push({ width, depth, type });
-      }
-    });
+  // Count by type for logging
+  const typeCount = {};
+  sizes.forEach(size => {
+    typeCount[size.type] = (typeCount[size.type] || 0) + 1;
   });
+  console.log('Sizes by type:', typeCount);
   
-  console.log(`Filtered from ${sizes.length} sizes to ${standardSizes.length} standard sizes`);
+  // Get unique widths and depths for logging
+  const uniqueWidths = [...new Set(sizes.map(size => size.width))].sort((a, b) => a - b);
+  const uniqueDepths = [...new Set(sizes.map(size => size.depth))].sort((a, b) => a - b);
   
-  // Set the filtered sizes
-  _setMasslamSizes(standardSizes);
+  console.log('Unique widths:', uniqueWidths);
+  console.log('Unique depths:', uniqueDepths);
   
-  return getMasslamSizes();
+  return sizes;
 }
 
 // For backward compatibility
