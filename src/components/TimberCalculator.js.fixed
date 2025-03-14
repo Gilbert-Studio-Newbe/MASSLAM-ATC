@@ -1487,7 +1487,7 @@ export default function TimberCalculator() {
                                 </div>
                               </>
                             );
-                          })()}
+                          })();}
                           
                           {/* Joist Direction Arrows */}
                           {(() => {
@@ -1564,7 +1564,7 @@ export default function TimberCalculator() {
                                 );
                               }
                             });
-                          })()}
+                          })();}
                         </div>
                       </div>
                     </div>
@@ -1819,7 +1819,7 @@ export default function TimberCalculator() {
                                       <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'grid cell' : 'grid cells'})</span>
                                     </div>
                                   ));
-                                })()}
+                                })();}
                               </div>
                             </div>
                           )}
@@ -1954,7 +1954,7 @@ export default function TimberCalculator() {
                                       <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'grid cell' : 'grid cells'})</span>
                                     </div>
                                   ));
-                                })()}
+                                })();}
                               </div>
                             </div>
                           )}
