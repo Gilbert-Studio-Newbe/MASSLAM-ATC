@@ -1701,7 +1701,8 @@ export default function TimberCalculator() {
                                         fontSize: '0.8rem',
                                         padding: '8px',
                                         borderRadius: '2px',
-                                        boxSizing: 'border-box'
+                                        boxSizing: 'border-box',
+                                        overflow: 'hidden' // Add overflow hidden to contain the joist lines
                                       }}>
                                         {/* Bay dimensions - Show on desktop only, positioned at top left */}
                                         <div className="hidden md:block absolute top-1 left-1 text-xs font-medium text-gray-600">
@@ -1713,6 +1714,84 @@ export default function TimberCalculator() {
                                             `${(buildingLength / results.lengthwiseBays).toFixed(2)}m × ${(buildingWidth / results.widthwiseBays).toFixed(2)}m`
                                           )}
                                         </div>
+                                        
+                                        {/* Joist Lines - Draw light grey lines at 800mm centers */}
+                                        {(() => {
+                                          // Fixed joist spacing in meters (800mm = 0.8m)
+                                          const joistSpacingM = 0.8;
+                                          
+                                          // Calculate bay dimensions in meters
+                                          const bayWidthM = useCustomBayDimensions ? lengthwiseBayWidths[col] : buildingLength / results.lengthwiseBays;
+                                          const bayHeightM = useCustomBayDimensions ? widthwiseBayWidths[row] : buildingWidth / results.widthwiseBays;
+                                          
+                                          // Create array to hold joist lines
+                                          const joistLines = [];
+                                          
+                                          // Determine which dimension to use based on joist direction
+                                          // For lengthwise joists, we need horizontal lines (perpendicular to joists)
+                                          // For widthwise joists, we need vertical lines (perpendicular to joists)
+                                          if (!joistsRunLengthwise) { // Horizontal joists need vertical lines
+                                            // Calculate how many joists fit in the bay width
+                                            const numJoistSpaces = Math.floor(bayWidthM / joistSpacingM);
+                                            
+                                            // Calculate spacing to distribute lines evenly
+                                            const spacing = bayWidthM / (numJoistSpaces || 1);
+                                            
+                                            // Add lines at each joist position (starting from 0)
+                                            for (let i = 0; i <= numJoistSpaces; i++) {
+                                              const position = (i * spacing / bayWidthM) * 100;
+                                              
+                                              // Only add if position is within the bay
+                                              if (position <= 100) {
+                                                joistLines.push(
+                                                  <div 
+                                                    key={`joist-line-${i}`}
+                                                    className="absolute"
+                                                    style={{
+                                                      width: '1px',
+                                                      height: '100%',
+                                                      backgroundColor: 'rgba(150, 150, 150, 0.5)',
+                                                      left: `${position}%`,
+                                                      pointerEvents: 'none',
+                                                      zIndex: 1
+                                                    }}
+                                                  />
+                                                );
+                                              }
+                                            }
+                                          } else { // Vertical joists need horizontal lines
+                                            // Calculate how many joists fit in the bay height
+                                            const numJoistSpaces = Math.floor(bayHeightM / joistSpacingM);
+                                            
+                                            // Calculate spacing to distribute lines evenly
+                                            const spacing = bayHeightM / (numJoistSpaces || 1);
+                                            
+                                            // Add lines at each joist position (starting from 0)
+                                            for (let i = 0; i <= numJoistSpaces; i++) {
+                                              const position = (i * spacing / bayHeightM) * 100;
+                                              
+                                              // Only add if position is within the bay
+                                              if (position <= 100) {
+                                                joistLines.push(
+                                                  <div 
+                                                    key={`joist-line-${i}`}
+                                                    className="absolute"
+                                                    style={{
+                                                      height: '1px',
+                                                      width: '100%',
+                                                      backgroundColor: 'rgba(150, 150, 150, 0.5)',
+                                                      top: `${position}%`,
+                                                      pointerEvents: 'none',
+                                                      zIndex: 1
+                                                    }}
+                                                  />
+                                                );
+                                              }
+                                            }
+                                          }
+                                          
+                                          return joistLines;
+                                        })()}
                                         
                                         {/* Joist Direction Arrows - Centered in cell */}
                                         <div className="flex items-center justify-center pointer-events-none">
