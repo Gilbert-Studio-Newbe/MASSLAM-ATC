@@ -1462,21 +1462,25 @@ export default function TimberCalculator() {
                                         borderRadius: '2px',
                                         boxSizing: 'border-box'
                                       }}>
-                                        {/* Bay Label */}
-                                        <div className="absolute top-1 left-1 text-xs font-medium text-gray-600">
-                                          {bayLabel}
+                                        {/* Bay dimensions - Show on desktop only, positioned at top left */}
+                                        <div className="hidden md:block absolute top-1 left-1 text-xs font-medium text-gray-600">
+                                          {useCustomBayDimensions ? (
+                                            // For custom bay dimensions, show the actual dimensions of this specific bay
+                                            `${lengthwiseBayWidths[col].toFixed(2)}m × ${widthwiseBayWidths[row].toFixed(2)}m`
+                                          ) : (
+                                            // For uniform bay dimensions, show the calculated dimensions
+                                            `${(buildingLength / results.lengthwiseBays).toFixed(2)}m × ${(buildingWidth / results.widthwiseBays).toFixed(2)}m`
+                                          )}
                                         </div>
                                         
-                                        {useCustomBayDimensions && bayWidth !== undefined && bayHeight !== undefined && (
-                                          <div className="text-xs" style={{ 
-                                            position: 'relative', 
-                                            top: '-20px', 
-                                            padding: '2px 4px',
-                                            borderRadius: '2px'
-                                          }}>
-                                            {bayWidth.toFixed(1)}m × {bayHeight.toFixed(1)}m
-                                          </div>
-                                        )}
+                                        {/* Joist Direction Arrows - Centered in cell */}
+                                        <div className="flex items-center justify-center pointer-events-none">
+                                          {joistsRunLengthwise ? (
+                                            <span className="text-gray-500 transform rotate-90">↕</span>
+                                          ) : (
+                                            <span className="text-gray-500">↕</span>
+                                          )}
+                                        </div>
                                       </div>
                                     );
                                   })}
