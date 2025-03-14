@@ -265,9 +265,49 @@ export default function TimberCalculator() {
   useEffect(() => {
     const loadSavedProject = () => {
       try {
+        // First check for saved state in localStorage
+        const savedState = localStorage.getItem('timberCalculatorState');
+        
+        if (savedState) {
+          const parsedState = JSON.parse(savedState);
+          console.log('Loading saved state from localStorage:', parsedState);
+          
+          // Restore all state values
+          setBuildingLength(parsedState.buildingLength || 18);
+          setBuildingWidth(parsedState.buildingWidth || 14);
+          setLengthwiseBays(parsedState.lengthwiseBays || 3);
+          setWidthwiseBays(parsedState.widthwiseBays || 2);
+          setNumFloors(parsedState.numFloors || 1);
+          setFloorHeight(parsedState.floorHeight || 3.5);
+          setLoad(parsedState.load || 3.0);
+          setFireRating(parsedState.fireRating || 'none');
+          setJoistsRunLengthwise(parsedState.joistsRunLengthwise !== undefined ? parsedState.joistsRunLengthwise : true);
+          setTimberGrade(parsedState.timberGrade || 'ML38');
+          setUseCustomBayDimensions(parsedState.useCustomBayDimensions || false);
+          
+          // Only set custom bay widths if they exist and match the current number of bays
+          if (parsedState.customLengthwiseBayWidths && parsedState.customLengthwiseBayWidths.length === parsedState.lengthwiseBays) {
+            setCustomLengthwiseBayWidths(parsedState.customLengthwiseBayWidths);
+          }
+          
+          if (parsedState.customWidthwiseBayWidths && parsedState.customWidthwiseBayWidths.length === parsedState.widthwiseBays) {
+            setCustomWidthwiseBayWidths(parsedState.customWidthwiseBayWidths);
+          }
+          
+          console.log('Successfully loaded state from localStorage');
+          
+          // The useEffect that watches for state changes will trigger the calculation
+          
+          return; // Skip loading from currentProject if we loaded from localStorage
+        } else {
+          console.log('No saved state found in localStorage');
+        }
+        
+        // If no localStorage state, check for currentProject
         const currentProject = localStorage.getItem('currentProject');
         if (currentProject) {
           const project = JSON.parse(currentProject);
+          console.log('Loading project from currentProject:', project);
           
           // Load project details
           setProjectDetails(project.details);
@@ -293,14 +333,30 @@ export default function TimberCalculator() {
             setJoistsRunLengthwise(project.joistsRunLengthwise);
           }
           
+          // Load custom bay dimensions if available
+          if (project.customBayDimensions) {
+            setUseCustomBayDimensions(true);
+            if (project.customBayDimensions.lengthwiseBayWidths) {
+              setCustomLengthwiseBayWidths(project.customBayDimensions.lengthwiseBayWidths);
+            }
+            if (project.customBayDimensions.widthwiseBayWidths) {
+              setCustomWidthwiseBayWidths(project.customBayDimensions.widthwiseBayWidths);
+            }
+          }
+          
+          console.log('Successfully loaded project from currentProject');
+          
           // Clear the current project from localStorage
           localStorage.removeItem('currentProject');
+        } else {
+          console.log('No currentProject found in localStorage');
         }
       } catch (error) {
         console.error('Error loading saved project:', error);
       }
     };
     
+    console.log('Component mounted, loading saved project...');
     loadSavedProject();
   }, []);
   
@@ -466,6 +522,119 @@ export default function TimberCalculator() {
     loadSizes();
   }, []);
   
+  // Save current state to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      // Create state object with all relevant design parameters
+      const currentState = {
+        buildingLength,
+        buildingWidth,
+        lengthwiseBays,
+        widthwiseBays,
+        numFloors,
+        floorHeight,
+        load,
+        fireRating,
+        joistsRunLengthwise,
+        timberGrade,
+        useCustomBayDimensions,
+        customLengthwiseBayWidths,
+        customWidthwiseBayWidths
+      };
+      
+      // Save to localStorage
+      localStorage.setItem('timberCalculatorState', JSON.stringify(currentState));
+      console.log('Saved current state to localStorage');
+    } catch (error) {
+      console.error('Error saving state to localStorage:', error);
+    }
+  }, [
+    buildingLength,
+    buildingWidth,
+    lengthwiseBays,
+    widthwiseBays,
+    numFloors,
+    floorHeight,
+    load,
+    fireRating,
+    joistsRunLengthwise,
+    timberGrade,
+    useCustomBayDimensions,
+    customLengthwiseBayWidths,
+    customWidthwiseBayWidths
+  ]);
+  
+  // Add a beforeunload event listener to save state before navigating away
+  useEffect(() => {
+    const saveStateBeforeUnload = () => {
+      try {
+        // Create state object with all relevant design parameters
+        const currentState = {
+          buildingLength,
+          buildingWidth,
+          lengthwiseBays,
+          widthwiseBays,
+          numFloors,
+          floorHeight,
+          load,
+          fireRating,
+          joistsRunLengthwise,
+          timberGrade,
+          useCustomBayDimensions,
+          customLengthwiseBayWidths,
+          customWidthwiseBayWidths
+        };
+        
+        // Save to localStorage
+        localStorage.setItem('timberCalculatorState', JSON.stringify(currentState));
+        console.log('Saved state before navigation');
+      } catch (error) {
+        console.error('Error saving state before navigation:', error);
+      }
+    };
+
+    // Add event listener for beforeunload
+    window.addEventListener('beforeunload', saveStateBeforeUnload);
+    
+    // Add event listener for navigation events
+    const handleRouteChange = () => {
+      saveStateBeforeUnload();
+    };
+    
+    // Add event listeners for link clicks that might navigate away
+    const handleLinkClick = () => {
+      saveStateBeforeUnload();
+    };
+    
+    // Find all link elements and add click event listeners
+    const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      link.addEventListener('click', handleLinkClick);
+    });
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener('beforeunload', saveStateBeforeUnload);
+      links.forEach(link => {
+        link.removeEventListener('click', handleLinkClick);
+      });
+    };
+  }, [
+    buildingLength,
+    buildingWidth,
+    lengthwiseBays,
+    widthwiseBays,
+    numFloors,
+    floorHeight,
+    load,
+    fireRating,
+    joistsRunLengthwise,
+    timberGrade,
+    useCustomBayDimensions,
+    customLengthwiseBayWidths,
+    customWidthwiseBayWidths
+  ]);
+  
   // Initialize custom bay dimensions when the number of bays changes
   useEffect(() => {
     // Initialize lengthwise bay widths with equal distribution
@@ -475,9 +644,8 @@ export default function TimberCalculator() {
     // Initialize widthwise bay widths with equal distribution
     const defaultWidthwiseBayWidth = buildingWidth / widthwiseBays;
     setCustomWidthwiseBayWidths(Array(widthwiseBays).fill(defaultWidthwiseBayWidth));
-    
   }, [lengthwiseBays, widthwiseBays, buildingLength, buildingWidth]);
-
+  
   // Calculate bay dimensions based on whether custom dimensions are used
   const calculateBayDimensions = () => {
     if (!useCustomBayDimensions) {
@@ -512,142 +680,154 @@ export default function TimberCalculator() {
     };
   };
   
+  // Define calculateResults outside of useEffect so it can be called from anywhere
+  const calculateResults = () => {
+    try {
+      // Get bay dimensions
+      const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
+      
+      // Find the maximum bay span (for joists)
+      let maxLengthwiseSpan = Math.max(...lengthwiseBayWidths);
+      let maxWidthwiseSpan = Math.max(...widthwiseBayWidths);
+      
+      // Determine joist span based on global direction setting
+      // instead of automatically using the shorter distance
+      const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+      
+      // Calculate joist size based on span and load
+      const joistSize = calculateJoistSize(joistSpan, 800, load, timberGrade, fireRating);
+      
+      // Calculate beam span (beams span perpendicular to joists)
+      const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+      
+      // Define joist spacing (in meters)
+      const joistSpacing = 0.8; // 800mm spacing
+      
+      // Calculate average bay dimensions for tributary area calculation
+      const avgBayLength = buildingLength / lengthwiseBays;
+      const avgBayWidth = buildingWidth / widthwiseBays;
+      
+      // Calculate interior beam size (beams that support load from both sides)
+      // These beams have a tributary width of half the perpendicular bay dimension
+      const interiorBeamSize = calculateMultiFloorBeamSize(
+        beamSpan, 
+        load, 
+        joistSpacing, 
+        numFloors, 
+        fireRating, 
+        joistsRunLengthwise,
+        avgBayWidth,
+        avgBayLength,
+        false // Not an edge beam
+      );
+      
+      // Calculate edge beam size (beams that support load from one side only)
+      // These beams have a tributary width of half the perpendicular bay dimension
+      const edgeBeamSize = calculateMultiFloorBeamSize(
+        beamSpan, 
+        load, 
+        joistSpacing, 
+        numFloors, 
+        fireRating,
+        joistsRunLengthwise,
+        avgBayWidth,
+        avgBayLength,
+        true // Is an edge beam
+      );
+      
+      // Calculate column size
+      // Columns support the load from the beams
+      // Tributary area is the bay area (length x width)
+      const columnSize = calculateMultiFloorColumnSize(
+        interiorBeamSize.width, // Match column width to beam width
+        load, 
+        floorHeight, 
+        numFloors, 
+        fireRating,
+        avgBayLength,
+        avgBayWidth
+      );
+      
+      // Calculate timber volume and weight using the existing function
+      const timberResult = calculateTimberWeight(
+        joistSize,
+        interiorBeamSize,
+        columnSize,
+        buildingLength,
+        buildingWidth,
+        numFloors,
+        lengthwiseBays,
+        widthwiseBays,
+        joistsRunLengthwise,
+        timberGrade
+      );
+      
+      // Calculate carbon benefits
+      const carbonResults = calculateCarbonSavings(timberResult);
+      
+      // Calculate costs
+      const costs = calculateCosts(joistSize, interiorBeamSize, edgeBeamSize, columnSize, buildingLength, buildingWidth, joistSpacing, lengthwiseBays, widthwiseBays, floorHeight, numFloors);
+      
+      // Validate the structure
+      const validationResult = validateStructure(joistSize, interiorBeamSize, edgeBeamSize, columnSize, joistSpan, beamSpan, floorHeight, load, numFloors);
+      
+      // Set the results
+      setResults({
+        joistSize,
+        beamSize: interiorBeamSize,
+        edgeBeamSize,
+        columnSize,
+        timberVolume: timberResult.totalVolume,
+        timberWeight: timberResult.weight,
+        carbonStorage: carbonResults.carbonStorage,
+        embodiedCarbon: carbonResults.embodiedCarbon,
+        carbonSavings: carbonResults.carbonSavings,
+        costs,
+        elementCounts: {
+          joists: timberResult.elements.joists.count,
+          beams: timberResult.elements.beams.count,
+          columns: timberResult.elements.columns.count
+        },
+        elementVolumes: {
+          joists: timberResult.elements.joists.volume,
+          beams: timberResult.elements.beams.volume,
+          columns: timberResult.elements.columns.volume
+        },
+        buildingLength,
+        buildingWidth,
+        lengthwiseBays,
+        widthwiseBays,
+        validationResult
+      });
+    } catch (error) {
+      console.error('Error calculating results:', error);
+      setError('Error calculating results: ' + error.message);
+    }
+  };
+  
   // Calculate results based on inputs
   useEffect(() => {
-    const calculateResults = () => {
-      try {
-        // Get bay dimensions
-        const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
-        
-        // Find the maximum bay span (for joists)
-        let maxLengthwiseSpan = Math.max(...lengthwiseBayWidths);
-        let maxWidthwiseSpan = Math.max(...widthwiseBayWidths);
-        
-        // Determine joist span based on global direction setting
-        // instead of automatically using the shorter distance
-        const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
-        
-        // Calculate joist size based on span and load
-        const joistSize = calculateJoistSize(joistSpan, 800, load, timberGrade, fireRating);
-        
-        // Calculate beam span (beams span perpendicular to joists)
-        const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
-        
-        // Define joist spacing (in meters)
-        const joistSpacing = 0.8; // 800mm spacing
-        
-        // Calculate average bay dimensions for tributary area calculation
-        const avgBayLength = buildingLength / lengthwiseBays;
-        const avgBayWidth = buildingWidth / widthwiseBays;
-        
-        // Calculate interior beam size (beams that support load from both sides)
-        // These beams have a tributary width of half the perpendicular bay dimension
-        const interiorBeamSize = calculateMultiFloorBeamSize(
-          beamSpan, 
-          load, 
-          joistSpacing, 
-          numFloors, 
-          fireRating, 
-          joistsRunLengthwise, 
-          avgBayWidth, 
-          avgBayLength,
-          false // isEdgeBeam = false
-        );
-        
-        // Calculate edge beam size (beams that support load from only one side)
-        // These beams have a smaller tributary width (half of interior beams)
-        const edgeBeamSize = calculateMultiFloorBeamSize(
-          beamSpan, 
-          load, 
-          joistSpacing, 
-          numFloors, 
-          fireRating, 
-          joistsRunLengthwise, 
-          avgBayWidth, 
-          avgBayLength,
-          true // isEdgeBeam = true
-        );
-        
-        // Use the interior beam size as the primary beam size for column calculations
-        // since interior beams are typically larger and more critical
-        const beamSize = interiorBeamSize;
-        
-        // Calculate column size based on beam width, load, floor height, and number of floors
-        const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
-        
-        // Calculate timber weight and volumes
-        const timberResult = calculateTimberWeight(
-          joistSize, 
-          beamSize, 
-          columnSize, 
-          buildingLength, 
-          buildingWidth, 
-          numFloors,
-          lengthwiseBays,
-          widthwiseBays,
-          joistsRunLengthwise,
-          timberGrade
-        );
-        
-        // Calculate carbon benefits
-        const carbonResults = calculateCarbonSavings(timberResult);
-        
-        // Calculate cost estimate
-        const costEstimate = calculateCost(timberResult, joistSize, buildingLength, buildingWidth, numFloors);
-        
-        // Validate the structure
-        const validationResult = validateStructure(joistSize, beamSize, columnSize);
-        
-        // Set the results
-        setResults({
-          buildingLength,
-          buildingWidth,
-          numFloors,
-          floorHeight,
-          load,
-          fireRating,
-          lengthwiseBays,
-          widthwiseBays,
-          joistsRunLengthwise,
-          joistSize,
-          beamSize,
-          columnSize,
-          timberWeight: timberResult.weight,
-          timberVolume: timberResult.totalVolume,
-          elementVolumes: {
-            joists: timberResult.elements.joists.volume,
-            beams: timberResult.elements.beams.volume,
-            columns: timberResult.elements.columns.volume
-          },
-          carbonStorage: carbonResults.carbonStorage,
-          embodiedCarbon: carbonResults.embodiedCarbon,
-          carbonSavings: carbonResults.carbonSavings,
-          costs: costEstimate,
-          elementCounts: {
-            joists: timberResult.elements.joists.count,
-            beams: timberResult.elements.beams.count,
-            columns: timberResult.elements.columns.count
-          },
-          validation: validationResult,
-          edgeBeamSize: edgeBeamSize
-        });
-        
-        setError(null);
-      } catch (err) {
-        console.error('Error calculating results:', err);
-        setError(`Failed to calculate results: ${err.message}`);
-        setResults(null);
-      }
-    };
-    
-    // Debounce calculations to avoid excessive recalculations
-    const timer = setTimeout(() => {
+    // Only calculate if properties are loaded
+    if (propertiesLoaded) {
       calculateResults();
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, [buildingLength, buildingWidth, lengthwiseBays, widthwiseBays, load, numFloors, timberGrade, fireRating, useCustomBayDimensions, customLengthwiseBayWidths, customWidthwiseBayWidths, joistsRunLengthwise]);
-
+    }
+  }, [
+    buildingLength,
+    buildingWidth,
+    lengthwiseBays,
+    widthwiseBays,
+    numFloors,
+    floorHeight,
+    load,
+    fireRating,
+    joistsRunLengthwise,
+    timberGrade,
+    useCustomBayDimensions,
+    customLengthwiseBayWidths,
+    customWidthwiseBayWidths,
+    propertiesLoaded
+  ]);
+  
   // Handle input changes
   const handleBuildingLengthChange = (value) => {
     const parsedValue = parseFloat(value);
@@ -991,6 +1171,67 @@ export default function TimberCalculator() {
         </div>
       </div>
     );
+  };
+  
+  // Function to calculate costs using the existing calculateCost function
+  const calculateCosts = (joistSize, interiorBeamSize, edgeBeamSize, columnSize, buildingLength, buildingWidth, joistSpacing, lengthwiseBays, widthwiseBays, floorHeight, numFloors) => {
+    // Create a mock timberResult object with the necessary structure
+    const mockTimberResult = {
+      elements: {
+        joists: {
+          count: Math.ceil((buildingLength / joistSpacing) * widthwiseBays),
+          volume: calculateJoistVolume(joistSize, buildingLength, buildingWidth, joistSpacing)
+        },
+        beams: {
+          count: ((lengthwiseBays - 1) * widthwiseBays) + (2 * widthwiseBays), // Interior + edge beams
+          volume: calculateBeamVolume(interiorBeamSize, edgeBeamSize, buildingLength, buildingWidth, lengthwiseBays, widthwiseBays)
+        },
+        columns: {
+          count: (lengthwiseBays + 1) * (widthwiseBays + 1),
+          volume: calculateColumnVolume(columnSize, floorHeight, numFloors, lengthwiseBays, widthwiseBays)
+        }
+      }
+    };
+    
+    // Calculate costs using the existing function
+    return calculateCost(mockTimberResult, joistSize, buildingLength, buildingWidth, numFloors);
+  };
+  
+  // Helper function to calculate joist volume
+  const calculateJoistVolume = (joistSize, buildingLength, buildingWidth, joistSpacing) => {
+    const joistWidth = joistSize.width / 1000; // Convert mm to m
+    const joistDepth = joistSize.depth / 1000; // Convert mm to m
+    const joistCount = Math.ceil((buildingLength / joistSpacing) * buildingWidth);
+    const avgJoistLength = buildingWidth; // Simplified calculation
+    
+    return joistWidth * joistDepth * avgJoistLength * joistCount;
+  };
+  
+  // Helper function to calculate beam volume
+  const calculateBeamVolume = (interiorBeamSize, edgeBeamSize, buildingLength, buildingWidth, lengthwiseBays, widthwiseBays) => {
+    const interiorBeamWidth = interiorBeamSize.width / 1000; // Convert mm to m
+    const interiorBeamDepth = interiorBeamSize.depth / 1000; // Convert mm to m
+    const edgeBeamWidth = edgeBeamSize.width / 1000; // Convert mm to m
+    const edgeBeamDepth = edgeBeamSize.depth / 1000; // Convert mm to m
+    
+    const interiorBeamCount = (lengthwiseBays - 1) * widthwiseBays;
+    const edgeBeamCount = 2 * widthwiseBays;
+    
+    const avgBeamLength = buildingLength / lengthwiseBays;
+    
+    const interiorBeamVolume = interiorBeamWidth * interiorBeamDepth * avgBeamLength * interiorBeamCount;
+    const edgeBeamVolume = edgeBeamWidth * edgeBeamDepth * avgBeamLength * edgeBeamCount;
+    
+    return interiorBeamVolume + edgeBeamVolume;
+  };
+  
+  // Helper function to calculate column volume
+  const calculateColumnVolume = (columnSize, floorHeight, numFloors, lengthwiseBays, widthwiseBays) => {
+    const columnWidth = columnSize.width / 1000; // Convert mm to m
+    const columnDepth = columnSize.depth / 1000; // Convert mm to m
+    const columnCount = (lengthwiseBays + 1) * (widthwiseBays + 1);
+    
+    return columnWidth * columnDepth * floorHeight * columnCount * numFloors;
   };
   
   // Example of a component section converted to use Tailwind classes
