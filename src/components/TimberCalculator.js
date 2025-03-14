@@ -850,6 +850,7 @@ export default function TimberCalculator() {
     const [localValue, setLocalValue] = useState(value);
     const [isEditing, setIsEditing] = useState(false);
     const debounceTimerRef = useRef(null);
+    const inputRef = useRef(null);
     
     // Generate tick marks for the slider if needed
     const tickMarks = showTicks ? [] : null;
@@ -909,6 +910,23 @@ export default function TimberCalculator() {
       }
     };
 
+    // Start editing and select the entire input text
+    const startEditing = () => {
+      if (disabled) return;
+      
+      setIsEditing(true);
+      
+      // Use setTimeout to ensure the input is rendered before trying to focus
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          
+          // Select the entire input text instead of just positioning cursor at the end
+          inputRef.current.select();
+        }
+      }, 10);
+    };
+
     // Ensure the local value stays in sync with the prop value
     useEffect(() => {
       setLocalValue(value);
@@ -943,19 +961,19 @@ export default function TimberCalculator() {
               <div className="hidden md:block">
                 {isEditing ? (
                   <input
+                    ref={inputRef}
                     type="text"
                     className="apple-input mb-0 w-full text-right"
                     value={localValue}
                     onChange={handleInputChange}
                     onBlur={handleInputBlur}
                     onKeyPress={handleKeyPress}
-                    autoFocus
                     disabled={disabled}
                   />
                 ) : (
                   <span 
-                    className="text-sm font-medium cursor-pointer hover:text-blue-500"
-                    onClick={() => !disabled && setIsEditing(true)}
+                    className="text-sm font-medium cursor-pointer hover:text-blue-500 border border-gray-300 rounded px-2 py-1 transition-colors hover:border-blue-400"
+                    onClick={startEditing}
                   >
                     {isInteger ? Math.round(localValue) : localValue}{unit}
                   </span>
