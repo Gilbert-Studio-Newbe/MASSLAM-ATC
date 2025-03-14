@@ -651,21 +651,21 @@ export default function TimberCalculator() {
   // Handle input changes
   const handleBuildingLengthChange = (value) => {
     const parsedValue = parseFloat(value);
-    if (!isNaN(parsedValue)) {
+    if (!isNaN(parsedValue) && parsedValue >= 6 && parsedValue <= 80) {
       setBuildingLength(parsedValue);
     }
   };
 
   const handleBuildingWidthChange = (value) => {
     const parsedValue = parseFloat(value);
-    if (!isNaN(parsedValue)) {
+    if (!isNaN(parsedValue) && parsedValue >= 6 && parsedValue <= 80) {
       setBuildingWidth(parsedValue);
     }
   };
 
   const handleLengthwiseBaysChange = (value) => {
     const parsedValue = parseInt(value, 10);
-    if (!isNaN(parsedValue)) {
+    if (!isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 20) {
       // Calculate minimum required bays based on MAX_BAY_SPAN
       const minRequiredBays = Math.ceil(buildingLength / MAX_BAY_SPAN);
       
@@ -683,7 +683,7 @@ export default function TimberCalculator() {
 
   const handleWidthwiseBaysChange = (value) => {
     const parsedValue = parseInt(value, 10);
-    if (!isNaN(parsedValue)) {
+    if (!isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 20) {
       // Calculate minimum required bays based on MAX_BAY_SPAN
       const minRequiredBays = Math.ceil(buildingWidth / MAX_BAY_SPAN);
       
@@ -700,7 +700,7 @@ export default function TimberCalculator() {
   };
 
   const handleNumFloorsChange = (value) => {
-    const floors = parseInt(value);
+    const floors = parseInt(value, 10);
     if (!isNaN(floors) && floors >= 1 && floors <= 10) {
       setNumFloors(floors);
     }
@@ -708,7 +708,7 @@ export default function TimberCalculator() {
 
   const handleFloorHeightChange = (value) => {
     const height = parseFloat(value);
-    if (!isNaN(height) && height >= 2.4 && height <= 8.0) {
+    if (!isNaN(height) && height >= 2 && height <= 6) {
       setFloorHeight(height);
     }
   };
@@ -832,6 +832,149 @@ export default function TimberCalculator() {
     calculateResults();
   };
   
+  // Custom Slider Input Component
+  const SliderInput = ({ 
+    label, 
+    value, 
+    onChange, 
+    min, 
+    max, 
+    step = 1, 
+    unit = "", 
+    description = null,
+    disabled = false,
+    showTicks = true,
+    isInteger = false
+  }) => {
+    // State to track the displayed value during sliding
+    const [localValue, setLocalValue] = useState(value);
+    const [isEditing, setIsEditing] = useState(false);
+    const debounceTimerRef = useRef(null);
+    
+    // Generate tick marks for the slider if needed
+    const tickMarks = showTicks ? [] : null;
+    if (showTicks) {
+      for (let i = min; i <= max; i += (max - min) / 5) {
+        tickMarks.push(isInteger ? Math.round(i) : Math.round(i * 100) / 100);
+      }
+    }
+
+    // Handle slider change with debouncing
+    const handleSliderChange = (e) => {
+      const newValue = e.target.value;
+      setLocalValue(newValue);
+      
+      // Clear any existing timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      
+      // Set a new timer to update the actual value after user stops sliding
+      debounceTimerRef.current = setTimeout(() => {
+        onChange(newValue);
+      }, 300); // 300ms debounce
+    };
+
+    // Handle manual input change
+    const handleInputChange = (e) => {
+      const newValue = e.target.value;
+      setLocalValue(newValue);
+    };
+
+    // Handle input blur (when user finishes editing)
+    const handleInputBlur = () => {
+      setIsEditing(false);
+      
+      // Parse the value and ensure it's within bounds
+      let parsedValue = isInteger ? parseInt(localValue, 10) : parseFloat(localValue);
+      
+      // Handle invalid input
+      if (isNaN(parsedValue)) {
+        setLocalValue(value); // Reset to the original value
+        return;
+      }
+      
+      // Clamp the value between min and max
+      parsedValue = Math.max(min, Math.min(max, parsedValue));
+      
+      // Update the local value and trigger the onChange
+      setLocalValue(parsedValue);
+      onChange(parsedValue.toString());
+    };
+
+    // Handle key press in the input field
+    const handleKeyPress = (e) => {
+      if (e.key === 'Enter') {
+        e.target.blur(); // Trigger the blur event to apply the change
+      }
+    };
+
+    // Ensure the local value stays in sync with the prop value
+    useEffect(() => {
+      setLocalValue(value);
+    }, [value]);
+
+    return (
+      <div className="apple-specs-row">
+        <div className="apple-specs-label">{label}</div>
+        <div className="apple-specs-value">
+          <div className="flex items-center space-x-3 mb-1">
+            <div className="relative w-full">
+              <input 
+                type="range" 
+                className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                min={min} 
+                max={max} 
+                step={step}
+                value={localValue} 
+                onChange={handleSliderChange}
+                disabled={disabled}
+              />
+              {showTicks && (
+                <div className="flex justify-between w-full px-1 mt-1">
+                  {tickMarks.map((mark, index) => (
+                    <div key={index} className="text-xs text-gray-400">{mark}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="w-16 flex-shrink-0 text-right">
+              {/* Show editable input on desktop, static text on mobile */}
+              <div className="hidden md:block">
+                {isEditing ? (
+                  <input
+                    type="text"
+                    className="apple-input mb-0 w-full text-right"
+                    value={localValue}
+                    onChange={handleInputChange}
+                    onBlur={handleInputBlur}
+                    onKeyPress={handleKeyPress}
+                    autoFocus
+                    disabled={disabled}
+                  />
+                ) : (
+                  <span 
+                    className="text-sm font-medium cursor-pointer hover:text-blue-500"
+                    onClick={() => !disabled && setIsEditing(true)}
+                  >
+                    {isInteger ? Math.round(localValue) : localValue}{unit}
+                  </span>
+                )}
+              </div>
+              {/* Always show static text on mobile */}
+              <div className="block md:hidden">
+                <span className="text-sm font-medium">
+                  {isInteger ? Math.round(localValue) : localValue}{unit}
+                </span>
+              </div>
+            </div>
+          </div>
+          {description && <p className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>{description}</p>}
+        </div>
+      </div>
+    );
+  };
+  
   // Example of a component section converted to use Tailwind classes
   return (
     <div className="apple-section">
@@ -916,6 +1059,7 @@ export default function TimberCalculator() {
               <div className="apple-specs-table mb-6 md:mb-8">
                 <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Structure Configuration</h3>
                 
+                {/* Load Type with Radio Buttons */}
                 <div className="apple-specs-row">
                   <div className="apple-specs-label">Load Type</div>
                   <div className="apple-specs-value">
@@ -929,9 +1073,7 @@ export default function TimberCalculator() {
                           checked={load === 2}
                           onChange={() => handleLoadChange(2)}
                         />
-                        <label htmlFor="residential" className="ml-2">
-                          <span className="ml-3">Residential (2 kPa)</span>
-                        </label>
+                        <span className="ml-3">Residential (2 kPa)</span>
                       </label>
                       <label className="inline-flex items-center">
                         <input
@@ -948,163 +1090,99 @@ export default function TimberCalculator() {
                   </div>
                 </div>
 
+                {/* Fire Rating with Select Dropdown */}
                 <div className="apple-specs-row">
                   <div className="apple-specs-label">Fire Rating (FRL)</div>
                   <div className="apple-specs-value">
-              <select 
+                    <select 
                       className="apple-input apple-select mb-0"
-                value={fireRating}
+                      value={fireRating}
                       onChange={(e) => handleFireRatingChange(e.target.value)}
-              >
-                <option value="none">None</option>
+                    >
+                      <option value="none">None</option>
                       <option value="30/30/30">30/30/30</option>
                       <option value="60/60/60">60/60/60</option>
                       <option value="90/90/90">90/90/90</option>
                       <option value="120/120/120">120/120/120</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
               <div className="apple-specs-table mb-6 md:mb-8">
                 <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Dimensions</h3>
                 
-                <div className="apple-specs-row">
-                  <div className="apple-specs-label">Building Length (m)</div>
-                  <div className="apple-specs-value">
-                    <input 
-                      type="number" 
-                      className="apple-input mb-0 w-full"
-                      min="1" 
-                      max="50" 
-                      value={buildingLength} 
-                      onChange={(e) => handleBuildingLengthChange(e.target.value)} 
-                      onInput={(e) => {
-                        if (e.target.value.startsWith('0')) {
-                          e.target.value = e.target.value.replace(/^0+/, '');
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
+                <SliderInput 
+                  label="Building Length (m)"
+                  value={buildingLength}
+                  onChange={handleBuildingLengthChange}
+                  min={6}
+                  max={80}
+                  step={0.1}
+                  unit="m"
+                  showTicks={false}
+                />
 
-                <div className="apple-specs-row">
-                  <div className="apple-specs-label">Building Width (m)</div>
-                  <div className="apple-specs-value">
-              <input 
-                type="number" 
-                      className="apple-input mb-0"
-                      min="1" 
-                      max="50" 
-                      value={buildingWidth} 
-                      onChange={(e) => handleBuildingWidthChange(e.target.value)} 
-                      onInput={(e) => {
-                        if (e.target.value.startsWith('0')) {
-                          e.target.value = e.target.value.replace(/^0+/, '');
-                        }
-                      }}
-              />
-            </div>
-                </div>
+                <SliderInput 
+                  label="Building Width (m)"
+                  value={buildingWidth}
+                  onChange={handleBuildingWidthChange}
+                  min={6}
+                  max={80}
+                  step={0.1}
+                  unit="m"
+                  showTicks={false}
+                />
 
-                <div className="apple-specs-row">
-                  <div className="apple-specs-label">Number of Floors</div>
-                  <div className="apple-specs-value">
-                    <input 
-                      type="number" 
-                      className="apple-input mb-0"
-                      min="1" 
-                      max="10"
-                      value={numFloors} 
-                      onChange={(e) => handleNumFloorsChange(e.target.value)} 
-                      onInput={(e) => {
-                        // Remove any leading zeros
-                        if (e.target.value.startsWith('0')) {
-                          e.target.value = e.target.value.replace(/^0+/, '');
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
+                <SliderInput 
+                  label="Number of Floors"
+                  value={numFloors}
+                  onChange={handleNumFloorsChange}
+                  min={1}
+                  max={10}
+                  step={1}
+                  isInteger={true}
+                />
 
-                <div className="apple-specs-row">
-                  <div className="apple-specs-label">Floor Height (m)</div>
-                  <div className="apple-specs-value">
-                    <input 
-                      type="number" 
-                      className="apple-input mb-0"
-                      min="2.4" 
-                      max="8.0"
-                      step="0.1"
-                      value={floorHeight} 
-                      onChange={(e) => handleFloorHeightChange(e.target.value)} 
-                      onInput={(e) => {
-                        // Remove any leading zeros
-                        if (e.target.value.startsWith('0')) {
-                          e.target.value = e.target.value.replace(/^0+/, '');
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
+                <SliderInput 
+                  label="Floor Height (m)"
+                  value={floorHeight}
+                  onChange={handleFloorHeightChange}
+                  min={2}
+                  max={6}
+                  step={0.2}
+                  unit="m"
+                />
 
-                <div className="apple-specs-row">
-                  <div className="apple-specs-label">Bays Wide
-                    <div className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>(Columns)</div>
-                  </div>
-                  <div className="apple-specs-value">
-                    <input 
-                      type="number" 
-                      className="apple-input mb-2"
-                      min="1" 
-                      max="20" 
-                      value={lengthwiseBays} 
-                      onChange={(e) => handleLengthwiseBaysChange(e.target.value)} 
-                      onInput={(e) => {
-                        if (e.target.value.startsWith('0')) {
-                          e.target.value = e.target.value.replace(/^0+/, '');
-                        }
-                      }}
-                    />
-                    <p className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
-                      Auto-adjusts when bay span exceeds {MAX_BAY_SPAN}m
-                    </p>
-                  </div>
-                </div>
+                <SliderInput 
+                  label="Bays Wide (Columns)"
+                  value={lengthwiseBays}
+                  onChange={handleLengthwiseBaysChange}
+                  min={1}
+                  max={20}
+                  step={1}
+                  isInteger={true}
+                  description={`Auto-adjusts when bay span exceeds ${MAX_BAY_SPAN}m`}
+                />
 
-                <div className="apple-specs-row">
-                  <div className="apple-specs-label">Bays Deep
-                    <div className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>(Rows)</div>
-                  </div>
-                  <div className="apple-specs-value">
-                    <input 
-                      type="number" 
-                      className="apple-input mb-2"
-                      min="1" 
-                      max="20" 
-                      value={widthwiseBays} 
-                      onChange={(e) => handleWidthwiseBaysChange(e.target.value)} 
-                      onInput={(e) => {
-                        if (e.target.value.startsWith('0')) {
-                          e.target.value = e.target.value.replace(/^0+/, '');
-                        }
-                      }}
-                    />
-                    <p className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
-                      Auto-adjusts when bay span exceeds {MAX_BAY_SPAN}m
-                    </p>
-                  </div>
-                </div>
+                <SliderInput 
+                  label="Bays Deep (Rows)"
+                  value={widthwiseBays}
+                  onChange={handleWidthwiseBaysChange}
+                  min={1}
+                  max={20}
+                  step={1}
+                  isInteger={true}
+                  description={`Auto-adjusts when bay span exceeds ${MAX_BAY_SPAN}m`}
+                />
 
+                {/* Fixed Joist Centres - Static display instead of slider */}
                 <div className="apple-specs-row">
-                  <div className="apple-specs-label">Joist Centres (mm)</div>
+                  <div className="apple-specs-label">Joist Centres</div>
                   <div className="apple-specs-value">
-                    <input 
-                      type="number" 
-                      className="apple-input mb-2 bg-gray-100 cursor-not-allowed"
-                      value={800} 
-                      disabled 
-                    />
+                    <div className="flex items-center mb-1">
+                      <span className="text-sm font-medium">800 mm</span>
+                    </div>
                     <p className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>Fixed at 800mm centres</p>
                   </div>
                 </div>
