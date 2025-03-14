@@ -1364,9 +1364,13 @@ export default function TimberCalculator() {
                               String.fromCharCode(65 + i)
                             );
                             
+                            // Beams run perpendicular to joists
+                            const beamsRunLengthwise = !joistsRunLengthwise;
+                            
                             // Set gap based on joist direction - smaller gap where there are no beams
-                            const horizontalGap = joistsRunLengthwise ? '1px' : '4px';
-                            const verticalGap = joistsRunLengthwise ? '4px' : '1px';
+                            const gridGap = '4px';
+                            const horizontalGap = gridGap;
+                            const verticalGap = gridGap;
                             
                             return (
                               <>
@@ -1455,8 +1459,8 @@ export default function TimberCalculator() {
                                         alignItems: 'center',
                                         fontSize: '0.8rem',
                                         padding: '8px',
-                                        borderRadius: '0',
-                                        margin: '2px'
+                                        borderRadius: '2px',
+                                        boxSizing: 'border-box'
                                       }}>
                                         {/* Bay Label */}
                                         <div className="absolute top-1 left-1 text-xs font-medium text-gray-600">
@@ -1556,162 +1560,6 @@ export default function TimberCalculator() {
                                 );
                               }
                             });
-                          })()}
-                          
-                          {/* Beam Lines */}
-                          {(() => {
-                            // Calculate bay dimensions
-                            const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
-                            
-                            // Beams run perpendicular to joists
-                            const beamsRunLengthwise = !joistsRunLengthwise;
-                            
-                            // Create arrays to hold beam lines
-                            const beamLines = [];
-                            
-                            // Set gap based on joist direction - smaller gap where there are no beams
-                            // Defining these variables here so they're in scope for the beam lines
-                            const horizontalGap = joistsRunLengthwise ? '1px' : '4px';
-                            const verticalGap = joistsRunLengthwise ? '4px' : '1px';
-                            
-                            // Calculate the offset for beam lines to account for grid gaps and margins
-                            const gridGapHorizontal = parseInt(horizontalGap.replace('px', ''));
-                            const gridGapVertical = parseInt(verticalGap.replace('px', ''));
-                            const cellMargin = 2; // The margin of each bay cell (from the style)
-                            
-                            if (beamsRunLengthwise) {
-                              // Horizontal beams (when joists run vertically)
-                              // Add horizontal lines at each row boundary
-                              let cumulativeHeight = 0;
-                              
-                              // Add a line at the top of the grid (edge beam)
-                              beamLines.push(
-                                <div 
-                                  key="beam-top"
-                                  style={{
-                                    position: 'absolute',
-                                    top: '-3px', // Slightly above the grid to avoid overlapping
-                                    left: '0',
-                                    width: '100%',
-                                    height: '3px',
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    zIndex: 5
-                                  }}
-                                />
-                              );
-                              
-                              // Add lines between rows (internal beams)
-                              for (let i = 0; i < results.widthwiseBays; i++) {
-                                cumulativeHeight += widthwiseBayWidths[i];
-                                const topPercent = (cumulativeHeight / buildingWidth) * 100;
-                                
-                                // Determine if this is an edge beam (bottom of grid)
-                                const isEdgeBeam = i === results.widthwiseBays - 1;
-                                
-                                if (isEdgeBeam) {
-                                  // Edge beam at the bottom
-                                  beamLines.push(
-                                    <div 
-                                      key={`beam-row-${i}`}
-                                      style={{
-                                        position: 'absolute',
-                                        top: 'calc(100% + 2px)',
-                                        left: '0',
-                                        width: '100%',
-                                        height: '3px',
-                                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                        zIndex: 5
-                                      }}
-                                    />
-                                  );
-                                } else {
-                                  // Internal beam - needs to be centered in the gap
-                                  // Calculate the exact position to center in the gap
-                                  beamLines.push(
-                                    <div 
-                                      key={`beam-row-${i}`}
-                                      style={{
-                                        position: 'absolute',
-                                        top: `calc(${topPercent}% + ${gridGapVertical/2}px)`,
-                                        left: '0',
-                                        width: '100%',
-                                        height: '3px',
-                                        borderTop: '3px dashed rgba(0, 0, 0, 0.8)',
-                                        zIndex: 5,
-                                        transform: 'translateY(-50%)'
-                                      }}
-                                    />
-                                  );
-                                }
-                              }
-                            } else {
-                              // Vertical beams (when joists run horizontally)
-                              // Add vertical lines at each column boundary
-                              let cumulativeWidth = 0;
-                              
-                              // Add a line at the left of the grid (edge beam)
-                              beamLines.push(
-                                <div 
-                                  key="beam-left"
-                                  style={{
-                                    position: 'absolute',
-                                    left: '-2px', // Slightly to the left of the grid to avoid overlapping
-                                    top: '0',
-                                    height: '100%',
-                                    width: '3px',
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    zIndex: 5
-                                  }}
-                                />
-                              );
-                              
-                              // Add lines between columns (internal beams)
-                              for (let i = 0; i < results.lengthwiseBays; i++) {
-                                cumulativeWidth += lengthwiseBayWidths[i];
-                                const leftPercent = (cumulativeWidth / buildingLength) * 100;
-                                
-                                // Determine if this is an edge beam (right of grid)
-                                const isEdgeBeam = i === results.lengthwiseBays - 1;
-                                
-                                if (isEdgeBeam) {
-                                  // Edge beam at the right
-                                  beamLines.push(
-                                    <div 
-                                      key={`beam-col-${i}`}
-                                      style={{
-                                        position: 'absolute',
-                                        left: 'calc(100% + 2px)',
-                                        top: '0',
-                                        height: '100%',
-                                        width: '3px',
-                                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                        zIndex: 5
-                                      }}
-                                    />
-                                  );
-                                } else {
-                                  // Internal beam - needs to be centered in the gap
-                                  // Calculate the exact position to center in the gap
-                                  beamLines.push(
-                                    <div 
-                                      key={`beam-col-${i}`}
-                                      style={{
-                                        position: 'absolute',
-                                        left: `calc(${leftPercent}% + ${gridGapHorizontal/2}px)`,
-                                        top: '0',
-                                        height: '100%',
-                                        width: '3px',
-                                        borderLeft: '3px dashed rgba(0, 0, 0, 0.8)',
-                                        zIndex: 5,
-                                        transform: 'translateX(-50%)'
-                                      }}
-                                    />
-                                  );
-                                }
-                              }
-                            }
-                            
-                            return beamLines;
                           })()}
                         </div>
                       </div>
