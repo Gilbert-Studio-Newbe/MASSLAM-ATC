@@ -1747,13 +1747,17 @@ export default function TimberCalculator() {
                                     const x = bayPositionsX[i] + lengthwiseBayWidths[i] / 2;
                                     const letter = String.fromCharCode(65 + i); // A, B, C, ...
                                     
+                                    // Calculate scale factor based on building size
+                                    const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
+                                    const fontSize = 0.3 * scaleFactor;
+                                    
                                     return (
                                       <text
                                         key={`col-label-${i}`}
                                         x={x}
                                         y="-0.3"
                                         textAnchor="middle"
-                                        fontSize="0.3"
+                                        fontSize={fontSize > 0.3 ? fontSize : 0.3}
                                         fill="#666666"
                                       >
                                         {letter}
@@ -1766,13 +1770,17 @@ export default function TimberCalculator() {
                                     const y = bayPositionsY[i] + widthwiseBayWidths[i] / 2;
                                     const number = i + 1; // 1, 2, 3, ...
                                     
+                                    // Calculate scale factor based on building size
+                                    const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
+                                    const fontSize = 0.3 * scaleFactor;
+                                    
                                     return (
                                       <text
                                         key={`row-label-${i}`}
                                         x="-0.3"
                                         y={y + 0.1} // Slight adjustment for vertical centering
                                         textAnchor="middle"
-                                        fontSize="0.3"
+                                        fontSize={fontSize > 0.3 ? fontSize : 0.3}
                                         fill="#666666"
                                       >
                                         {number}
@@ -1780,30 +1788,44 @@ export default function TimberCalculator() {
                                     );
                                   })}
                                   
-                                  {/* Building width dimension at the bottom */}
-                                  <text
-                                    key="width-dimension"
-                                    x={totalWidth / 2}
-                                    y={totalHeight + 0.6}
-                                    textAnchor="middle"
-                                    fontSize="0.3"
-                                    fill="#666666"
-                                  >
-                                    {results.buildingWidth.toFixed(1)}m
-                                  </text>
+                                  {/* Building width dimension on the right (rotated 90 degrees) */}
+                                  {(() => {
+                                    const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
+                                    const fontSize = 0.3 * scaleFactor;
+                                    
+                                    return (
+                                      <text
+                                        key="width-dimension"
+                                        x={totalWidth + 0.6}
+                                        y={totalHeight / 2}
+                                        textAnchor="middle"
+                                        fontSize={fontSize > 0.3 ? fontSize : 0.3}
+                                        fill="#666666"
+                                        transform={`rotate(90, ${totalWidth + 0.6}, ${totalHeight / 2})`}
+                                      >
+                                        {results.buildingWidth.toFixed(1)}m
+                                      </text>
+                                    );
+                                  })()}
                                   
-                                  {/* Building length dimension on the right (rotated 90 degrees) */}
-                                  <text
-                                    key="length-dimension"
-                                    x={totalWidth + 0.6}
-                                    y={totalHeight / 2}
-                                    textAnchor="middle"
-                                    fontSize="0.3"
-                                    fill="#666666"
-                                    transform={`rotate(90, ${totalWidth + 0.6}, ${totalHeight / 2})`}
-                                  >
-                                    {results.buildingLength.toFixed(1)}m
-                                  </text>
+                                  {/* Building length dimension at the bottom */}
+                                  {(() => {
+                                    const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
+                                    const fontSize = 0.3 * scaleFactor;
+                                    
+                                    return (
+                                      <text
+                                        key="length-dimension"
+                                        x={totalWidth / 2}
+                                        y={totalHeight + 0.6}
+                                        textAnchor="middle"
+                                        fontSize={fontSize > 0.3 ? fontSize : 0.3}
+                                        fill="#666666"
+                                      >
+                                        {results.buildingLength.toFixed(1)}m
+                                      </text>
+                                    );
+                                  })()}
                                 </g>
                                 
                                 {/* Columns at grid intersections */}
