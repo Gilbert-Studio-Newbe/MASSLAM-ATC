@@ -1553,14 +1553,14 @@ export default function TimberCalculator() {
                             
                             // Adjust padding for mobile
                             const viewBoxPadding = isMobile ? 1.5 : 1;
-                            
-                            return (
+                                    
+                                    return (
                               <svg 
                                 width="100%" 
                                 height="100%" 
                                 viewBox={`-${viewBoxPadding} -${viewBoxPadding} ${totalWidth + viewBoxPadding*2} ${totalHeight + viewBoxPadding*2}`}
                                 preserveAspectRatio="xMidYMid meet"
-                                style={{ 
+                                        style={{ 
                                   background: 'white', 
                                   maxWidth: '100%',
                                   maxHeight: '100%',
@@ -1826,9 +1826,9 @@ export default function TimberCalculator() {
                                       </text>
                                     );
                                   })}
-                                  
+                          
                                   {/* Building width dimension on the right (rotated 90 degrees) */}
-                                  {(() => {
+                          {(() => {
                                     // Calculate scale factor based on building size and screen size
                                     const baseFontSize = 0.3;
                                     const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
@@ -1871,7 +1871,7 @@ export default function TimberCalculator() {
                                     // Position adjustment for mobile
                                     const positionOffset = isMobile ? 0.8 : 0.6;
                                     
-                                    return (
+                                return (
                                       <text
                                         key="length-dimension"
                                         x={totalWidth / 2}
@@ -1911,7 +1911,7 @@ export default function TimberCalculator() {
                                       // When joists run lengthwise (vertical joists), columns are oriented with width along the length
                                       scaledColumnWidth = columnWidth * buildingSizeScaleFactor;
                                       scaledColumnHeight = columnHeight * buildingSizeScaleFactor;
-                                    } else {
+                              } else {
                                       // When joists run widthwise (horizontal joists), columns are rotated 90 degrees
                                       scaledColumnWidth = columnHeight * buildingSizeScaleFactor;
                                       scaledColumnHeight = columnWidth * buildingSizeScaleFactor;
@@ -2024,7 +2024,7 @@ export default function TimberCalculator() {
                             <span className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
                               Edge beams
                             </span>
-                          </div>
+                      </div>
                           <div className="flex items-center">
                             <div style={{ 
                               width: '20px', 

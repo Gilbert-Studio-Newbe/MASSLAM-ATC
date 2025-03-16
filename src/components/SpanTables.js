@@ -57,27 +57,28 @@ export default function SpanTables() {
     }
   };
   
-  // Calculate joist width based on FRL
-  const getJoistWidth = (frl) => {
-    switch (frl) {
+  // Implement the getFixedWidthForFireRating function directly in this component
+  // using the same values as in timberEngineering.js
+  const getFixedWidthForFireRating = (fireRating) => {
+    switch (fireRating) {
       case 'none':
-        return 45; // mm
+        return 120; // Available in CSV
       case '30/30/30':
-        return 65; // mm
       case '60/60/60':
-        return 90; // mm
+        return 165; // Available in CSV
       case '90/90/90':
-        return 110; // mm
+        return 205; // Available in CSV (closest to 200)
       case '120/120/120':
-        return 130; // mm
+        return 250; // Available in CSV
       default:
-        return 45; // mm
+        return 120; // Default to 120mm if unknown rating
     }
   };
   
   // Calculate masses and loads
   const calculations = useMemo(() => {
-    const joistWidth = getJoistWidth(fireRating);
+    // Use our local implementation of getFixedWidthForFireRating
+    const joistWidth = getFixedWidthForFireRating(fireRating);
     const concreteThickness = getConcreteThickness(fireRating);
     
     // Calculate timber mass per m²
@@ -472,6 +473,10 @@ export default function SpanTables() {
                                 </span>
                               </p>
                               <p>
+                                <span className="font-medium">Load per Meter:</span>{' '}
+                                {result.loadPerMeter?.toFixed(2) || (parseFloat(calculations.totalDesignLoad) * tribWidth).toFixed(2)} kN/m
+                              </p>
+                              <p>
                                 <span className="font-medium">Bending:</span>{' '}
                                 {(result.engineering.utilization.bending * 100).toFixed(0)}%
                               </p>
@@ -506,7 +511,7 @@ export default function SpanTables() {
               <li>FRL 120/120/120: 120mm concrete</li>
             </ul>
           </li>
-          <li>Joist self-weight is calculated based on selected depth and fire rating requirements.</li>
+          <li>Joist width is determined by fire rating requirements, using the same criteria as beams.</li>
           <li>The total design load includes imposed load plus dead loads from joists and concrete.</li>
           <li><strong>Tributary width</strong> represents the perpendicular distance supported by the beam.</li>
           <li>For edge beams, use half the bay width as tributary width.</li>
