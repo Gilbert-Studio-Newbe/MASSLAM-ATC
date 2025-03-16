@@ -1498,7 +1498,7 @@ export default function TimberCalculator() {
                       <div className="flex justify-center">
                         <div className="relative w-full h-full" style={{ 
                           minHeight: '400px', 
-                          border: '1px solid #eee',
+                          border: 'none',
                           display: 'flex',
                           justifyContent: 'center',
                           alignItems: 'center',
@@ -1540,7 +1540,7 @@ export default function TimberCalculator() {
                                   objectFit: 'contain'
                                 }}
                               >
-                                {/* Background grid */}
+                                {/* Background grid - invisible now */}
                                 <g className="debug-grid">
                                   {/* Vertical grid lines */}
                                   {bayPositionsX.map((x, i) => (
@@ -1550,9 +1550,9 @@ export default function TimberCalculator() {
                                       y1={0}
                                       x2={x}
                                       y2={totalHeight}
-                                      stroke="rgba(0,0,0,0.3)"
-                                      strokeWidth="0.1"
-                                      strokeDasharray="0.5,0.5"
+                                      stroke="rgba(0,0,0,0)"
+                                      strokeWidth="0"
+                                      strokeDasharray="0,0"
                                     />
                                   ))}
                                   {/* Add final vertical line */}
@@ -1562,9 +1562,9 @@ export default function TimberCalculator() {
                                     y1={0}
                                     x2={totalWidth}
                                     y2={totalHeight}
-                                    stroke="rgba(0,0,0,0.3)"
-                                    strokeWidth="0.1"
-                                    strokeDasharray="0.5,0.5"
+                                    stroke="rgba(0,0,0,0)"
+                                    strokeWidth="0"
+                                    strokeDasharray="0,0"
                                   />
                                   
                                   {/* Horizontal grid lines */}
@@ -1575,9 +1575,9 @@ export default function TimberCalculator() {
                                       y1={y}
                                       x2={totalWidth}
                                       y2={y}
-                                      stroke="rgba(0,0,0,0.3)"
-                                      strokeWidth="0.1"
-                                      strokeDasharray="0.5,0.5"
+                                      stroke="rgba(0,0,0,0)"
+                                      strokeWidth="0"
+                                      strokeDasharray="0,0"
                                     />
                                   ))}
                                   {/* Add final horizontal line */}
@@ -1587,10 +1587,223 @@ export default function TimberCalculator() {
                                     y1={totalHeight}
                                     x2={totalWidth}
                                     y2={totalHeight}
-                                    stroke="rgba(0,0,0,0.3)"
-                                    strokeWidth="0.1"
-                                    strokeDasharray="0.5,0.5"
+                                    stroke="rgba(0,0,0,0)"
+                                    strokeWidth="0"
+                                    strokeDasharray="0,0"
                                   />
+                                </g>
+                                
+                                {/* Light grey border around the outside */}
+                                <rect
+                                  x="0"
+                                  y="0"
+                                  width={totalWidth}
+                                  height={totalHeight}
+                                  fill="none"
+                                  stroke="#cccccc"
+                                  strokeWidth="0.05"
+                                />
+                                
+                                {/* Joist lines */}
+                                <g className="joists">
+                                  {(() => {
+                                    // Calculate joist spacing in SVG units (800mm = 0.8m)
+                                    const joistSpacingM = 0.8;
+                                    const joists = [];
+                                    
+                                    if (!joistsRunLengthwise) {
+                                      // Vertical joists (running along length)
+                                      for (let bayIndex = 0; bayIndex < results.widthwiseBays; bayIndex++) {
+                                        const bayStartY = bayPositionsY[bayIndex];
+                                        const bayHeight = widthwiseBayWidths[bayIndex];
+                                        const bayEndY = bayStartY + bayHeight;
+                                        
+                                        for (let bayWidthIndex = 0; bayWidthIndex < results.lengthwiseBays; bayWidthIndex++) {
+                                          const bayStartX = bayPositionsX[bayWidthIndex];
+                                          const bayWidth = lengthwiseBayWidths[bayWidthIndex];
+                                          const bayEndX = bayStartX + bayWidth;
+                                          
+                                          // Calculate number of joists in this bay
+                                          const numJoists = Math.floor(bayWidth / joistSpacingM);
+                                          const actualSpacing = bayWidth / (numJoists + 1);
+                                          
+                                          // Draw joists
+                                          for (let i = 1; i <= numJoists; i++) {
+                                            const joistX = bayStartX + i * actualSpacing;
+                                            joists.push(
+                                              <line
+                                                key={`joist-v-${bayWidthIndex}-${bayIndex}-${i}`}
+                                                x1={joistX}
+                                                y1={bayStartY}
+                                                x2={joistX}
+                                                y2={bayEndY}
+                                                stroke="#cccccc"
+                                                strokeWidth="0.03"
+                                                strokeDasharray="0.1,0.1"
+                                              />
+                                            );
+                                          }
+                                        }
+                                      }
+                                    } else {
+                                      // Horizontal joists (running along width)
+                                      for (let bayIndex = 0; bayIndex < results.lengthwiseBays; bayIndex++) {
+                                        const bayStartX = bayPositionsX[bayIndex];
+                                        const bayWidth = lengthwiseBayWidths[bayIndex];
+                                        const bayEndX = bayStartX + bayWidth;
+                                        
+                                        for (let bayHeightIndex = 0; bayHeightIndex < results.widthwiseBays; bayHeightIndex++) {
+                                          const bayStartY = bayPositionsY[bayHeightIndex];
+                                          const bayHeight = widthwiseBayWidths[bayHeightIndex];
+                                          const bayEndY = bayStartY + bayHeight;
+                                          
+                                          // Calculate number of joists in this bay
+                                          const numJoists = Math.floor(bayHeight / joistSpacingM);
+                                          const actualSpacing = bayHeight / (numJoists + 1);
+                                          
+                                          // Draw joists
+                                          for (let i = 1; i <= numJoists; i++) {
+                                            const joistY = bayStartY + i * actualSpacing;
+                                            joists.push(
+                                              <line
+                                                key={`joist-h-${bayIndex}-${bayHeightIndex}-${i}`}
+                                                x1={bayStartX}
+                                                y1={joistY}
+                                                x2={bayEndX}
+                                                y2={joistY}
+                                                stroke="#cccccc"
+                                                strokeWidth="0.03"
+                                                strokeDasharray="0.1,0.1"
+                                              />
+                                            );
+                                          }
+                                        }
+                                      }
+                                    }
+                                    
+                                    return joists;
+                                  })()}
+                                </g>
+                                
+                                {/* Beams connecting columns - perpendicular to joists */}
+                                <g className="beams">
+                                  {(() => {
+                                    const beams = [];
+                                    
+                                    if (joistsRunLengthwise) {
+                                      // When joists run lengthwise (horizontal), beams run widthwise (vertical)
+                                      // Draw vertical beams along each column line
+                                      for (let col = 0; col <= results.lengthwiseBays; col++) {
+                                        const x = col === results.lengthwiseBays 
+                                          ? bayPositionsX[col-1] + lengthwiseBayWidths[col-1] 
+                                          : bayPositionsX[col];
+                                        
+                                        // Draw beam from top to bottom
+                                        beams.push(
+                                          <line
+                                            key={`beam-v-${col}`}
+                                            x1={x}
+                                            y1={0}
+                                            x2={x}
+                                            y2={totalHeight}
+                                            stroke="#555555"
+                                            strokeWidth="0.08"
+                                            strokeLinecap="square"
+                                          />
+                                        );
+                                      }
+                                    } else {
+                                      // When joists run widthwise (vertical), beams run lengthwise (horizontal)
+                                      // Draw horizontal beams along each row line
+                                      for (let row = 0; row <= results.widthwiseBays; row++) {
+                                        const y = row === results.widthwiseBays 
+                                          ? bayPositionsY[row-1] + widthwiseBayWidths[row-1] 
+                                          : bayPositionsY[row];
+                                        
+                                        // Draw beam from left to right
+                                        beams.push(
+                                          <line
+                                            key={`beam-h-${row}`}
+                                            x1={0}
+                                            y1={y}
+                                            x2={totalWidth}
+                                            y2={y}
+                                            stroke="#555555"
+                                            strokeWidth="0.08"
+                                            strokeLinecap="square"
+                                          />
+                                        );
+                                      }
+                                    }
+                                    
+                                    return beams;
+                                  })()}
+                                </g>
+                                
+                                {/* Column letters and bay numbers */}
+                                <g className="labels">
+                                  {/* Column letters at the top */}
+                                  {Array.from({ length: results.lengthwiseBays }).map((_, i) => {
+                                    const x = bayPositionsX[i] + lengthwiseBayWidths[i] / 2;
+                                    const letter = String.fromCharCode(65 + i); // A, B, C, ...
+                                    
+                                    return (
+                                      <text
+                                        key={`col-label-${i}`}
+                                        x={x}
+                                        y="-0.3"
+                                        textAnchor="middle"
+                                        fontSize="0.3"
+                                        fill="#666666"
+                                      >
+                                        {letter}
+                                      </text>
+                                    );
+                                  })}
+                                  
+                                  {/* Row numbers on the left */}
+                                  {Array.from({ length: results.widthwiseBays }).map((_, i) => {
+                                    const y = bayPositionsY[i] + widthwiseBayWidths[i] / 2;
+                                    const number = i + 1; // 1, 2, 3, ...
+                                    
+                                    return (
+                                      <text
+                                        key={`row-label-${i}`}
+                                        x="-0.3"
+                                        y={y + 0.1} // Slight adjustment for vertical centering
+                                        textAnchor="middle"
+                                        fontSize="0.3"
+                                        fill="#666666"
+                                      >
+                                        {number}
+                                      </text>
+                                    );
+                                  })}
+                                  
+                                  {/* Building width dimension at the bottom */}
+                                  <text
+                                    key="width-dimension"
+                                    x={totalWidth / 2}
+                                    y={totalHeight + 0.6}
+                                    textAnchor="middle"
+                                    fontSize="0.3"
+                                    fill="#666666"
+                                  >
+                                    {results.buildingWidth.toFixed(1)}m
+                                  </text>
+                                  
+                                  {/* Building length dimension on the right (rotated 90 degrees) */}
+                                  <text
+                                    key="length-dimension"
+                                    x={totalWidth + 0.6}
+                                    y={totalHeight / 2}
+                                    textAnchor="middle"
+                                    fontSize="0.3"
+                                    fill="#666666"
+                                    transform={`rotate(90, ${totalWidth + 0.6}, ${totalHeight / 2})`}
+                                  >
+                                    {results.buildingLength.toFixed(1)}m
+                                  </text>
                                 </g>
                                 
                                 {/* Columns at grid intersections */}
@@ -1661,12 +1874,12 @@ export default function TimberCalculator() {
                                     } else if (isBottomEdge) {
                                       // Bottom edge column - move inside by half height
                                       y = yPos - scaledColumnHeight/2;
-                                    } else {
+                              } else {
                                       // Interior column - centered on grid line
                                       y = yPos;
                                     }
                                     
-                                    return (
+                                return (
                                       <g key={`column-${row}-${col}`}>
                                         <rect
                                           x={x - scaledColumnWidth/2}
@@ -1704,13 +1917,13 @@ export default function TimberCalculator() {
                               className={`flex-1 py-2 px-4 text-center ${!joistsRunLengthwise ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}`}
                               onClick={() => setJoistsRunLengthwise(false)}
                             >
-                              Horizontal Joists ↔
+                              Vertical Joists ↕
                             </button>
                             <button 
                               className={`flex-1 py-2 px-4 text-center ${joistsRunLengthwise ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}`}
                               onClick={() => setJoistsRunLengthwise(true)}
                             >
-                              Vertical Joists ↕
+                              Horizontal Joists ↔
                             </button>
                           </div>
                           <p className="text-center text-sm text-gray-500 mt-2">↔ / ↕ Arrows indicate joist span direction (click arrows or use toggle above to change direction)</p>
