@@ -228,6 +228,9 @@ export default function TimberCalculator() {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [error, setError] = useState(null);
+  
+  // Mobile detection state
+  const [isMobile, setIsMobile] = useState(false);
 
   const [results, setResults] = useState(null);
   
@@ -265,6 +268,24 @@ export default function TimberCalculator() {
       firstRender.current = false;
     }
   }, [buildingLength, buildingWidth]);
+  
+  // Add window resize listener to detect mobile devices
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Set initial value
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   
   // Load saved project if available
   useEffect(() => {
@@ -1497,7 +1518,7 @@ export default function TimberCalculator() {
                       
                       <div className="flex justify-center">
                         <div className="relative w-full h-full" style={{ 
-                          minHeight: '400px', 
+                          minHeight: '300px', // Reduced from 400px for better mobile fit
                           border: 'none',
                           display: 'flex',
                           justifyContent: 'center',
@@ -1527,11 +1548,17 @@ export default function TimberCalculator() {
                               currentY += widthwiseBayWidths[i];
                             }
                             
+                            // Use the state variable instead of checking window.innerWidth directly
+                            // const isMobile = window.innerWidth < 768;
+                            
+                            // Adjust padding for mobile
+                            const viewBoxPadding = isMobile ? 1.5 : 1;
+                            
                             return (
                               <svg 
                                 width="100%" 
                                 height="100%" 
-                                viewBox={`-1 -1 ${totalWidth + 2} ${totalHeight + 2}`}
+                                viewBox={`-${viewBoxPadding} -${viewBoxPadding} ${totalWidth + viewBoxPadding*2} ${totalHeight + viewBoxPadding*2}`}
                                 preserveAspectRatio="xMidYMid meet"
                                 style={{ 
                                   background: 'white', 
@@ -1747,17 +1774,23 @@ export default function TimberCalculator() {
                                     const x = bayPositionsX[i] + lengthwiseBayWidths[i] / 2;
                                     const letter = String.fromCharCode(65 + i); // A, B, C, ...
                                     
-                                    // Calculate scale factor based on building size
+                                    // Calculate scale factor based on building size and screen size
+                                    const baseFontSize = 0.3;
                                     const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
-                                    const fontSize = 0.3 * scaleFactor;
+                                    const screenSizeFactor = isMobile ? 1.2 : 1; // Increase font size on mobile
+                                    const fontSize = baseFontSize * scaleFactor * screenSizeFactor;
+                                    
+                                    // Ensure minimum font size for readability
+                                    const finalFontSize = Math.max(fontSize, 0.35);
                                     
                                     return (
                                       <text
                                         key={`col-label-${i}`}
                                         x={x}
-                                        y="-0.3"
+                                        y={-0.4 * (isMobile ? 1.2 : 1)} // Move further out on mobile
                                         textAnchor="middle"
-                                        fontSize={fontSize > 0.3 ? fontSize : 0.3}
+                                        fontSize={finalFontSize}
+                                        fontWeight={isMobile ? "bold" : "normal"}
                                         fill="#666666"
                                       >
                                         {letter}
@@ -1770,17 +1803,23 @@ export default function TimberCalculator() {
                                     const y = bayPositionsY[i] + widthwiseBayWidths[i] / 2;
                                     const number = i + 1; // 1, 2, 3, ...
                                     
-                                    // Calculate scale factor based on building size
+                                    // Calculate scale factor based on building size and screen size
+                                    const baseFontSize = 0.3;
                                     const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
-                                    const fontSize = 0.3 * scaleFactor;
+                                    const screenSizeFactor = isMobile ? 1.2 : 1; // Increase font size on mobile
+                                    const fontSize = baseFontSize * scaleFactor * screenSizeFactor;
+                                    
+                                    // Ensure minimum font size for readability
+                                    const finalFontSize = Math.max(fontSize, 0.35);
                                     
                                     return (
                                       <text
                                         key={`row-label-${i}`}
-                                        x="-0.3"
+                                        x={-0.4 * (isMobile ? 1.2 : 1)} // Move further out on mobile
                                         y={y + 0.1} // Slight adjustment for vertical centering
                                         textAnchor="middle"
-                                        fontSize={fontSize > 0.3 ? fontSize : 0.3}
+                                        fontSize={finalFontSize}
+                                        fontWeight={isMobile ? "bold" : "normal"}
                                         fill="#666666"
                                       >
                                         {number}
@@ -1790,18 +1829,28 @@ export default function TimberCalculator() {
                                   
                                   {/* Building width dimension on the right (rotated 90 degrees) */}
                                   {(() => {
+                                    // Calculate scale factor based on building size and screen size
+                                    const baseFontSize = 0.3;
                                     const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
-                                    const fontSize = 0.3 * scaleFactor;
+                                    const screenSizeFactor = isMobile ? 1.2 : 1; // Increase font size on mobile
+                                    const fontSize = baseFontSize * scaleFactor * screenSizeFactor;
+                                    
+                                    // Ensure minimum font size for readability
+                                    const finalFontSize = Math.max(fontSize, 0.35);
+                                    
+                                    // Position adjustment for mobile
+                                    const positionOffset = isMobile ? 0.8 : 0.6;
                                     
                                     return (
                                       <text
                                         key="width-dimension"
-                                        x={totalWidth + 0.6}
+                                        x={totalWidth + positionOffset}
                                         y={totalHeight / 2}
                                         textAnchor="middle"
-                                        fontSize={fontSize > 0.3 ? fontSize : 0.3}
+                                        fontSize={finalFontSize}
+                                        fontWeight={isMobile ? "bold" : "normal"}
                                         fill="#666666"
-                                        transform={`rotate(90, ${totalWidth + 0.6}, ${totalHeight / 2})`}
+                                        transform={`rotate(90, ${totalWidth + positionOffset}, ${totalHeight / 2})`}
                                       >
                                         {results.buildingWidth.toFixed(1)}m
                                       </text>
@@ -1810,16 +1859,26 @@ export default function TimberCalculator() {
                                   
                                   {/* Building length dimension at the bottom */}
                                   {(() => {
+                                    // Calculate scale factor based on building size and screen size
+                                    const baseFontSize = 0.3;
                                     const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
-                                    const fontSize = 0.3 * scaleFactor;
+                                    const screenSizeFactor = isMobile ? 1.2 : 1; // Increase font size on mobile
+                                    const fontSize = baseFontSize * scaleFactor * screenSizeFactor;
+                                    
+                                    // Ensure minimum font size for readability
+                                    const finalFontSize = Math.max(fontSize, 0.35);
+                                    
+                                    // Position adjustment for mobile
+                                    const positionOffset = isMobile ? 0.8 : 0.6;
                                     
                                     return (
                                       <text
                                         key="length-dimension"
                                         x={totalWidth / 2}
-                                        y={totalHeight + 0.6}
+                                        y={totalHeight + positionOffset}
                                         textAnchor="middle"
-                                        fontSize={fontSize > 0.3 ? fontSize : 0.3}
+                                        fontSize={finalFontSize}
+                                        fontWeight={isMobile ? "bold" : "normal"}
                                         fill="#666666"
                                       >
                                         {results.buildingLength.toFixed(1)}m
@@ -1953,7 +2012,7 @@ export default function TimberCalculator() {
                       </div>
                       
                         {/* Beam Legend */}
-                        <div className="flex items-center justify-center mt-2">
+                        {/* <div className="flex items-center justify-center mt-2">
                           <div className="flex items-center mr-4">
                             <div style={{ 
                               width: '20px', 
@@ -1978,7 +2037,7 @@ export default function TimberCalculator() {
                               Internal beams
                             </span>
                           </div>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </div>
@@ -1994,8 +2053,17 @@ export default function TimberCalculator() {
                         <div className="grid grid-cols-1 bg-white p-3 md:p-4 rounded-lg shadow">
                           <div className="border-b pb-3 mb-3">
                             <h5 className="font-semibold mb-2 text-sm md:text-base">Total Cost Estimate</h5>
-                            <p className="text-xl md:text-2xl font-bold text-green-700">{formatCurrency(results.costs?.totalCost || 0)}</p>
-                            <p className="text-xs md:text-sm text-gray-500 mt-1">Excluding GST and installation</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="bg-gray-50 p-3 rounded-lg">
+                                <p className="text-xl md:text-2xl font-bold text-green-700">{formatCurrency(results.costs?.totalCost || 0)}</p>
+                                <p className="text-xs md:text-sm text-gray-500 mt-1">Excluding GST and installation</p>
+                              </div>
+                              <div className="bg-gray-50 p-3 rounded-lg text-right">
+                                <p className="text-sm text-green-700 font-medium">Carbon Saving vs Steel/Concrete:</p>
+                                <p className="text-lg md:text-xl font-bold text-green-700">{results.carbonSavings?.toFixed(2) || '0.00'} tonnes CO<sub>2</sub>e</p>
+                                <p className="text-xs text-gray-500 mt-1">Equivalent to {Math.round((results.carbonSavings || 0) * 4.3)} trees planted</p>
+                              </div>
+                            </div>
                           </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
