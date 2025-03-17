@@ -72,8 +72,8 @@ const floorMaterial = new THREE.MeshStandardMaterial({
 
 // Edge material for highlighting structural elements
 const edgeMaterial = new THREE.LineBasicMaterial({ 
-  color: '#333333',
-  linewidth: 1
+  color: '#111111', // Darker edge color, almost black
+  linewidth: 1.5    // Slightly thicker lines
 });
 
 // Function to create a mesh with edge highlighting
@@ -107,7 +107,8 @@ const Building = ({ data }) => {
     beamSize,
     edgeBeamSize,
     columnSize,
-    joistsRunLengthwise
+    joistsRunLengthwise,
+    getBeamPosition
   } = data;
 
   // Convert millimeters to meters for member sizes
@@ -152,8 +153,10 @@ const Building = ({ data }) => {
 
   // Create beams - UPDATED POSITIONING
   for (let floor = 0; floor < numFloors; floor++) {
-    // Position beams with joists on top of them
-    const posY = (floor + 1) * floorHeight - joistDepth - (beamDepth / 2);
+    // Position beams based on the joist position setting
+    const posY = getBeamPosition ? 
+      getBeamPosition(floor, floorHeight, joistDepth, beamDepth) : 
+      (floor + 1) * floorHeight - joistDepth - (beamDepth / 2); // Default to on top if function not provided
 
     if (joistsRunLengthwise) {
       // If joists run lengthwise, beams run widthwise
@@ -310,6 +313,7 @@ export default function BuildingVisualization() {
   const [buildingData, setBuildingData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [joistPosition, setJoistPosition] = useState('ontop'); // 'ontop', 'halfnotch', or 'inline'
 
   useEffect(() => {
     // Fetch data from localStorage
@@ -385,6 +389,44 @@ export default function BuildingVisualization() {
     );
   }
 
+  // Function to calculate beam position based on joist position option
+  const getBeamPosition = (floor, floorHeight, joistDepth, beamDepth) => {
+    switch (joistPosition) {
+      case 'ontop':
+        // Joist sits on top of beam
+        return (floor + 1) * floorHeight - joistDepth - (beamDepth / 2);
+      case 'halfnotch':
+        // Joist is halfway embedded in beam
+        return (floor + 1) * floorHeight - joistDepth / 2 - (beamDepth / 2);
+      case 'inline':
+        // Joist and beam tops are flush
+        return (floor + 1) * floorHeight - (beamDepth / 2);
+      default:
+        return (floor + 1) * floorHeight - joistDepth - (beamDepth / 2);
+    }
+  };
+
+  // Calculate the center of the building for camera targeting
+  const calculateModelCenter = (data) => {
+    if (!data) return [0, 0, 0];
+    
+    // Calculate vertical center based on number of floors
+    const yCenter = (data.numFloors * data.floorHeight) / 2;
+    
+    // Return center coordinates [x, y, z]
+    return [0, yCenter, 0];
+  };
+
+  // Update the Building component to use the new getBeamPosition function
+  const BuildingWithJoistPosition = (props) => {
+    const updatedData = {
+      ...props.data,
+      getBeamPosition: getBeamPosition
+    };
+    
+    return <Building data={updatedData} />;
+  };
+
   return (
     <div className="relative h-full w-full">
       <Canvas shadows>
@@ -409,7 +451,7 @@ export default function BuildingVisualization() {
         
         <GridHelper size={Math.max(buildingData.buildingLength, buildingData.buildingWidth) * 2} divisions={20} />
         
-        <Building data={buildingData} />
+        <BuildingWithJoistPosition data={buildingData} />
         
         <OrbitControls 
           enableDamping={true}
@@ -418,6 +460,7 @@ export default function BuildingVisualization() {
           screenSpacePanning={true}
           minDistance={5}
           maxDistance={100}
+          target={calculateModelCenter(buildingData)}
         />
       </Canvas>
       
@@ -427,6 +470,46 @@ export default function BuildingVisualization() {
         <p>Floors: {buildingData.numFloors} (Height: {buildingData.floorHeight}m each)</p>
         <p>Bays: {buildingData.lengthwiseBays} × {buildingData.widthwiseBays}</p>
         <p>Fire Rating: {buildingData.fireRating}</p>
+      </div>
+      
+      {/* Joist Position Controls */}
+      <div className="absolute bottom-4 right-4 bg-white bg-opacity-80 p-3 rounded-lg shadow text-sm">
+        <p className="font-semibold mb-2">Joist Position</p>
+        <div className="flex flex-col space-y-2">
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="joistPosition"
+              value="ontop"
+              checked={joistPosition === 'ontop'}
+              onChange={() => setJoistPosition('ontop')}
+              className="mr-2"
+            />
+            <span>On Top</span>
+          </label>
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="joistPosition"
+              value="halfnotch"
+              checked={joistPosition === 'halfnotch'}
+              onChange={() => setJoistPosition('halfnotch')}
+              className="mr-2"
+            />
+            <span>Half Notched</span>
+          </label>
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="joistPosition"
+              value="inline"
+              checked={joistPosition === 'inline'}
+              onChange={() => setJoistPosition('inline')}
+              className="mr-2"
+            />
+            <span>Inline</span>
+          </label>
+        </div>
       </div>
       
       <div className="absolute top-4 right-4 bg-white bg-opacity-80 p-3 rounded-lg shadow text-sm">
