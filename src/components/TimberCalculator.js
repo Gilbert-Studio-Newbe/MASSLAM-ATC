@@ -1464,7 +1464,7 @@ export default function TimberCalculator() {
           {results ? (
             <div className="apple-results">
               <div className="apple-results-header">
-                <h2 className="text-lg md:text-xl font-semibold">Calculation Results</h2>
+                <h2 className="text-lg md:text-xl font-semibold">Bay Layout</h2>
               </div>
               
               <div className="apple-results-body">
@@ -1475,7 +1475,7 @@ export default function TimberCalculator() {
                   {/* Bay Layout Visualization - Now spans full width */}
                   <div>
                     <div className="apple-visualization mb-3">
-                      <h3 className="apple-visualization-title text-md md:text-lg font-semibold mb-3">Bay Layout</h3>
+                      {/* Removed the Bay Layout title to avoid duplication */}
                       
                       {/* Custom Bay Dimensions Toggle */}
                       <div className="mb-4 flex items-center">
