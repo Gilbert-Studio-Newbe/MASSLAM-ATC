@@ -1616,7 +1616,7 @@ export default function TimberCalculator() {
                             // const isMobile = window.innerWidth < 768;
                             
                             // Adjust padding for mobile
-                            const viewBoxPadding = isMobile ? 1.5 : 1;
+                            const viewBoxPadding = isMobile ? 2.5 : 2;
                                     
                                     return (
                               <svg 
@@ -1851,7 +1851,7 @@ export default function TimberCalculator() {
                                       <text
                                         key={`col-label-${i}`}
                                         x={x}
-                                        y={-0.4 * (isMobile ? 1.2 : 1)} // Move further out on mobile
+                                        y={-0.8 * (isMobile ? 1.5 : 1.2)} // Move further out on mobile
                                         textAnchor="middle"
                                         fontSize={finalFontSize}
                                         fontWeight={isMobile ? "bold" : "normal"}
@@ -1879,7 +1879,7 @@ export default function TimberCalculator() {
                                     return (
                                       <text
                                         key={`row-label-${i}`}
-                                        x={-0.4 * (isMobile ? 1.2 : 1)} // Move further out on mobile
+                                        x={-0.8 * (isMobile ? 1.5 : 1.2)} // Move further out on mobile
                                         y={y + 0.1} // Slight adjustment for vertical centering
                                         textAnchor="middle"
                                         fontSize={finalFontSize}
@@ -1903,7 +1903,7 @@ export default function TimberCalculator() {
                                     const finalFontSize = Math.max(fontSize, 0.35);
                                     
                                     // Position adjustment for mobile
-                                    const positionOffset = isMobile ? 0.8 : 0.6;
+                                    const positionOffset = isMobile ? 1.2 : 1.0;
                                     
                                     return (
                                       <text
@@ -1933,7 +1933,7 @@ export default function TimberCalculator() {
                                     const finalFontSize = Math.max(fontSize, 0.35);
                                     
                                     // Position adjustment for mobile
-                                    const positionOffset = isMobile ? 0.8 : 0.6;
+                                    const positionOffset = isMobile ? 1.2 : 1.0;
                                     
                                 return (
                                       <text
