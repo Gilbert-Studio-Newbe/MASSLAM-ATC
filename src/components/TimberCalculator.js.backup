@@ -1240,7 +1240,7 @@ export default function TimberCalculator() {
     <div className="apple-section">
       <div className="flex justify-between items-center mb-12">
         <h1 style={{ color: 'var(--apple-text)' }}>Member Calculator</h1>
-      </div>
+          </div>
       
       {/* Success Message */}
       {saveMessage && (
@@ -1354,22 +1354,22 @@ export default function TimberCalculator() {
                 <div className="apple-specs-row">
                   <div className="apple-specs-label">Fire Rating (FRL)</div>
                   <div className="apple-specs-value">
-                    <select 
+              <select 
                       className="apple-input apple-select mb-0"
-                      value={fireRating}
+                value={fireRating}
                       onChange={(e) => handleFireRatingChange(e.target.value)}
-                    >
-                      <option value="none">None</option>
+              >
+                <option value="none">None</option>
                       <option value="30/30/30">30/30/30</option>
                       <option value="60/60/60">60/60/60</option>
                       <option value="90/90/90">90/90/90</option>
                       <option value="120/120/120">120/120/120</option>
-                    </select>
+              </select>
                     <p className="text-xs text-gray-500 mt-1">
                       Concrete slab thickness: {concreteThickness}mm ({concreteLoadData.loadKpa} kPa)
                     </p>
-                  </div>
-                </div>
+          </div>
+        </div>
         
               <div className="apple-specs-table mb-6 md:mb-8">
                 <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Dimensions</h3>

@@ -720,6 +720,46 @@ export default function TimberCalculator() {
         // instead of automatically using the shorter distance
         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
         
+        // Calculate concrete thickness based on fire rating
+        const getConcreteThickness = (frl) => {
+          switch (frl) {
+            case 'none':
+            case '30/30/30':
+            case '60/60/60':
+              return 100; // 100mm for FRL 0/0/0, 30/30/30, 60/60/60
+            case '90/90/90':
+              return 110; // 110mm for FRL 90/90/90
+            case '120/120/120':
+              return 120; // 120mm for FRL 120/120/120
+            default:
+              return 100; // Default to 100mm
+          }
+        };
+        
+        // Calculate concrete load based on thickness
+        const calculateConcreteLoad = (thickness) => {
+          const CONCRETE_DENSITY = 2400; // kg/m³
+          
+          // Calculate concrete volume per m²
+          const concreteVolumePerM2 = thickness / 1000; // m³/m² (thickness in m)
+          
+          // Calculate concrete mass per m²
+          const concreteMassPerM2 = concreteVolumePerM2 * CONCRETE_DENSITY; // kg/m²
+          
+          // Convert to kPa (1 kg/m² = 0.00981 kPa)
+          const concreteLoadKpa = concreteMassPerM2 * 0.00981;
+          
+          return {
+            thickness,
+            massPerM2: concreteMassPerM2.toFixed(1),
+            loadKpa: concreteLoadKpa.toFixed(2)
+          };
+        };
+        
+        // Get concrete thickness and load based on current fire rating
+        const concreteThickness = getConcreteThickness(fireRating);
+        const concreteLoadData = calculateConcreteLoad(concreteThickness);
+        
         // Calculate joist size based on span and load
         const joistSize = calculateJoistSize(joistSpan, 800, load, timberGrade, fireRating);
         
@@ -737,7 +777,7 @@ export default function TimberCalculator() {
       // These beams have a tributary width of half the perpendicular bay dimension
       const interiorBeamSize = calculateMultiFloorBeamSize(
         beamSpan, 
-        load, 
+        load + parseFloat(concreteLoadData.loadKpa), // Include concrete load 
         joistSpacing, 
         numFloors, 
         fireRating, 
@@ -751,7 +791,7 @@ export default function TimberCalculator() {
       // These beams have a tributary width of half the perpendicular bay dimension
       const edgeBeamSize = calculateMultiFloorBeamSize(
         beamSpan, 
-        load, 
+        load + parseFloat(concreteLoadData.loadKpa), // Include concrete load
         joistSpacing, 
         numFloors, 
         fireRating,
@@ -1320,77 +1360,101 @@ export default function TimberCalculator() {
                       <option value="90/90/90">90/90/90</option>
                       <option value="120/120/120">120/120/120</option>
               </select>
-            </div>
-          </div>
-        </div>
-        
-              <div className="apple-specs-table mb-6 md:mb-8">
-                <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Dimensions</h3>
-                
-                <SliderInput 
-                  label="Building Length (m)"
-                      value={buildingLength} 
-                  onChange={handleBuildingLengthChange}
-                  min={3}
-                  max={100}
-                  step={0.1}
-                  unit="m"
-                />
+                    <p className="text-xs mt-1" style={{ color: 'var(--apple-text-secondary, #86868b)' }}>
+                      Concrete thickness: {
+                        (() => {
+                          // Define the getConcreteThickness function inline
+                          const getThickness = (frl) => {
+                            switch (frl) {
+                              case 'none':
+                              case '30/30/30':
+                              case '60/60/60':
+                                return 100; // 100mm for FRL 0/0/0, 30/30/30, 60/60/60
+                              case '90/90/90':
+                                return 110; // 110mm for FRL 90/90/90
+                              case '120/120/120':
+                                return 120; // 120mm for FRL 120/120/120
+                              default:
+                                return 100; // Default to 100mm
+                            }
+                          };
+                          return getThickness(fireRating);
+                        })()
+                      }mm (based on selected FRL)
+                    </p>
+                  </div>
+                </div>
 
-                <SliderInput 
-                  label="Building Width (m)"
-                      value={buildingWidth} 
-                  onChange={handleBuildingWidthChange}
-                  min={3}
-                  max={100}
-                  step={0.1}
-                  unit="m"
-                />
+                <div className="apple-specs-table mb-6 md:mb-8">
+                  <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Dimensions</h3>
+                  
+                  <SliderInput 
+                    label="Building Length (m)"
+                    value={buildingLength} 
+                    onChange={handleBuildingLengthChange}
+                    min={3}
+                    max={100}
+                    step={0.1}
+                    unit="m"
+                  />
 
-                <SliderInput 
-                  label="Number of Floors"
-                      value={numFloors} 
-                  onChange={handleNumFloorsChange}
-                  min={1}
-                  max={20}
-                  step={1}
-                  isInteger={true}
-                />
+                  <SliderInput 
+                    label="Building Width (m)"
+                    value={buildingWidth} 
+                    onChange={handleBuildingWidthChange}
+                    min={3}
+                    max={100}
+                    step={0.1}
+                    unit="m"
+                  />
 
-                <SliderInput 
-                  label="Floor Height (m)"
-                      value={floorHeight} 
-                  onChange={handleFloorHeightChange}
-                  min={2.4}
-                  max={6}
-                  step={0.1}
-                  unit="m"
-                />
+                  <SliderInput 
+                    label="Number of Floors"
+                    value={numFloors} 
+                    onChange={handleNumFloorsChange}
+                    min={1}
+                    max={20}
+                    step={1}
+                    isInteger={true}
+                  />
 
-                <SliderInput 
-                  label="Bays Wide (Columns)"
-                      value={lengthwiseBays} 
-                  onChange={handleLengthwiseBaysChange}
-                  min={1}
-                  max={20}
-                  step={1}
-                  isInteger={true}
-                  description={`Current bay width: ${(buildingLength / lengthwiseBays).toFixed(2)} m`}
-                />
+                  <SliderInput 
+                    label="Floor Height (m)"
+                    value={floorHeight} 
+                    onChange={handleFloorHeightChange}
+                    min={2.4}
+                    max={6}
+                    step={0.1}
+                    unit="m"
+                  />
 
-                <SliderInput 
-                  label="Bays Deep (Rows)"
-                      value={widthwiseBays} 
-                  onChange={handleWidthwiseBaysChange}
-                  min={1}
-                  max={20}
-                  step={1}
-                  isInteger={true}
-                  description={`Current bay depth: ${(buildingWidth / widthwiseBays).toFixed(2)} m`}
-                />
+                  <SliderInput 
+                    label="Bays Wide (Columns)"
+                    value={lengthwiseBays} 
+                    onChange={handleLengthwiseBaysChange}
+                    min={1}
+                    max={20}
+                    step={1}
+                    isInteger={true}
+                    description={`Current bay width: ${(buildingLength / lengthwiseBays).toFixed(2)} m`}
+                  />
 
-                {/* Removed Joist Centres input */}
-              </div>
+                  <SliderInput 
+                    label="Bays Deep (Rows)"
+                    value={widthwiseBays} 
+                    onChange={handleWidthwiseBaysChange}
+                    min={1}
+                    max={20}
+                    step={1}
+                    isInteger={true}
+                    description={`Current bay depth: ${(buildingWidth / widthwiseBays).toFixed(2)} m`}
+                  />
+
+                  {/* Removed Joist Centres input */}
+                </div>
+
+                {/* ... existing code ... */}
+                  </div>
             </div>
           </div>
         </div>
@@ -1553,14 +1617,14 @@ export default function TimberCalculator() {
                             
                             // Adjust padding for mobile
                             const viewBoxPadding = isMobile ? 1.5 : 1;
-                            
-                            return (
+                                    
+                                    return (
                               <svg 
                                 width="100%" 
                                 height="100%" 
                                 viewBox={`-${viewBoxPadding} -${viewBoxPadding} ${totalWidth + viewBoxPadding*2} ${totalHeight + viewBoxPadding*2}`}
                                 preserveAspectRatio="xMidYMid meet"
-                                style={{ 
+                                        style={{ 
                                   background: 'white', 
                                   maxWidth: '100%',
                                   maxHeight: '100%',
@@ -1826,9 +1890,9 @@ export default function TimberCalculator() {
                                       </text>
                                     );
                                   })}
-                                  
+                          
                                   {/* Building width dimension on the right (rotated 90 degrees) */}
-                                  {(() => {
+                          {(() => {
                                     // Calculate scale factor based on building size and screen size
                                     const baseFontSize = 0.3;
                                     const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
@@ -1871,7 +1935,7 @@ export default function TimberCalculator() {
                                     // Position adjustment for mobile
                                     const positionOffset = isMobile ? 0.8 : 0.6;
                                     
-                                    return (
+                                return (
                                       <text
                                         key="length-dimension"
                                         x={totalWidth / 2}
@@ -1911,7 +1975,7 @@ export default function TimberCalculator() {
                                       // When joists run lengthwise (vertical joists), columns are oriented with width along the length
                                       scaledColumnWidth = columnWidth * buildingSizeScaleFactor;
                                       scaledColumnHeight = columnHeight * buildingSizeScaleFactor;
-                                    } else {
+                              } else {
                                       // When joists run widthwise (horizontal joists), columns are rotated 90 degrees
                                       scaledColumnWidth = columnHeight * buildingSizeScaleFactor;
                                       scaledColumnHeight = columnWidth * buildingSizeScaleFactor;
@@ -2024,7 +2088,7 @@ export default function TimberCalculator() {
                             <span className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
                               Edge beams
                             </span>
-                          </div>
+                      </div>
                           <div className="flex items-center">
                             <div style={{ 
                               width: '20px', 

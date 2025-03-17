@@ -228,6 +228,9 @@ export default function TimberCalculator() {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [error, setError] = useState(null);
+  
+  // Mobile detection state
+  const [isMobile, setIsMobile] = useState(false);
 
   const [results, setResults] = useState(null);
   
@@ -253,21 +256,84 @@ export default function TimberCalculator() {
   
   // Add state variable for global joist direction
   const [joistsRunLengthwise, setJoistsRunLengthwise] = useState(false);
+  const firstRender = useRef(true);
   
   // Set initial joist direction based on building dimensions
   useEffect(() => {
     // By default, joists should span the shorter distance
     // This is just for initial setup - after that, the user can toggle
+    // Only set the direction on the first render, not when dimensions change
+    if (firstRender.current) {
     setJoistsRunLengthwise(buildingWidth > buildingLength);
+      firstRender.current = false;
+    }
   }, [buildingLength, buildingWidth]);
+  
+  // Add window resize listener to detect mobile devices
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Set initial value
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
   
   // Load saved project if available
   useEffect(() => {
     const loadSavedProject = () => {
       try {
+        // First check for saved state in localStorage
+        const savedState = localStorage.getItem('timberCalculatorState');
+        
+        if (savedState) {
+          const parsedState = JSON.parse(savedState);
+          console.log('Loading saved state from localStorage:', parsedState);
+          
+          // Restore all state values
+          setBuildingLength(parsedState.buildingLength || 18);
+          setBuildingWidth(parsedState.buildingWidth || 14);
+          setLengthwiseBays(parsedState.lengthwiseBays || 3);
+          setWidthwiseBays(parsedState.widthwiseBays || 2);
+          setNumFloors(parsedState.numFloors || 1);
+          setFloorHeight(parsedState.floorHeight || 3.5);
+          setLoad(parsedState.load || 3.0);
+          setFireRating(parsedState.fireRating || 'none');
+          setJoistsRunLengthwise(parsedState.joistsRunLengthwise !== undefined ? parsedState.joistsRunLengthwise : true);
+          setTimberGrade(parsedState.timberGrade || 'ML38');
+          setUseCustomBayDimensions(parsedState.useCustomBayDimensions || false);
+          
+          // Only set custom bay widths if they exist and match the current number of bays
+          if (parsedState.customLengthwiseBayWidths && parsedState.customLengthwiseBayWidths.length === parsedState.lengthwiseBays) {
+            setCustomLengthwiseBayWidths(parsedState.customLengthwiseBayWidths);
+          }
+          
+          if (parsedState.customWidthwiseBayWidths && parsedState.customWidthwiseBayWidths.length === parsedState.widthwiseBays) {
+            setCustomWidthwiseBayWidths(parsedState.customWidthwiseBayWidths);
+          }
+          
+          console.log('Successfully loaded state from localStorage');
+          
+          // The useEffect that watches for state changes will trigger the calculation
+          
+          return; // Skip loading from currentProject if we loaded from localStorage
+        } else {
+          console.log('No saved state found in localStorage');
+        }
+        
+        // If no localStorage state, check for currentProject
         const currentProject = localStorage.getItem('currentProject');
         if (currentProject) {
           const project = JSON.parse(currentProject);
+          console.log('Loading project from currentProject:', project);
           
           // Load project details
           setProjectDetails(project.details);
@@ -293,14 +359,30 @@ export default function TimberCalculator() {
             setJoistsRunLengthwise(project.joistsRunLengthwise);
           }
           
+          // Load custom bay dimensions if available
+          if (project.customBayDimensions) {
+            setUseCustomBayDimensions(true);
+            if (project.customBayDimensions.lengthwiseBayWidths) {
+              setCustomLengthwiseBayWidths(project.customBayDimensions.lengthwiseBayWidths);
+            }
+            if (project.customBayDimensions.widthwiseBayWidths) {
+              setCustomWidthwiseBayWidths(project.customBayDimensions.widthwiseBayWidths);
+            }
+          }
+          
+          console.log('Successfully loaded project from currentProject');
+          
           // Clear the current project from localStorage
           localStorage.removeItem('currentProject');
+        } else {
+          console.log('No currentProject found in localStorage');
         }
       } catch (error) {
         console.error('Error loading saved project:', error);
       }
     };
     
+    console.log('Component mounted, loading saved project...');
     loadSavedProject();
   }, []);
   
@@ -336,6 +418,46 @@ export default function TimberCalculator() {
   
   const [fireRating, setFireRating] = useState('none');
   const [load, setLoad] = useState(2); // kPa (updated from 1.5 to 2)
+  
+  // Calculate concrete slab thickness based on FRL
+  const getConcreteThickness = (frl) => {
+    switch (frl) {
+      case 'none':
+      case '30/30/30':
+      case '60/60/60':
+        return 100; // 100mm for FRL 0/0/0, 30/30/30, 60/60/60
+      case '90/90/90':
+        return 110; // 110mm for FRL 90/90/90
+      case '120/120/120':
+        return 120; // 120mm for FRL 120/120/120
+      default:
+        return 100; // Default to 100mm
+    }
+  };
+  
+  // Calculate concrete load based on thickness
+  const calculateConcreteLoad = (thickness) => {
+    const CONCRETE_DENSITY = 2400; // kg/m³
+    
+    // Calculate concrete volume per m²
+    const concreteVolumePerM2 = thickness / 1000; // m³/m² (thickness in m)
+    
+    // Calculate concrete mass per m²
+    const concreteMassPerM2 = concreteVolumePerM2 * CONCRETE_DENSITY; // kg/m²
+    
+    // Convert to kPa (1 kg/m² = 0.00981 kPa)
+    const concreteLoadKpa = concreteMassPerM2 * 0.00981;
+    
+    return {
+      thickness,
+      massPerM2: concreteMassPerM2.toFixed(1),
+      loadKpa: concreteLoadKpa.toFixed(2)
+    };
+  };
+  
+  // Get concrete thickness and load based on current fire rating
+  const concreteThickness = getConcreteThickness(fireRating);
+  const concreteLoadData = calculateConcreteLoad(concreteThickness);
   
   // Constants
   const structureType = 'floor'; // Fixed to floor
@@ -466,6 +588,119 @@ export default function TimberCalculator() {
     loadSizes();
   }, []);
   
+  // Save current state to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      // Create state object with all relevant design parameters
+      const currentState = {
+        buildingLength,
+        buildingWidth,
+        lengthwiseBays,
+        widthwiseBays,
+        numFloors,
+        floorHeight,
+        load,
+        fireRating,
+        joistsRunLengthwise,
+        timberGrade,
+        useCustomBayDimensions,
+        customLengthwiseBayWidths,
+        customWidthwiseBayWidths
+      };
+      
+      // Save to localStorage
+      localStorage.setItem('timberCalculatorState', JSON.stringify(currentState));
+      console.log('Saved current state to localStorage');
+    } catch (error) {
+      console.error('Error saving state to localStorage:', error);
+    }
+  }, [
+    buildingLength,
+    buildingWidth,
+    lengthwiseBays,
+    widthwiseBays,
+    numFloors,
+    floorHeight,
+    load,
+    fireRating,
+    joistsRunLengthwise,
+    timberGrade,
+    useCustomBayDimensions,
+    customLengthwiseBayWidths,
+    customWidthwiseBayWidths
+  ]);
+  
+  // Add a beforeunload event listener to save state before navigating away
+  useEffect(() => {
+    const saveStateBeforeUnload = () => {
+      try {
+        // Create state object with all relevant design parameters
+        const currentState = {
+          buildingLength,
+          buildingWidth,
+          lengthwiseBays,
+          widthwiseBays,
+          numFloors,
+          floorHeight,
+          load,
+          fireRating,
+          joistsRunLengthwise,
+          timberGrade,
+          useCustomBayDimensions,
+          customLengthwiseBayWidths,
+          customWidthwiseBayWidths
+        };
+        
+        // Save to localStorage
+        localStorage.setItem('timberCalculatorState', JSON.stringify(currentState));
+        console.log('Saved state before navigation');
+      } catch (error) {
+        console.error('Error saving state before navigation:', error);
+      }
+    };
+
+    // Add event listener for beforeunload
+    window.addEventListener('beforeunload', saveStateBeforeUnload);
+    
+    // Add event listener for navigation events
+    const handleRouteChange = () => {
+      saveStateBeforeUnload();
+    };
+    
+    // Add event listeners for link clicks that might navigate away
+    const handleLinkClick = () => {
+      saveStateBeforeUnload();
+    };
+    
+    // Find all link elements and add click event listeners
+    const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      link.addEventListener('click', handleLinkClick);
+    });
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener('beforeunload', saveStateBeforeUnload);
+      links.forEach(link => {
+        link.removeEventListener('click', handleLinkClick);
+      });
+    };
+  }, [
+    buildingLength,
+    buildingWidth,
+    lengthwiseBays,
+    widthwiseBays,
+    numFloors,
+    floorHeight,
+    load,
+    fireRating,
+    joistsRunLengthwise,
+    timberGrade,
+    useCustomBayDimensions,
+    customLengthwiseBayWidths,
+    customWidthwiseBayWidths
+  ]);
+  
   // Initialize custom bay dimensions when the number of bays changes
   useEffect(() => {
     // Initialize lengthwise bay widths with equal distribution
@@ -475,7 +710,6 @@ export default function TimberCalculator() {
     // Initialize widthwise bay widths with equal distribution
     const defaultWidthwiseBayWidth = buildingWidth / widthwiseBays;
     setCustomWidthwiseBayWidths(Array(widthwiseBays).fill(defaultWidthwiseBayWidth));
-    
   }, [lengthwiseBays, widthwiseBays, buildingLength, buildingWidth]);
 
   // Calculate bay dimensions based on whether custom dimensions are used
@@ -512,8 +746,7 @@ export default function TimberCalculator() {
     };
   };
   
-  // Calculate results based on inputs
-  useEffect(() => {
+  // Define calculateResults outside of useEffect so it can be called from anywhere
     const calculateResults = () => {
       try {
         // Get bay dimensions
@@ -527,8 +760,11 @@ export default function TimberCalculator() {
         // instead of automatically using the shorter distance
         const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
         
-        // Calculate joist size based on span and load
-        const joistSize = calculateJoistSize(joistSpan, 800, load, timberGrade, fireRating);
+        // Add concrete load to the imposed load for calculations
+        const totalLoad = parseFloat(load) + parseFloat(concreteLoadData.loadKpa);
+        
+        // Calculate joist size based on span and total load
+        const joistSize = calculateJoistSize(joistSpan, 800, totalLoad, timberGrade, fireRating);
         
         // Calculate beam span (beams span perpendicular to joists)
         const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
@@ -540,45 +776,51 @@ export default function TimberCalculator() {
         const avgBayLength = buildingLength / lengthwiseBays;
         const avgBayWidth = buildingWidth / widthwiseBays;
         
-        // Calculate interior beam size (beams that support load from both sides)
-        // These beams have a tributary width of half the perpendicular bay dimension
-        const interiorBeamSize = calculateMultiFloorBeamSize(
-          beamSpan, 
-          load, 
-          joistSpacing, 
-          numFloors, 
-          fireRating, 
-          joistsRunLengthwise, 
-          avgBayWidth, 
-          avgBayLength,
-          false // isEdgeBeam = false
-        );
-        
-        // Calculate edge beam size (beams that support load from only one side)
-        // These beams have a smaller tributary width (half of interior beams)
-        const edgeBeamSize = calculateMultiFloorBeamSize(
-          beamSpan, 
-          load, 
-          joistSpacing, 
-          numFloors, 
-          fireRating, 
-          joistsRunLengthwise, 
-          avgBayWidth, 
-          avgBayLength,
-          true // isEdgeBeam = true
-        );
-        
-        // Use the interior beam size as the primary beam size for column calculations
-        // since interior beams are typically larger and more critical
-        const beamSize = interiorBeamSize;
-        
-        // Calculate column size based on beam width, load, floor height, and number of floors
-        const columnSize = calculateMultiFloorColumnSize(beamSize.width, load, floorHeight, numFloors, fireRating, avgBayLength, avgBayWidth);
-        
-        // Calculate timber weight and volumes
+      // Calculate interior beam size (beams that support load from both sides)
+      // These beams have a tributary width of half the perpendicular bay dimension
+      const interiorBeamSize = calculateMultiFloorBeamSize(
+        beamSpan, 
+        totalLoad, // Use total load including concrete
+        joistSpacing, 
+        numFloors, 
+        fireRating, 
+        joistsRunLengthwise,
+        avgBayWidth,
+        avgBayLength,
+        false // Not an edge beam
+      );
+      
+      // Calculate edge beam size (beams that support load from one side only)
+      // These beams have a tributary width of half the perpendicular bay dimension
+      const edgeBeamSize = calculateMultiFloorBeamSize(
+        beamSpan, 
+        totalLoad, // Use total load including concrete
+        joistSpacing, 
+        numFloors, 
+        fireRating,
+        joistsRunLengthwise,
+        avgBayWidth,
+        avgBayLength,
+        true // Is an edge beam
+      );
+      
+      // Calculate column size
+      // Columns support the load from the beams
+      // Tributary area is the bay area (length x width)
+      const columnSize = calculateMultiFloorColumnSize(
+        interiorBeamSize.width, // Match column width to beam width
+        totalLoad, // Use total load including concrete
+        floorHeight, 
+        numFloors, 
+        fireRating,
+        avgBayLength,
+        avgBayWidth
+      );
+      
+      // Calculate timber volume and weight using the existing function
         const timberResult = calculateTimberWeight(
           joistSize, 
-          beamSize, 
+        interiorBeamSize,
           columnSize, 
           buildingLength, 
           buildingWidth, 
@@ -589,64 +831,73 @@ export default function TimberCalculator() {
           timberGrade
         );
         
-        // Calculate carbon benefits
-        const carbonResults = calculateCarbonSavings(timberResult);
+      // Calculate carbon benefits
+      const carbonResults = calculateCarbonSavings(timberResult);
         
-        // Calculate cost estimate
-        const costEstimate = calculateCost(timberResult, joistSize, buildingLength, buildingWidth, numFloors);
+      // Calculate costs
+      const costs = calculateCosts(joistSize, interiorBeamSize, edgeBeamSize, columnSize, buildingLength, buildingWidth, joistSpacing, lengthwiseBays, widthwiseBays, floorHeight, numFloors);
         
         // Validate the structure
-        const validationResult = validateStructure(joistSize, beamSize, columnSize);
+      const validationResult = validateStructure(joistSize, interiorBeamSize, edgeBeamSize, columnSize, joistSpan, beamSpan, floorHeight, load, numFloors);
         
         // Set the results
         setResults({
-          buildingLength,
-          buildingWidth,
-          numFloors,
-          floorHeight,
-          load,
-          fireRating,
-          lengthwiseBays,
-          widthwiseBays,
-          joistsRunLengthwise,
           joistSize,
-          beamSize,
+        beamSize: interiorBeamSize,
+        edgeBeamSize,
           columnSize,
-          timberWeight: timberResult.weight,
+          concreteData: concreteLoadData, // Add concrete data to results
+          totalLoad, // Add total load including concrete
           timberVolume: timberResult.totalVolume,
-          elementVolumes: {
-            joists: timberResult.elements.joists.volume,
-            beams: timberResult.elements.beams.volume,
-            columns: timberResult.elements.columns.volume
-          },
-          carbonStorage: carbonResults.carbonStorage,
-          embodiedCarbon: carbonResults.embodiedCarbon,
-          carbonSavings: carbonResults.carbonSavings,
-          costs: costEstimate,
+        timberWeight: timberResult.weight,
+        carbonStorage: carbonResults.carbonStorage,
+        embodiedCarbon: carbonResults.embodiedCarbon,
+        carbonSavings: carbonResults.carbonSavings,
+        costs,
           elementCounts: {
             joists: timberResult.elements.joists.count,
             beams: timberResult.elements.beams.count,
             columns: timberResult.elements.columns.count
           },
-          validation: validationResult,
-          edgeBeamSize: edgeBeamSize
-        });
-        
-        setError(null);
-      } catch (err) {
-        console.error('Error calculating results:', err);
-        setError(`Failed to calculate results: ${err.message}`);
-        setResults(null);
-      }
-    };
-    
-    // Debounce calculations to avoid excessive recalculations
-    const timer = setTimeout(() => {
+        elementVolumes: {
+          joists: timberResult.elements.joists.volume,
+          beams: timberResult.elements.beams.volume,
+          columns: timberResult.elements.columns.volume
+        },
+        buildingLength,
+        buildingWidth,
+        lengthwiseBays,
+        widthwiseBays,
+        validationResult
+      });
+    } catch (error) {
+      console.error('Error calculating results:', error);
+      setError('Error calculating results: ' + error.message);
+    }
+  };
+  
+  // Calculate results based on inputs
+  useEffect(() => {
+    // Only calculate if properties are loaded
+    if (propertiesLoaded) {
       calculateResults();
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, [buildingLength, buildingWidth, lengthwiseBays, widthwiseBays, load, numFloors, timberGrade, fireRating, useCustomBayDimensions, customLengthwiseBayWidths, customWidthwiseBayWidths, joistsRunLengthwise]);
+    }
+  }, [
+    buildingLength,
+    buildingWidth,
+    lengthwiseBays,
+    widthwiseBays,
+    numFloors,
+    floorHeight,
+    load,
+    fireRating,
+    joistsRunLengthwise,
+    timberGrade,
+    useCustomBayDimensions,
+    customLengthwiseBayWidths,
+    customWidthwiseBayWidths,
+    propertiesLoaded
+  ]);
 
   // Handle input changes
   const handleBuildingLengthChange = (value) => {
@@ -846,71 +1097,41 @@ export default function TimberCalculator() {
     showTicks = true,
     isInteger = false
   }) => {
-    // State to track the displayed value during sliding
-    const [localValue, setLocalValue] = useState(value);
+    const [inputValue, setInputValue] = useState(value.toString());
     const [isEditing, setIsEditing] = useState(false);
-    const debounceTimerRef = useRef(null);
     const inputRef = useRef(null);
     
-    // Generate tick marks for the slider if needed
-    const tickMarks = showTicks ? [] : null;
-    if (showTicks) {
-      for (let i = min; i <= max; i += (max - min) / 5) {
-        tickMarks.push(isInteger ? Math.round(i) : Math.round(i * 100) / 100);
-      }
-    }
-
-    // Handle slider change with debouncing
-    const handleSliderChange = (e) => {
-      const newValue = e.target.value;
-      setLocalValue(newValue);
-      
-      // Clear any existing timer
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-      
-      // Set a new timer to update the actual value after user stops sliding
-      debounceTimerRef.current = setTimeout(() => {
-        onChange(newValue);
-      }, 300); // 300ms debounce
-    };
-
-    // Handle manual input change
     const handleInputChange = (e) => {
-      const newValue = e.target.value;
-      setLocalValue(newValue);
+      setInputValue(e.target.value);
+      setIsEditing(true);
     };
 
-    // Handle input blur (when user finishes editing)
     const handleInputBlur = () => {
       setIsEditing(false);
       
       // Parse the value and ensure it's within bounds
-      let parsedValue = isInteger ? parseInt(localValue, 10) : parseFloat(localValue);
+      let parsedValue = isInteger ? parseInt(inputValue, 10) : parseFloat(inputValue);
       
       // Handle invalid input
       if (isNaN(parsedValue)) {
-        setLocalValue(value); // Reset to the original value
+        setInputValue(value.toString());
         return;
       }
       
       // Clamp the value between min and max
       parsedValue = Math.max(min, Math.min(max, parsedValue));
       
-      // Update the local value and trigger the onChange
-      setLocalValue(parsedValue);
-      onChange(parsedValue.toString());
+      // Update the input value and trigger the onChange
+      setInputValue(parsedValue.toString());
+      onChange(parsedValue);
     };
 
-    // Handle key press in the input field
     const handleKeyPress = (e) => {
       if (e.key === 'Enter') {
         e.target.blur(); // Trigger the blur event to apply the change
       }
     };
 
-    // Start editing and select the entire input text
     const startEditing = () => {
       if (disabled) return;
       
@@ -920,77 +1141,98 @@ export default function TimberCalculator() {
       setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.focus();
-          
-          // Select the entire input text instead of just positioning cursor at the end
           inputRef.current.select();
         }
       }, 10);
     };
 
-    // Ensure the local value stays in sync with the prop value
-    useEffect(() => {
-      setLocalValue(value);
-    }, [value]);
-
     return (
-      <div className="apple-specs-row">
-        <div className="apple-specs-label">{label}</div>
-        <div className="apple-specs-value">
-          <div className="flex items-center space-x-3 mb-1">
-            <div className="relative w-full">
-              <input 
-                type="range" 
-                className="w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                min={min} 
-                max={max} 
-                step={step}
-                value={localValue} 
-                onChange={handleSliderChange}
-                disabled={disabled}
-              />
-              {showTicks && (
-                <div className="flex justify-between w-full px-1 mt-1">
-                  {tickMarks.map((mark, index) => (
-                    <div key={index} className="text-xs text-gray-400">{mark}</div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="w-16 flex-shrink-0 text-right">
-              {/* Show editable input on desktop, static text on mobile */}
-              <div className="hidden md:block">
-                {isEditing ? (
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    className="apple-input mb-0 w-full text-right"
-                    value={localValue}
-                    onChange={handleInputChange}
-                    onBlur={handleInputBlur}
-                    onKeyPress={handleKeyPress}
-                    disabled={disabled}
-                  />
-                ) : (
-                  <span 
-                    className="text-sm font-medium cursor-pointer hover:text-blue-500 border border-gray-300 rounded px-2 py-1 transition-colors hover:border-blue-400"
-                    onClick={startEditing}
-                  >
-                    {isInteger ? Math.round(localValue) : localValue}{unit}
-                  </span>
-                )}
-              </div>
-              {/* Always show static text on mobile */}
-              <div className="block md:hidden">
-                <span className="text-sm font-medium">
-                  {isInteger ? Math.round(localValue) : localValue}{unit}
-                </span>
-              </div>
-            </div>
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-1">
+          <div className="flex-grow">
+            <label className="text-sm font-medium text-gray-700">{label}</label>
+            {description && (
+              <div className="text-xs text-gray-500">{description}</div>
+            )}
           </div>
-          {description && <p className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>{description}</p>}
+          <div className="flex items-center">
+            <input
+              ref={inputRef}
+              type="text"
+              value={isEditing ? inputValue : value}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+              onKeyDown={handleKeyPress}
+              onClick={startEditing}
+              className="w-20 px-2 py-1 text-right border border-gray-300 rounded-md text-sm"
+              disabled={disabled}
+            />
+            <span className="ml-1 text-sm text-gray-500 min-w-8 text-left">{unit}</span>
+          </div>
         </div>
       </div>
     );
+  };
+  
+  // Function to calculate costs using the existing calculateCost function
+  const calculateCosts = (joistSize, interiorBeamSize, edgeBeamSize, columnSize, buildingLength, buildingWidth, joistSpacing, lengthwiseBays, widthwiseBays, floorHeight, numFloors) => {
+    // Create a mock timberResult object with the necessary structure
+    const mockTimberResult = {
+      elements: {
+        joists: {
+          count: Math.ceil((buildingLength / joistSpacing) * widthwiseBays),
+          volume: calculateJoistVolume(joistSize, buildingLength, buildingWidth, joistSpacing)
+        },
+        beams: {
+          count: ((lengthwiseBays - 1) * widthwiseBays) + (2 * widthwiseBays), // Interior + edge beams
+          volume: calculateBeamVolume(interiorBeamSize, edgeBeamSize, buildingLength, buildingWidth, lengthwiseBays, widthwiseBays)
+        },
+        columns: {
+          count: (lengthwiseBays + 1) * (widthwiseBays + 1),
+          volume: calculateColumnVolume(columnSize, floorHeight, numFloors, lengthwiseBays, widthwiseBays)
+        }
+      }
+    };
+    
+    // Calculate costs using the existing function
+    return calculateCost(mockTimberResult, joistSize, buildingLength, buildingWidth, numFloors);
+  };
+  
+  // Helper function to calculate joist volume
+  const calculateJoistVolume = (joistSize, buildingLength, buildingWidth, joistSpacing) => {
+    const joistWidth = joistSize.width / 1000; // Convert mm to m
+    const joistDepth = joistSize.depth / 1000; // Convert mm to m
+    const joistCount = Math.ceil((buildingLength / joistSpacing) * buildingWidth);
+    const avgJoistLength = buildingWidth; // Simplified calculation
+    
+    return joistWidth * joistDepth * avgJoistLength * joistCount;
+  };
+  
+  // Helper function to calculate beam volume
+  const calculateBeamVolume = (interiorBeamSize, edgeBeamSize, buildingLength, buildingWidth, lengthwiseBays, widthwiseBays) => {
+    const interiorBeamWidth = interiorBeamSize.width / 1000; // Convert mm to m
+    const interiorBeamDepth = interiorBeamSize.depth / 1000; // Convert mm to m
+    const edgeBeamWidth = edgeBeamSize.width / 1000; // Convert mm to m
+    const edgeBeamDepth = edgeBeamSize.depth / 1000; // Convert mm to m
+    
+    const interiorBeamCount = (lengthwiseBays - 1) * widthwiseBays;
+    const edgeBeamCount = 2 * widthwiseBays;
+    
+    const avgBeamLength = buildingLength / lengthwiseBays;
+    
+    const interiorBeamVolume = interiorBeamWidth * interiorBeamDepth * avgBeamLength * interiorBeamCount;
+    const edgeBeamVolume = edgeBeamWidth * edgeBeamDepth * avgBeamLength * edgeBeamCount;
+    
+    return interiorBeamVolume + edgeBeamVolume;
+  };
+  
+  // Helper function to calculate column volume
+  const calculateColumnVolume = (columnSize, floorHeight, numFloors, lengthwiseBays, widthwiseBays) => {
+    const columnWidth = columnSize.width / 1000; // Convert mm to m
+    const columnDepth = columnSize.depth / 1000; // Convert mm to m
+    const columnCount = (lengthwiseBays + 1) * (widthwiseBays + 1);
+    
+    return columnWidth * columnDepth * floorHeight * columnCount * numFloors;
   };
   
   // Example of a component section converted to use Tailwind classes
@@ -998,7 +1240,7 @@ export default function TimberCalculator() {
     <div className="apple-section">
       <div className="flex justify-between items-center mb-12">
         <h1 style={{ color: 'var(--apple-text)' }}>Member Calculator</h1>
-          </div>
+      </div>
       
       {/* Success Message */}
       {saveMessage && (
@@ -1112,108 +1354,89 @@ export default function TimberCalculator() {
                 <div className="apple-specs-row">
                   <div className="apple-specs-label">Fire Rating (FRL)</div>
                   <div className="apple-specs-value">
-                    <select 
+              <select 
                       className="apple-input apple-select mb-0"
-                      value={fireRating}
+                value={fireRating}
                       onChange={(e) => handleFireRatingChange(e.target.value)}
-                    >
-                      <option value="none">None</option>
+              >
+                <option value="none">None</option>
                       <option value="30/30/30">30/30/30</option>
                       <option value="60/60/60">60/60/60</option>
                       <option value="90/90/90">90/90/90</option>
                       <option value="120/120/120">120/120/120</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              
+              </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Concrete slab thickness: {concreteThickness}mm ({concreteLoadData.loadKpa} kPa)
+                    </p>
+          </div>
+        </div>
+        
               <div className="apple-specs-table mb-6 md:mb-8">
                 <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Dimensions</h3>
                 
                 <SliderInput 
                   label="Building Length (m)"
-                  value={buildingLength}
+                      value={buildingLength} 
                   onChange={handleBuildingLengthChange}
-                  min={6}
-                  max={80}
+                  min={3}
+                  max={100}
                   step={0.1}
                   unit="m"
-                  showTicks={false}
                 />
 
                 <SliderInput 
                   label="Building Width (m)"
-                  value={buildingWidth}
+                      value={buildingWidth} 
                   onChange={handleBuildingWidthChange}
-                  min={6}
-                  max={80}
+                  min={3}
+                  max={100}
                   step={0.1}
                   unit="m"
-                  showTicks={false}
                 />
 
                 <SliderInput 
                   label="Number of Floors"
-                  value={numFloors}
+                      value={numFloors} 
                   onChange={handleNumFloorsChange}
                   min={1}
-                  max={10}
+                  max={20}
                   step={1}
                   isInteger={true}
                 />
 
                 <SliderInput 
                   label="Floor Height (m)"
-                  value={floorHeight}
+                      value={floorHeight} 
                   onChange={handleFloorHeightChange}
-                  min={2}
+                  min={2.4}
                   max={6}
-                  step={0.2}
+                  step={0.1}
                   unit="m"
                 />
 
                 <SliderInput 
                   label="Bays Wide (Columns)"
-                  value={lengthwiseBays}
+                      value={lengthwiseBays} 
                   onChange={handleLengthwiseBaysChange}
                   min={1}
                   max={20}
                   step={1}
                   isInteger={true}
-                  description={`Auto-adjusts when bay span exceeds ${MAX_BAY_SPAN}m`}
+                  description={`Current bay width: ${(buildingLength / lengthwiseBays).toFixed(2)} m`}
                 />
 
                 <SliderInput 
                   label="Bays Deep (Rows)"
-                  value={widthwiseBays}
+                      value={widthwiseBays} 
                   onChange={handleWidthwiseBaysChange}
                   min={1}
                   max={20}
                   step={1}
                   isInteger={true}
-                  description={`Auto-adjusts when bay span exceeds ${MAX_BAY_SPAN}m`}
+                  description={`Current bay depth: ${(buildingWidth / widthwiseBays).toFixed(2)} m`}
                 />
 
-                {/* Fixed Joist Centres - Static display instead of slider */}
-                <div className="apple-specs-row">
-                  <div className="apple-specs-label">Joist Centres</div>
-                  <div className="apple-specs-value">
-                    <div className="flex items-center mb-1">
-                      <span className="text-sm font-medium">800 mm</span>
-                    </div>
-                    <p className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>Fixed at 800mm centres</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Calculated Bay Sizes */}
-              <div className="mb-6 md:mb-8 p-4 md:p-6 rounded-lg" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
-                <h4 className="text-sm md:text-md font-medium mb-3 md:mb-4">Calculated Bay Sizes</h4>
-                <div className="grid grid-cols-1 gap-2 md:gap-3">
-                  <p className="text-sm"><strong>Bay Size (Length):</strong> {(buildingLength / lengthwiseBays).toFixed(2)} m</p>
-                  <p className="text-sm"><strong>Bay Size (Width):</strong> {(buildingWidth / widthwiseBays).toFixed(2)} m</p>
-                  <p className="text-sm"><strong>Joist Spacing:</strong> 800 mm (fixed)</p>
-                </div>
+                {/* Removed Joist Centres input */}
               </div>
             </div>
           </div>
@@ -1341,229 +1564,468 @@ export default function TimberCalculator() {
                       )}
                       
                       <div className="flex justify-center">
-                        <div className="relative w-full" style={{ 
-                          maxWidth: '100%',
-                          aspectRatio: `${buildingLength} / ${buildingWidth}`,
-                          maxHeight: '500px'
+                        <div className="relative w-full h-full" style={{ 
+                          minHeight: '300px', // Reduced from 400px for better mobile fit
+                          border: 'none',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          overflow: 'hidden'
                         }}>
-                          {/* Calculate bay dimensions */}
+                          {/* SVG-based Bay Layout */}
                           {(() => {
                             const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
                             
-                            // Calculate grid template columns and rows based on custom widths
-                            const gridTemplateColumns = lengthwiseBayWidths.map(width => 
-                              `${(width / buildingLength) * 100}fr`
-                            ).join(' ');
+                            // Calculate total dimensions
+                            const totalWidth = lengthwiseBayWidths.reduce((sum, w) => sum + w, 0);
+                            const totalHeight = widthwiseBayWidths.reduce((sum, h) => sum + h, 0);
                             
-                            const gridTemplateRows = widthwiseBayWidths.map(width => 
-                              `${(width / buildingWidth) * 100}fr`
-                            ).join(' ');
+                            // Calculate positions for each bay
+                            const bayPositionsX = [];
+                            let currentX = 0;
+                            for (let i = 0; i < lengthwiseBayWidths.length; i++) {
+                              bayPositionsX.push(currentX);
+                              currentX += lengthwiseBayWidths[i];
+                            }
                             
-                            // Generate column labels (A, B, C, ...)
-                            const columnLabels = Array.from({ length: results.lengthwiseBays }, (_, i) => 
-                              String.fromCharCode(65 + i)
-                            );
+                            const bayPositionsY = [];
+                            let currentY = 0;
+                            for (let i = 0; i < widthwiseBayWidths.length; i++) {
+                              bayPositionsY.push(currentY);
+                              currentY += widthwiseBayWidths[i];
+                            }
                             
-                            // Beams run perpendicular to joists
-                            const beamsRunLengthwise = !joistsRunLengthwise;
+                            // Use the state variable instead of checking window.innerWidth directly
+                            // const isMobile = window.innerWidth < 768;
                             
-                            // Set gap based on joist direction - smaller gap where there are no beams
-                            const gridGap = '4px';
-                            const horizontalGap = gridGap;
-                            const verticalGap = gridGap;
-                            
-                            return (
-                              <>
-                                {/* Column labels (alphabetical) */}
-                                <div className="absolute top-[-20px] left-0 right-0 flex justify-between px-2">
-                                  {columnLabels.map((label, index) => {
-                                    // Calculate position for custom bay widths
-                                    let leftPosition = '50%';
-                                    if (useCustomBayDimensions) {
-                                      const startPos = lengthwiseBayWidths.slice(0, index).reduce((sum, w) => sum + w, 0);
-                                      const width = lengthwiseBayWidths[index];
-                                      leftPosition = `${((startPos + width/2) / buildingLength) * 100}%`;
-                                    } else {
-                                      leftPosition = `${((index + 0.5) / results.lengthwiseBays) * 100}%`;
-                                    }
+                            // Adjust padding for mobile
+                            const viewBoxPadding = isMobile ? 1.5 : 1;
                                     
                                     return (
-                                      <div 
-                                        key={`col-${label}`} 
-                                        className="absolute text-xs font-semibold"
+                              <svg 
+                                width="100%" 
+                                height="100%" 
+                                viewBox={`-${viewBoxPadding} -${viewBoxPadding} ${totalWidth + viewBoxPadding*2} ${totalHeight + viewBoxPadding*2}`}
+                                preserveAspectRatio="xMidYMid meet"
                                         style={{ 
-                                          left: leftPosition,
-                                          transform: 'translateX(-50%)',
-                                          color: 'var(--apple-text-secondary)'
-                                        }}
-                                      >
-                                        {label}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
+                                  background: 'white', 
+                                  maxWidth: '100%',
+                                  maxHeight: '100%',
+                                  objectFit: 'contain'
+                                }}
+                              >
+                                {/* Background grid - invisible now */}
+                                <g className="debug-grid">
+                                  {/* Vertical grid lines */}
+                                  {bayPositionsX.map((x, i) => (
+                                    <line 
+                                      key={`vgrid-${i}`}
+                                      x1={x}
+                                      y1={0}
+                                      x2={x}
+                                      y2={totalHeight}
+                                      stroke="rgba(0,0,0,0)"
+                                      strokeWidth="0"
+                                      strokeDasharray="0,0"
+                                    />
+                                  ))}
+                                  {/* Add final vertical line */}
+                                  <line 
+                                    key="vgrid-final"
+                                    x1={totalWidth}
+                                    y1={0}
+                                    x2={totalWidth}
+                                    y2={totalHeight}
+                                    stroke="rgba(0,0,0,0)"
+                                    strokeWidth="0"
+                                    strokeDasharray="0,0"
+                                  />
+                                  
+                                  {/* Horizontal grid lines */}
+                                  {bayPositionsY.map((y, i) => (
+                                    <line 
+                                      key={`hgrid-${i}`}
+                                      x1={0}
+                                      y1={y}
+                                      x2={totalWidth}
+                                      y2={y}
+                                      stroke="rgba(0,0,0,0)"
+                                      strokeWidth="0"
+                                      strokeDasharray="0,0"
+                                    />
+                                  ))}
+                                  {/* Add final horizontal line */}
+                                  <line 
+                                    key="hgrid-final"
+                                    x1={0}
+                                    y1={totalHeight}
+                                    x2={totalWidth}
+                                    y2={totalHeight}
+                                    stroke="rgba(0,0,0,0)"
+                                    strokeWidth="0"
+                                    strokeDasharray="0,0"
+                                  />
+                                </g>
                                 
-                                {/* Row labels (numerical) */}
-                                <div className="absolute top-0 bottom-0 left-[-20px] flex flex-col justify-between py-2">
-                                  {Array.from({ length: results.widthwiseBays }).map((_, index) => {
-                                    // Calculate position for custom bay heights
-                                    let topPosition = '50%';
-                                    if (useCustomBayDimensions) {
-                                      const startPos = widthwiseBayWidths.slice(0, index).reduce((sum, h) => sum + h, 0);
-                                      const height = widthwiseBayWidths[index];
-                                      topPosition = `${((startPos + height/2) / buildingWidth) * 100}%`;
-                                    } else {
-                                      topPosition = `${((index + 0.5) / results.widthwiseBays) * 100}%`;
-                                    }
-                                    
-                                    return (
-                                      <div 
-                                        key={`row-${index+1}`} 
-                                        className="absolute text-xs font-semibold"
-                                        style={{ 
-                                          top: topPosition,
-                                          transform: 'translateY(-50%)',
-                                          color: 'var(--apple-text-secondary)'
-                                        }}
-                                      >
-                                        {index + 1}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
+                                {/* Light grey border around the outside */}
+                                <rect
+                                  x="0"
+                                  y="0"
+                                  width={totalWidth}
+                                  height={totalHeight}
+                                  fill="none"
+                                  stroke="#cccccc"
+                                  strokeWidth="0.05"
+                                />
                                 
-                                <div className="bay-grid absolute inset-0" style={{
-                                  display: 'grid',
-                                  gridTemplateColumns: useCustomBayDimensions ? gridTemplateColumns : `repeat(${results.lengthwiseBays}, 1fr)`,
-                                  gridTemplateRows: useCustomBayDimensions ? gridTemplateRows : `repeat(${results.widthwiseBays}, 1fr)`,
-                                  columnGap: horizontalGap,
-                                  rowGap: verticalGap
-                                }}>
-                                  {Array.from({ length: results.lengthwiseBays * results.widthwiseBays }).map((_, index) => {
-                                    const row = Math.floor(index / results.lengthwiseBays);
-                                    const col = index % results.lengthwiseBays;
+                                {/* Joist lines */}
+                                <g className="joists">
+                                  {(() => {
+                                    // Calculate joist spacing in SVG units (800mm = 0.8m)
+                                    const joistSpacingM = 0.8;
+                                    const joists = [];
                                     
-                                    // Get the dimensions for this specific bay
-                                    const bayWidth = lengthwiseBayWidths[col];
-                                    const bayHeight = widthwiseBayWidths[row];
-                                    
-                                    // Generate bay label (e.g., "A1", "B2", etc.)
-                                    const bayLabel = `${columnLabels[col]}${row + 1}`;
-                                    
-                                    return (
-                                      <div key={index} className="bay-cell relative" style={{
-                                        backgroundColor: '#e0e0e0',
-                                        border: '1px solid #999',
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        fontSize: '0.8rem',
-                                        padding: '8px',
-                                        borderRadius: '2px',
-                                        boxSizing: 'border-box'
-                                      }}>
-                                        {/* Bay dimensions - Show on desktop only, positioned at top left */}
-                                        <div className="hidden md:block absolute top-1 left-1 text-xs font-medium text-gray-600">
-                                          {useCustomBayDimensions ? (
-                                            // For custom bay dimensions, show the actual dimensions of this specific bay
-                                            `${lengthwiseBayWidths[col].toFixed(2)}m × ${widthwiseBayWidths[row].toFixed(2)}m`
-                                          ) : (
-                                            // For uniform bay dimensions, show the calculated dimensions
-                                            `${(buildingLength / results.lengthwiseBays).toFixed(2)}m × ${(buildingWidth / results.widthwiseBays).toFixed(2)}m`
-                                          )}
-                                        </div>
+                                    if (!joistsRunLengthwise) {
+                                      // Vertical joists (running along length)
+                                      for (let bayIndex = 0; bayIndex < results.widthwiseBays; bayIndex++) {
+                                        const bayStartY = bayPositionsY[bayIndex];
+                                        const bayHeight = widthwiseBayWidths[bayIndex];
+                                        const bayEndY = bayStartY + bayHeight;
                                         
-                                        {/* Joist Direction Arrows - Centered in cell */}
-                                        <div className="flex items-center justify-center pointer-events-none">
-                                          {joistsRunLengthwise ? (
-                                            <span className="text-gray-500 transform rotate-90">↕</span>
-                                          ) : (
-                                            <span className="text-gray-500">↕</span>
-                                          )}
-                                        </div>
-                                      </div>
+                                        for (let bayWidthIndex = 0; bayWidthIndex < results.lengthwiseBays; bayWidthIndex++) {
+                                          const bayStartX = bayPositionsX[bayWidthIndex];
+                                          const bayWidth = lengthwiseBayWidths[bayWidthIndex];
+                                          const bayEndX = bayStartX + bayWidth;
+                                          
+                                          // Calculate number of joists in this bay
+                                          const numJoists = Math.floor(bayWidth / joistSpacingM);
+                                          const actualSpacing = bayWidth / (numJoists + 1);
+                                          
+                                          // Draw joists
+                                          for (let i = 1; i <= numJoists; i++) {
+                                            const joistX = bayStartX + i * actualSpacing;
+                                            joists.push(
+                                              <line
+                                                key={`joist-v-${bayWidthIndex}-${bayIndex}-${i}`}
+                                                x1={joistX}
+                                                y1={bayStartY}
+                                                x2={joistX}
+                                                y2={bayEndY}
+                                                stroke="#cccccc"
+                                                strokeWidth="0.03"
+                                                strokeDasharray="0.1,0.1"
+                                              />
+                                            );
+                                          }
+                                        }
+                                      }
+                                    } else {
+                                      // Horizontal joists (running along width)
+                                      for (let bayIndex = 0; bayIndex < results.lengthwiseBays; bayIndex++) {
+                                        const bayStartX = bayPositionsX[bayIndex];
+                                        const bayWidth = lengthwiseBayWidths[bayIndex];
+                                        const bayEndX = bayStartX + bayWidth;
+                                        
+                                        for (let bayHeightIndex = 0; bayHeightIndex < results.widthwiseBays; bayHeightIndex++) {
+                                          const bayStartY = bayPositionsY[bayHeightIndex];
+                                          const bayHeight = widthwiseBayWidths[bayHeightIndex];
+                                          const bayEndY = bayStartY + bayHeight;
+                                          
+                                          // Calculate number of joists in this bay
+                                          const numJoists = Math.floor(bayHeight / joistSpacingM);
+                                          const actualSpacing = bayHeight / (numJoists + 1);
+                                          
+                                          // Draw joists
+                                          for (let i = 1; i <= numJoists; i++) {
+                                            const joistY = bayStartY + i * actualSpacing;
+                                            joists.push(
+                                              <line
+                                                key={`joist-h-${bayIndex}-${bayHeightIndex}-${i}`}
+                                                x1={bayStartX}
+                                                y1={joistY}
+                                                x2={bayEndX}
+                                                y2={joistY}
+                                                stroke="#cccccc"
+                                                strokeWidth="0.03"
+                                                strokeDasharray="0.1,0.1"
+                                              />
+                                            );
+                                          }
+                                        }
+                                      }
+                                    }
+                                    
+                                    return joists;
+                                  })()}
+                                </g>
+                                
+                                {/* Beams connecting columns - perpendicular to joists */}
+                                <g className="beams">
+                                  {(() => {
+                                    const beams = [];
+                                    
+                                    if (joistsRunLengthwise) {
+                                      // When joists run lengthwise (horizontal), beams run widthwise (vertical)
+                                      // Draw vertical beams along each column line
+                                      for (let col = 0; col <= results.lengthwiseBays; col++) {
+                                        const x = col === results.lengthwiseBays 
+                                          ? bayPositionsX[col-1] + lengthwiseBayWidths[col-1] 
+                                          : bayPositionsX[col];
+                                        
+                                        // Draw beam from top to bottom
+                                        beams.push(
+                                          <line
+                                            key={`beam-v-${col}`}
+                                            x1={x}
+                                            y1={0}
+                                            x2={x}
+                                            y2={totalHeight}
+                                            stroke="#555555"
+                                            strokeWidth="0.08"
+                                            strokeLinecap="square"
+                                          />
+                                        );
+                                      }
+                                    } else {
+                                      // When joists run widthwise (vertical), beams run lengthwise (horizontal)
+                                      // Draw horizontal beams along each row line
+                                      for (let row = 0; row <= results.widthwiseBays; row++) {
+                                        const y = row === results.widthwiseBays 
+                                          ? bayPositionsY[row-1] + widthwiseBayWidths[row-1] 
+                                          : bayPositionsY[row];
+                                        
+                                        // Draw beam from left to right
+                                        beams.push(
+                                          <line
+                                            key={`beam-h-${row}`}
+                                            x1={0}
+                                            y1={y}
+                                            x2={totalWidth}
+                                            y2={y}
+                                            stroke="#555555"
+                                            strokeWidth="0.08"
+                                            strokeLinecap="square"
+                                          />
+                                        );
+                                      }
+                                    }
+                                    
+                                    return beams;
+                                  })()}
+                                </g>
+                                
+                                {/* Column letters and bay numbers */}
+                                <g className="labels">
+                                  {/* Column letters at the top */}
+                                  {Array.from({ length: results.lengthwiseBays }).map((_, i) => {
+                                    const x = bayPositionsX[i] + lengthwiseBayWidths[i] / 2;
+                                    const letter = String.fromCharCode(65 + i); // A, B, C, ...
+                                    
+                                    // Calculate scale factor based on building size and screen size
+                                    const baseFontSize = 0.3;
+                                    const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
+                                    const screenSizeFactor = isMobile ? 1.2 : 1; // Increase font size on mobile
+                                    const fontSize = baseFontSize * scaleFactor * screenSizeFactor;
+                                    
+                                    // Ensure minimum font size for readability
+                                    const finalFontSize = Math.max(fontSize, 0.35);
+                                    
+                                    return (
+                                      <text
+                                        key={`col-label-${i}`}
+                                        x={x}
+                                        y={-0.4 * (isMobile ? 1.2 : 1)} // Move further out on mobile
+                                        textAnchor="middle"
+                                        fontSize={finalFontSize}
+                                        fontWeight={isMobile ? "bold" : "normal"}
+                                        fill="#666666"
+                                      >
+                                        {letter}
+                                      </text>
                                     );
                                   })}
-                                </div>
-                              </>
-                            );
-                          })()}
+                                  
+                                  {/* Row numbers on the left */}
+                                  {Array.from({ length: results.widthwiseBays }).map((_, i) => {
+                                    const y = bayPositionsY[i] + widthwiseBayWidths[i] / 2;
+                                    const number = i + 1; // 1, 2, 3, ...
+                                    
+                                    // Calculate scale factor based on building size and screen size
+                                    const baseFontSize = 0.3;
+                                    const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
+                                    const screenSizeFactor = isMobile ? 1.2 : 1; // Increase font size on mobile
+                                    const fontSize = baseFontSize * scaleFactor * screenSizeFactor;
+                                    
+                                    // Ensure minimum font size for readability
+                                    const finalFontSize = Math.max(fontSize, 0.35);
+                                    
+                                    return (
+                                      <text
+                                        key={`row-label-${i}`}
+                                        x={-0.4 * (isMobile ? 1.2 : 1)} // Move further out on mobile
+                                        y={y + 0.1} // Slight adjustment for vertical centering
+                                        textAnchor="middle"
+                                        fontSize={finalFontSize}
+                                        fontWeight={isMobile ? "bold" : "normal"}
+                                        fill="#666666"
+                                      >
+                                        {number}
+                                      </text>
+                                    );
+                                  })}
                           
-                          {/* Joist Direction Arrows */}
+                                  {/* Building width dimension on the right (rotated 90 degrees) */}
                           {(() => {
-                            // Calculate bay dimensions
-                            const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
-                            
-                            // Determine if joists span lengthwise or widthwise for each bay
-                            return Array.from({ length: results.lengthwiseBays * results.widthwiseBays }).map((_, index) => {
-                              const row = Math.floor(index / results.lengthwiseBays);
-                              const col = index % results.lengthwiseBays;
-                              
-                              // Get the dimensions for this specific bay
-                              const bayWidth = lengthwiseBayWidths[col];
-                              const bayHeight = widthwiseBayWidths[row];
-                              
-                              // Use global joist direction instead of calculating per bay
-                              const joistsSpanLengthwise = joistsRunLengthwise;
-                              
-                              // Calculate position based on cumulative widths
-                              const leftPosition = lengthwiseBayWidths.slice(0, col).reduce((sum, w) => sum + w, 0) + bayWidth / 2;
-                              const topPosition = widthwiseBayWidths.slice(0, row).reduce((sum, h) => sum + h, 0) + bayHeight / 2;
-                              
-                              // Calculate percentages
-                              const leftPercent = (leftPosition / buildingLength) * 100;
-                              const topPercent = (topPosition / buildingWidth) * 100;
-                              
-                              const arrowStyle = {
-                                position: 'absolute',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#4B5563', // Dark gray color
-                                fontWeight: 'bold',
-                                fontSize: '1.2rem',
-                                zIndex: 10,
-                                cursor: 'pointer' // Add cursor pointer to indicate clickable
-                              };
-                              
-                              if (joistsSpanLengthwise) {
-                                // Horizontal arrows (joists span left to right)
+                                    // Calculate scale factor based on building size and screen size
+                                    const baseFontSize = 0.3;
+                                    const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
+                                    const screenSizeFactor = isMobile ? 1.2 : 1; // Increase font size on mobile
+                                    const fontSize = baseFontSize * scaleFactor * screenSizeFactor;
+                                    
+                                    // Ensure minimum font size for readability
+                                    const finalFontSize = Math.max(fontSize, 0.35);
+                                    
+                                    // Position adjustment for mobile
+                                    const positionOffset = isMobile ? 0.8 : 0.6;
+                                    
+                                    return (
+                                      <text
+                                        key="width-dimension"
+                                        x={totalWidth + positionOffset}
+                                        y={totalHeight / 2}
+                                        textAnchor="middle"
+                                        fontSize={finalFontSize}
+                                        fontWeight={isMobile ? "bold" : "normal"}
+                                        fill="#666666"
+                                        transform={`rotate(90, ${totalWidth + positionOffset}, ${totalHeight / 2})`}
+                                      >
+                                        {results.buildingWidth.toFixed(1)}m
+                                      </text>
+                                    );
+                                  })()}
+                                  
+                                  {/* Building length dimension at the bottom */}
+                                  {(() => {
+                                    // Calculate scale factor based on building size and screen size
+                                    const baseFontSize = 0.3;
+                                    const scaleFactor = Math.max(totalWidth, totalHeight) / 10;
+                                    const screenSizeFactor = isMobile ? 1.2 : 1; // Increase font size on mobile
+                                    const fontSize = baseFontSize * scaleFactor * screenSizeFactor;
+                                    
+                                    // Ensure minimum font size for readability
+                                    const finalFontSize = Math.max(fontSize, 0.35);
+                                    
+                                    // Position adjustment for mobile
+                                    const positionOffset = isMobile ? 0.8 : 0.6;
+                                    
                                 return (
-                                  <div 
-                                    key={`arrow-${index}`}
-                                    style={{
-                                      ...arrowStyle,
-                                      top: `${topPercent}%`,
-                                      left: `${leftPercent}%`,
-                                      transform: 'translate(-50%, -50%)',
-                                      width: '30px',
-                                      height: '30px'
-                                    }}
-                                    onClick={toggleJoistDirection}
-                                  >
-                                    <span>↔</span>
-                                  </div>
-                                );
+                                      <text
+                                        key="length-dimension"
+                                        x={totalWidth / 2}
+                                        y={totalHeight + positionOffset}
+                                        textAnchor="middle"
+                                        fontSize={finalFontSize}
+                                        fontWeight={isMobile ? "bold" : "normal"}
+                                        fill="#666666"
+                                      >
+                                        {results.buildingLength.toFixed(1)}m
+                                      </text>
+                                    );
+                                  })()}
+                                </g>
+                                
+                                {/* Columns at grid intersections */}
+                                <g className="columns">
+                                  {/* Generate columns at all grid intersections */}
+                                  {Array.from({ length: (results.lengthwiseBays + 1) * (results.widthwiseBays + 1) }).map((_, index) => {
+                                    const row = Math.floor(index / (results.lengthwiseBays + 1));
+                                    const col = index % (results.lengthwiseBays + 1);
+                                    
+                                    // Calculate column size based on actual dimensions, but scaled down
+                                    // Use a scaling factor of 400
+                                    const columnWidth = Math.max(results.columnSize.width / 400, 0.2);
+                                    const columnHeight = Math.max(results.columnSize.depth / 400, 0.2);
+                                    
+                                    // Make column size proportional to building size but with a minimum size
+                                    const buildingSizeScaleFactor = Math.max(
+                                      Math.min(totalWidth / 30, totalHeight / 30),
+                                      0.8 // Minimum scale factor to ensure columns are visible
+                                    );
+                                    
+                                    // Swap width and height based on joist direction
+                                    let scaledColumnWidth, scaledColumnHeight;
+                                    if (joistsRunLengthwise) {
+                                      // When joists run lengthwise (vertical joists), columns are oriented with width along the length
+                                      scaledColumnWidth = columnWidth * buildingSizeScaleFactor;
+                                      scaledColumnHeight = columnHeight * buildingSizeScaleFactor;
                               } else {
-                                // Vertical arrows (joists span top to bottom)
+                                      // When joists run widthwise (horizontal joists), columns are rotated 90 degrees
+                                      scaledColumnWidth = columnHeight * buildingSizeScaleFactor;
+                                      scaledColumnHeight = columnWidth * buildingSizeScaleFactor;
+                                    }
+                                    
+                                    // Calculate column position
+                                    let x, y;
+                                    
+                                    // Ensure we're using the correct variable for edge detection
+                                    const lengthwiseBays = results.lengthwiseBays;
+                                    const widthwiseBays = results.widthwiseBays;
+                                    
+                                    const isLeftEdge = col === 0;
+                                    const isRightEdge = col === lengthwiseBays;
+                                    const isTopEdge = row === 0;
+                                    const isBottomEdge = row === widthwiseBays;
+                                    
+                                    // Check if we have valid positions for this column
+                                    if (col < 0 || col > lengthwiseBays || row < 0 || row > widthwiseBays) {
+                                      return null; // Skip invalid positions
+                                    }
+                                    
+                                    // Make sure we have a valid position in the bayPositions arrays
+                                    const xPos = isRightEdge ? bayPositionsX[col-1] + lengthwiseBayWidths[col-1] : bayPositionsX[col];
+                                    const yPos = isBottomEdge ? bayPositionsY[row-1] + widthwiseBayWidths[row-1] : bayPositionsY[row];
+                                    
+                                    if (isLeftEdge) {
+                                      // Left edge column - move inside by half width
+                                      x = xPos + scaledColumnWidth/2;
+                                    } else if (isRightEdge) {
+                                      // Right edge column - move inside by half width
+                                      x = xPos - scaledColumnWidth/2;
+                                    } else {
+                                      // Interior column - centered on grid line
+                                      x = xPos;
+                                    }
+                                    
+                                    if (isTopEdge) {
+                                      // Top edge column - move inside by half height
+                                      y = yPos + scaledColumnHeight/2;
+                                    } else if (isBottomEdge) {
+                                      // Bottom edge column - move inside by half height
+                                      y = yPos - scaledColumnHeight/2;
+                              } else {
+                                      // Interior column - centered on grid line
+                                      y = yPos;
+                                    }
+                                    
                                 return (
-                                  <div 
-                                    key={`arrow-${index}`}
-                                    style={{
-                                      ...arrowStyle,
-                                      left: `${leftPercent}%`,
-                                      top: `${topPercent}%`,
-                                      transform: 'translate(-50%, -50%)',
-                                      width: '30px',
-                                      height: '30px'
-                                    }}
-                                    onClick={toggleJoistDirection}
-                                  >
-                                    <span>↕</span>
-                                  </div>
-                                );
-                              }
-                            });
+                                      <g key={`column-${row}-${col}`}>
+                                        <rect
+                                          x={x - scaledColumnWidth/2}
+                                          y={y - scaledColumnHeight/2}
+                                          width={scaledColumnWidth}
+                                          height={scaledColumnHeight}
+                                          fill="#555"
+                                          stroke="#333"
+                                          strokeWidth="0.02"
+                                          rx="0.02"
+                                          ry="0.02"
+                                        />
+                                      </g>
+                                    );
+                                  })}
+                                </g>
+                              </svg>
+                            );
                           })()}
                         </div>
                       </div>
@@ -1577,137 +2039,52 @@ export default function TimberCalculator() {
                       
                       {/* Joist Direction Toggle UI */}
                       <div className="mt-3 mb-3">
-                        <div className="flex items-center justify-center">
-                          <div className="flex items-center bg-gray-100 rounded-lg p-1 w-full max-w-xs" style={{ border: '1px solid var(--apple-border)' }}>
+                        <div className="flex flex-col items-center mb-4">
+                          <div className="flex w-full max-w-md rounded-lg overflow-hidden border border-gray-300">
                             <button 
-                              className={`px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-medium transition-colors flex-1 ${joistsRunLengthwise ? 'bg-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
-                              style={{ 
-                                color: joistsRunLengthwise ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
-                              }}
-                              onClick={() => setJoistsRunLengthwise(true)}
-                            >
-                              Horizontal Joists ↔
-                            </button>
-                            <button 
-                              className={`px-2 md:px-3 py-1 rounded-md text-xs md:text-sm font-medium transition-colors flex-1 ${!joistsRunLengthwise ? 'bg-white shadow-sm' : 'text-gray-600 hover:bg-gray-200'}`}
-                              style={{ 
-                                color: !joistsRunLengthwise ? 'var(--apple-blue)' : 'var(--apple-text-secondary)',
-                              }}
+                              className={`flex-1 py-2 px-4 text-center ${!joistsRunLengthwise ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}`}
                               onClick={() => setJoistsRunLengthwise(false)}
                             >
                               Vertical Joists ↕
                             </button>
+                            <button 
+                              className={`flex-1 py-2 px-4 text-center ${joistsRunLengthwise ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}`}
+                              onClick={() => setJoistsRunLengthwise(true)}
+                            >
+                              Horizontal Joists ↔
+                            </button>
                           </div>
-                        </div>
-                        
-                        {/* Arrows explanation */}
-                        <div className="text-xs text-center mt-2" style={{ color: 'var(--apple-text-secondary)' }}>
-                          ↔ / ↕ Arrows indicate joist span direction <span className="text-gray-400">(click arrows or use toggle above to change direction)</span>
-                        </div>
-                        
+                          <p className="text-center text-sm text-gray-500 mt-2">↔ / ↕ Arrows indicate joist span direction (click arrows or use toggle above to change direction)</p>
+                          <p className="text-center text-xs text-gray-500 mt-1">Joists are spaced at 800mm centres</p>
+                      </div>
+                      
                         {/* Beam Legend */}
-                        <div className="flex items-center justify-center mt-2">
+                        {/* <div className="flex items-center justify-center mt-2">
                           <div className="flex items-center mr-4">
-                            <div className="w-6 h-0.5 bg-black"></div>
-                            <span className="text-xs ml-2" style={{ color: 'var(--apple-text-secondary)' }}>
+                            <div style={{ 
+                              width: '20px', 
+                              height: '3px', 
+                              backgroundColor: 'rgba(0, 0, 0, 0.8)', 
+                              display: 'inline-block',
+                              marginRight: '6px'
+                            }}></div>
+                            <span className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
                               Edge beams
                             </span>
-                          </div>
+                      </div>
                           <div className="flex items-center">
-                            <div className="w-6 h-0.5 border-t-2 border-dashed border-black"></div>
-                            <span className="text-xs ml-2" style={{ color: 'var(--apple-text-secondary)' }}>
+                            <div style={{ 
+                              width: '20px', 
+                              height: '3px', 
+                              borderTop: '3px dashed rgba(0, 0, 0, 0.8)',
+                              display: 'inline-block',
+                              marginRight: '6px'
+                            }}></div>
+                            <span className="text-xs" style={{ color: 'var(--apple-text-secondary)' }}>
                               Internal beams
                             </span>
                           </div>
-                        </div>
-                        
-                        {useCustomBayDimensions && (
-                          <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                            {/* Lengthwise Bay Controls */}
-                            <div>
-                              <h4 className="text-sm font-medium mb-2">Column Widths (m)</h4>
-                              <div className="space-y-2">
-                                {customLengthwiseBayWidths.map((width, index) => (
-                                  <div key={`length-${index}`} className="flex items-center">
-                                    <span className="text-xs w-16 md:w-24">{String.fromCharCode(65 + index)}:</span>
-                                    <input
-                                      type="number"
-                                      className="apple-input mb-0 text-sm w-full"
-                                      min="0.5"
-                                      max={MAX_BAY_SPAN}
-                                      step="0.1"
-                                      value={width.toFixed(2)}
-                                      onChange={(e) => handleLengthwiseBayWidthChange(index, e.target.value)}
-                                      onInput={(e) => {
-                                        if (e.target.value.startsWith('0')) {
-                                          e.target.value = e.target.value.replace(/^0+/, '');
-                                        }
-                                      }}
-                                    />
-                                    <span className="text-xs ml-2">m</span>
-                                  </div>
-                                ))}
-                                <div className="text-xs mt-3 p-2 rounded" style={{ 
-                                  backgroundColor: 'rgba(0, 113, 227, 0.05)',
-                                  color: 'var(--apple-text-secondary)'
-                                }}>
-                                  <div className="flex justify-between mb-1">
-                                    <span>Total:</span>
-                                    <span className={Math.abs(customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0) - buildingLength) > 0.01 ? 'text-red-500' : ''}>
-                                      {customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0).toFixed(2)}m
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Target:</span>
-                                    <span>{buildingLength.toFixed(2)}m</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            {/* Widthwise Bay Controls */}
-                            <div>
-                              <h4 className="text-sm font-medium mb-2">Row Heights (m)</h4>
-                              <div className="space-y-2">
-                                {customWidthwiseBayWidths.map((width, index) => (
-                                  <div key={`width-${index}`} className="flex items-center">
-                                    <span className="text-xs w-16 md:w-24">{index + 1}:</span>
-                                    <input
-                                      type="number"
-                                      className="apple-input mb-0 text-sm w-full"
-                                      min="0.5"
-                                      max={MAX_BAY_SPAN}
-                                      step="0.1"
-                                      value={width.toFixed(2)}
-                                      onChange={(e) => handleWidthwiseBayWidthChange(index, e.target.value)}
-                                      onInput={(e) => {
-                                        if (e.target.value.startsWith('0')) {
-                                          e.target.value = e.target.value.replace(/^0+/, '');
-                                        }
-                                      }}
-                                    />
-                                    <span className="text-xs ml-2">m</span>
-                                  </div>
-                                ))}
-                                <div className="text-xs mt-3 p-2 rounded" style={{ 
-                                  backgroundColor: 'rgba(0, 113, 227, 0.05)',
-                                  color: 'var(--apple-text-secondary)'
-                                }}>
-                                  <div className="flex justify-between mb-1">
-                                    <span>Total:</span>
-                                    <span className={Math.abs(customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0) - buildingWidth) > 0.01 ? 'text-red-500' : ''}>
-                                      {customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0).toFixed(2)}m
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span>Target:</span>
-                                    <span>{buildingWidth.toFixed(2)}m</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                        </div> */}
                       </div>
                     </div>
                   </div>
@@ -1723,8 +2100,17 @@ export default function TimberCalculator() {
                         <div className="grid grid-cols-1 bg-white p-3 md:p-4 rounded-lg shadow">
                           <div className="border-b pb-3 mb-3">
                             <h5 className="font-semibold mb-2 text-sm md:text-base">Total Cost Estimate</h5>
-                            <p className="text-xl md:text-2xl font-bold text-green-700">{formatCurrency(results.costs?.totalCost || 0)}</p>
-                            <p className="text-xs md:text-sm text-gray-500 mt-1">Excluding GST and installation</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="bg-gray-50 p-3 rounded-lg">
+                                <p className="text-xl md:text-2xl font-bold text-green-700">{formatCurrency(results.costs?.totalCost || 0)}</p>
+                                <p className="text-xs md:text-sm text-gray-500 mt-1">Excluding GST and installation</p>
+                              </div>
+                              <div className="bg-gray-50 p-3 rounded-lg text-right">
+                                <p className="text-sm text-green-700 font-medium">Carbon Saving vs Steel/Concrete:</p>
+                                <p className="text-lg md:text-xl font-bold text-green-700">{results.carbonSavings?.toFixed(2) || '0.00'} tonnes CO<sub>2</sub>e</p>
+                                <p className="text-xs text-gray-500 mt-1">Equivalent to {Math.round((results.carbonSavings || 0) * 4.3)} trees planted</p>
+                              </div>
+                            </div>
                           </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -1753,6 +2139,21 @@ export default function TimberCalculator() {
                     
                     <h3 className="apple-section-title text-lg md:text-xl font-semibold mb-3 md:mb-4">Calculated Timber Sizes</h3>
                     <div className="apple-section-content">
+                      {/* Add Load Information Card */}
+                      <div className="bg-white p-3 md:p-4 rounded-lg shadow mb-4">
+                        <h4 className="font-semibold mb-2 text-sm md:text-base">Load Information</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <p className="text-sm md:text-base"><strong>Imposed Load:</strong> {load.toFixed(2)} kPa</p>
+                            <p className="text-sm md:text-base"><strong>Concrete Load:</strong> {concreteLoadData.loadKpa} kPa</p>
+                          </div>
+                          <div>
+                            <p className="text-sm md:text-base"><strong>Concrete Thickness:</strong> {concreteThickness}mm</p>
+                            <p className="text-sm md:text-base font-medium text-blue-600"><strong>Total Design Load:</strong> {(parseFloat(load) + parseFloat(concreteLoadData.loadKpa)).toFixed(2)} kPa</p>
+                          </div>
+                        </div>
+                      </div>
+                      
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {/* Joist Results */}
                         <div className="bg-white p-3 md:p-4 rounded-lg shadow">
@@ -1832,10 +2233,10 @@ export default function TimberCalculator() {
                           {/* Interior Beams */}
                           <div className="mb-3">
                             <p className="text-sm md:text-base font-medium">Interior Beams:</p>
-                            <p className="text-sm md:text-base"><strong>Size:</strong> {results.beamSize.width}mm × {results.beamSize.depth}mm</p>
-                            <p className="text-sm md:text-base"><strong>Span:</strong> {results.beamSize.span?.toFixed(2) || '0.00'}m</p>
-                            <p className="text-sm md:text-base"><strong>Tributary Width:</strong> {results.beamSize.tributaryWidth?.toFixed(2) || '0.00'}m</p>
-                            <p className="text-sm md:text-base"><strong>Load per Meter:</strong> {results.beamSize.loadPerMeter?.toFixed(2) || '0.00'} kN/m</p>
+                          <p className="text-sm md:text-base"><strong>Size:</strong> {results.beamSize.width}mm × {results.beamSize.depth}mm</p>
+                          <p className="text-sm md:text-base"><strong>Span:</strong> {results.beamSize.span?.toFixed(2) || '0.00'}m</p>
+                          <p className="text-sm md:text-base"><strong>Tributary Width:</strong> {results.beamSize.tributaryWidth?.toFixed(2) || '0.00'}m</p>
+                          <p className="text-sm md:text-base"><strong>Load per Meter:</strong> {results.beamSize.loadPerMeter?.toFixed(2) || '0.00'} kN/m</p>
                             <p className="text-sm md:text-base"><strong>Total Load:</strong> {(results.beamSize.loadPerMeter * results.beamSize.span)?.toFixed(2) || '0.00'} kN</p>
                           </div>
                           
@@ -2090,6 +2491,16 @@ export default function TimberCalculator() {
           </div>
         </div>
       )}
+      
+      {/* Calculated Bay Sizes */}
+      <div className="mb-6 md:mb-8 p-4 md:p-6 rounded-lg" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
+        <h4 className="text-sm md:text-md font-medium mb-3 md:mb-4">Calculated Bay Sizes</h4>
+        <div className="grid grid-cols-1 gap-2 md:gap-3">
+          <p className="text-sm"><strong>Bay Size (Length):</strong> {(buildingLength / lengthwiseBays).toFixed(2)} m</p>
+          <p className="text-sm"><strong>Bay Size (Width):</strong> {(buildingWidth / widthwiseBays).toFixed(2)} m</p>
+        </div>
+      </div>
+    </div>
     </div>
   );
 }
