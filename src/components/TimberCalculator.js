@@ -1401,15 +1401,15 @@ export default function TimberCalculator() {
                         })()
                       }mm (based on selected FRL)
                     </p>
-                  </div>
-                </div>
-
-                <div className="apple-specs-table mb-6 md:mb-8">
-                  <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Dimensions</h3>
-                  
+          </div>
+        </div>
+        
+              <div className="apple-specs-table mb-6 md:mb-8">
+                <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Dimensions</h3>
+                
                   <SliderInput 
                     label="Building Length (m)"
-                    value={buildingLength} 
+                      value={buildingLength} 
                     onChange={handleBuildingLengthChange}
                     min={3}
                     max={100}
@@ -1419,7 +1419,7 @@ export default function TimberCalculator() {
 
                   <SliderInput 
                     label="Building Width (m)"
-                    value={buildingWidth} 
+                      value={buildingWidth} 
                     onChange={handleBuildingWidthChange}
                     min={3}
                     max={100}
@@ -1429,7 +1429,7 @@ export default function TimberCalculator() {
 
                   <SliderInput 
                     label="Number of Floors"
-                    value={numFloors} 
+                      value={numFloors} 
                     onChange={handleNumFloorsChange}
                     min={1}
                     max={20}
@@ -1439,7 +1439,7 @@ export default function TimberCalculator() {
 
                   <SliderInput 
                     label="Floor Height (m)"
-                    value={floorHeight} 
+                      value={floorHeight} 
                     onChange={handleFloorHeightChange}
                     min={2.4}
                     max={6}
@@ -1449,7 +1449,7 @@ export default function TimberCalculator() {
 
                   <SliderInput 
                     label="Bays Wide (Columns)"
-                    value={lengthwiseBays} 
+                      value={lengthwiseBays} 
                     onChange={handleLengthwiseBaysChange}
                     min={1}
                     max={20}
@@ -1460,7 +1460,7 @@ export default function TimberCalculator() {
 
                   <SliderInput 
                     label="Bays Deep (Rows)"
-                    value={widthwiseBays} 
+                      value={widthwiseBays} 
                     onChange={handleWidthwiseBaysChange}
                     min={1}
                     max={20}
@@ -1470,10 +1470,10 @@ export default function TimberCalculator() {
                   />
 
                   {/* Removed Joist Centres input */}
-                </div>
-
+              </div>
+              
                 {/* ... existing code ... */}
-                  </div>
+              </div>
             </div>
           </div>
         </div>

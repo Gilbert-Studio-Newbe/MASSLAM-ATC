@@ -70,6 +70,31 @@ const floorMaterial = new THREE.MeshStandardMaterial({
   wireframe: false
 });
 
+// Edge material for highlighting structural elements
+const edgeMaterial = new THREE.LineBasicMaterial({ 
+  color: '#333333',
+  linewidth: 1
+});
+
+// Function to create a mesh with edge highlighting
+const createMeshWithEdges = (geometry, material, position, key) => {
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.set(...position);
+  
+  // Create edges
+  const edges = new THREE.EdgesGeometry(geometry);
+  const line = new THREE.LineSegments(edges, edgeMaterial);
+  
+  // Group the mesh and its edges
+  const group = new THREE.Group();
+  group.add(mesh);
+  group.add(line);
+  
+  return (
+    <primitive key={key} object={group} />
+  );
+};
+
 const Building = ({ data }) => {
   const {
     buildingLength,
@@ -117,22 +142,18 @@ const Building = ({ data }) => {
         const posY = (floor * floorHeight) + (floorHeight / 2);
         const posZ = (y * bayWidth) - (buildingWidth / 2);
 
+        const geometry = new THREE.BoxGeometry(columnWidth, floorHeight, columnDepth);
         columns.push(
-          <mesh
-            key={`column-${floor}-${x}-${y}`}
-            position={[posX, posY, posZ]}
-            material={columnMaterial}
-          >
-            <boxGeometry args={[columnWidth, floorHeight, columnDepth]} />
-          </mesh>
+          createMeshWithEdges(geometry, columnMaterial, [posX, posY, posZ], `column-${floor}-${x}-${y}`)
         );
       }
     }
   }
 
-  // Create beams
+  // Create beams - UPDATED POSITIONING
   for (let floor = 0; floor < numFloors; floor++) {
-    const posY = (floor + 1) * floorHeight - (beamDepth / 2);
+    // Position beams with joists on top of them
+    const posY = (floor + 1) * floorHeight - joistDepth - (beamDepth / 2);
 
     if (joistsRunLengthwise) {
       // If joists run lengthwise, beams run widthwise
@@ -142,14 +163,9 @@ const Building = ({ data }) => {
           const posX = (x * bayLength) - (buildingLength / 2);
           const posZ = (z * bayWidth + bayWidth / 2) - (buildingWidth / 2);
           
+          const geometry = new THREE.BoxGeometry(beamWidth, beamDepth, bayWidth);
           beams.push(
-            <mesh
-              key={`beam-widthwise-${floor}-${x}-${z}`}
-              position={[posX, posY, posZ]}
-              material={beamMaterial}
-            >
-              <boxGeometry args={[beamWidth, beamDepth, bayWidth]} />
-            </mesh>
+            createMeshWithEdges(geometry, beamMaterial, [posX, posY, posZ], `beam-widthwise-${floor}-${x}-${z}`)
           );
         }
       }
@@ -160,28 +176,18 @@ const Building = ({ data }) => {
         const frontPosZ = -(buildingWidth / 2);
         const frontPosX = (x * bayLength + bayLength / 2) - (buildingLength / 2);
         
+        const frontGeometry = new THREE.BoxGeometry(bayLength, edgeBeamDepth, edgeBeamWidth);
         edgeBeams.push(
-          <mesh
-            key={`edge-beam-front-${floor}-${x}`}
-            position={[frontPosX, posY, frontPosZ]}
-            material={edgeBeamMaterial}
-          >
-            <boxGeometry args={[bayLength, edgeBeamDepth, edgeBeamWidth]} />
-          </mesh>
+          createMeshWithEdges(frontGeometry, edgeBeamMaterial, [frontPosX, posY, frontPosZ], `edge-beam-front-${floor}-${x}`)
         );
         
         // Back edge
         const backPosZ = (buildingWidth / 2);
         const backPosX = (x * bayLength + bayLength / 2) - (buildingLength / 2);
         
+        const backGeometry = new THREE.BoxGeometry(bayLength, edgeBeamDepth, edgeBeamWidth);
         edgeBeams.push(
-          <mesh
-            key={`edge-beam-back-${floor}-${x}`}
-            position={[backPosX, posY, backPosZ]}
-            material={edgeBeamMaterial}
-          >
-            <boxGeometry args={[bayLength, edgeBeamDepth, edgeBeamWidth]} />
-          </mesh>
+          createMeshWithEdges(backGeometry, edgeBeamMaterial, [backPosX, posY, backPosZ], `edge-beam-back-${floor}-${x}`)
         );
       }
     } else {
@@ -192,14 +198,9 @@ const Building = ({ data }) => {
           const posZ = (z * bayWidth) - (buildingWidth / 2);
           const posX = (x * bayLength + bayLength / 2) - (buildingLength / 2);
           
+          const geometry = new THREE.BoxGeometry(bayLength, beamDepth, beamWidth);
           beams.push(
-            <mesh
-              key={`beam-lengthwise-${floor}-${z}-${x}`}
-              position={[posX, posY, posZ]}
-              material={beamMaterial}
-            >
-              <boxGeometry args={[bayLength, beamDepth, beamWidth]} />
-            </mesh>
+            createMeshWithEdges(geometry, beamMaterial, [posX, posY, posZ], `beam-lengthwise-${floor}-${z}-${x}`)
           );
         }
       }
@@ -210,36 +211,27 @@ const Building = ({ data }) => {
         const leftPosX = -(buildingLength / 2);
         const leftPosZ = (z * bayWidth + bayWidth / 2) - (buildingWidth / 2);
         
+        const leftGeometry = new THREE.BoxGeometry(edgeBeamWidth, edgeBeamDepth, bayWidth);
         edgeBeams.push(
-          <mesh
-            key={`edge-beam-left-${floor}-${z}`}
-            position={[leftPosX, posY, leftPosZ]}
-            material={edgeBeamMaterial}
-          >
-            <boxGeometry args={[edgeBeamWidth, edgeBeamDepth, bayWidth]} />
-          </mesh>
+          createMeshWithEdges(leftGeometry, edgeBeamMaterial, [leftPosX, posY, leftPosZ], `edge-beam-left-${floor}-${z}`)
         );
         
         // Right edge
         const rightPosX = (buildingLength / 2);
         const rightPosZ = (z * bayWidth + bayWidth / 2) - (buildingWidth / 2);
         
+        const rightGeometry = new THREE.BoxGeometry(edgeBeamWidth, edgeBeamDepth, bayWidth);
         edgeBeams.push(
-          <mesh
-            key={`edge-beam-right-${floor}-${z}`}
-            position={[rightPosX, posY, rightPosZ]}
-            material={edgeBeamMaterial}
-          >
-            <boxGeometry args={[edgeBeamWidth, edgeBeamDepth, bayWidth]} />
-          </mesh>
+          createMeshWithEdges(rightGeometry, edgeBeamMaterial, [rightPosX, posY, rightPosZ], `edge-beam-right-${floor}-${z}`)
         );
       }
     }
   }
 
-  // Create joists
+  // Create joists - UPDATED POSITIONING
   for (let floor = 0; floor < numFloors; floor++) {
-    const posY = (floor + 1) * floorHeight - beamDepth - (joistDepth / 2);
+    // Position joists at the top of the floor, with half their depth penetrating the floor level
+    const posY = (floor + 1) * floorHeight - (joistDepth / 2);
 
     if (joistsRunLengthwise) {
       // Joists run along length
@@ -252,14 +244,9 @@ const Building = ({ data }) => {
             const posX = (x * bayLength + bayLength / 2) - (buildingLength / 2);
             const posZ = (z * bayWidth + j * actualSpacing) - (buildingWidth / 2);
             
+            const geometry = new THREE.BoxGeometry(bayLength, joistDepth, joistWidth);
             joists.push(
-              <mesh
-                key={`joist-lengthwise-${floor}-${x}-${z}-${j}`}
-                position={[posX, posY, posZ]}
-                material={joistMaterial}
-              >
-                <boxGeometry args={[bayLength, joistDepth, joistWidth]} />
-              </mesh>
+              createMeshWithEdges(geometry, joistMaterial, [posX, posY, posZ], `joist-lengthwise-${floor}-${x}-${z}-${j}`)
             );
           }
         }
@@ -275,14 +262,9 @@ const Building = ({ data }) => {
             const posX = (x * bayLength + j * actualSpacing) - (buildingLength / 2);
             const posZ = (z * bayWidth + bayWidth / 2) - (buildingWidth / 2);
             
+            const geometry = new THREE.BoxGeometry(joistWidth, joistDepth, bayWidth);
             joists.push(
-              <mesh
-                key={`joist-widthwise-${floor}-${x}-${z}-${j}`}
-                position={[posX, posY, posZ]}
-                material={joistMaterial}
-              >
-                <boxGeometry args={[joistWidth, joistDepth, bayWidth]} />
-              </mesh>
+              createMeshWithEdges(geometry, joistMaterial, [posX, posY, posZ], `joist-widthwise-${floor}-${x}-${z}-${j}`)
             );
           }
         }
@@ -292,17 +274,14 @@ const Building = ({ data }) => {
 
   // Create floors (just simple planes for visualization)
   for (let floor = 1; floor <= numFloors; floor++) {
-    const posY = floor * floorHeight;
+    const posY = floor * floorHeight + 0.05; // Slight offset to avoid z-fighting with joists
+    
+    const geometry = new THREE.BoxGeometry(buildingLength, 0.1, buildingWidth);
+    const floorMesh = new THREE.Mesh(geometry, floorMaterial);
+    floorMesh.position.set(0, posY, 0);
     
     floors.push(
-      <mesh
-        key={`floor-${floor}`}
-        position={[0, posY, 0]}
-        rotation={[0, 0, 0]}
-        material={floorMaterial}
-      >
-        <boxGeometry args={[buildingLength, 0.1, buildingWidth]} />
-      </mesh>
+      <primitive key={`floor-${floor}`} object={floorMesh} />
     );
   }
 
