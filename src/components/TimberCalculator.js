@@ -27,6 +27,7 @@ import {
 import { calculateFireResistanceAllowance, getMasslamSL33Properties } from '@/utils/masslamProperties';
 import TimberSizesTable from './TimberSizesTable';
 import { calculateCost, formatCurrency } from '../utils/costEstimator';
+import { saveBuildingData, prepareVisualizationData } from '../utils/buildingDataStore';
 // ... other imports as before
 
 // Custom function for beam size calculation with tributary area
@@ -865,6 +866,24 @@ export default function TimberCalculator() {
         widthwiseBays,
         validationResult
       });
+
+      // Prepare and save data for 3D visualization
+      const visualizationData = prepareVisualizationData({
+        buildingLength,
+        buildingWidth,
+        numFloors,
+        floorHeight,
+        lengthwiseBays,
+        widthwiseBays,
+        joistSize,
+        beamSize: interiorBeamSize,
+        edgeBeamSize,
+        columnSize,
+        joistsRunLengthwise,
+        fireRating,
+        timberGrade
+      });
+      saveBuildingData(visualizationData);
     } catch (error) {
       console.error('Error calculating results:', error);
       setError('Error calculating results: ' + error.message);
@@ -2423,6 +2442,12 @@ export default function TimberCalculator() {
                 
                 {/* Save Project Button */}
                 <div className="flex justify-end mt-8">
+                  <Link 
+                    href="/3d-visualization" 
+                    className="apple-button apple-button-secondary mr-4"
+                  >
+                    View 3D Model
+                  </Link>
                   <button 
                     className="apple-button apple-button-primary"
                     onClick={() => setShowSaveModal(true)}
