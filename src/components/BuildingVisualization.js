@@ -130,53 +130,118 @@ const TreeModel = ({ position, scale = 1, rotation = [0, 0, 0] }) => {
   const [modelLoaded, setModelLoaded] = useState(false);
   const [modelError, setModelError] = useState(false);
   const [treeModel, setTreeModel] = useState(null);
-  const [modelScale, setModelScale] = useState(scale);
+  const [modelScale, setModelScale] = useState(0.2); // Default scale for the model
+  const [treeType, setTreeType] = useState(Math.floor(Math.random() * 3)); // Random tree type (0, 1, or 2)
   
-  // Create a simple fallback tree if the model fails to load
+  // Reduced tree size - target 4m instead of 8m
+  const targetHeight = 4; // meters (reduced from 8m back to 4m)
+  
+  // Calculate surface elevation based on terrain layers
+  // This should match the values in TerrainPlane
+  const grassThickness = 0.05;
+  const soilThickness = 0.7;     // Updated from 0.5
+  const subsoilThickness = 1.8;  // Updated from 1.2
+  const rockThickness = 1.8;
+  const totalTerrainThickness = grassThickness + soilThickness + subsoilThickness + rockThickness;
+  
+  // Position adjustment to place trees on top of the terrain surface
+  // Trees will be positioned at [x, terrainSurfaceY, z]
+  const terrainSurfaceY = 0; // Trees are now positioned at y=0 which is the top surface of terrain
+  
   const createFallbackTree = useCallback(() => {
-    // Create a more detailed tree with better proportions for small scale
-    const trunkGeometry = new THREE.CylinderGeometry(0.4, 0.6, 8, 8);
-    const trunkMaterial = new THREE.MeshStandardMaterial({ 
-      color: '#8B4513', 
-      roughness: 0.9 
+    let geometry, material, trunk, foliage;
+    let trunkHeight, trunkRadius, foliageHeight, foliageRadius, foliageShape;
+    
+    // Different tree types with varied characteristics
+    switch(treeType) {
+      case 0: // Conifer/Pine type
+        trunkHeight = 5 + Math.random() * 2; // 5-7m trunk
+        trunkRadius = 0.15 + Math.random() * 0.1;
+        foliageShape = 'cone';
+        foliageHeight = 3 + Math.random() * 1;
+        foliageRadius = 1.2 + Math.random() * 0.8;
+        break;
+      case 1: // Deciduous/Rounded type
+        trunkHeight = 3 + Math.random() * 2; // 3-5m trunk
+        trunkRadius = 0.2 + Math.random() * 0.15;
+        foliageShape = 'sphere';
+        foliageHeight = 2.5 + Math.random() * 1.5;
+        foliageRadius = 2 + Math.random() * 1;
+        break;
+      case 2: // Irregular type
+        trunkHeight = 4 + Math.random() * 2; // 4-6m trunk
+        trunkRadius = 0.18 + Math.random() * 0.12;
+        foliageShape = 'irregular';
+        foliageHeight = 2.8 + Math.random() * 1.2;
+        foliageRadius = 1.8 + Math.random() * 0.9;
+        break;
+    }
+    
+    // Create trunk
+    geometry = new THREE.CylinderGeometry(trunkRadius, trunkRadius * 1.2, trunkHeight, 8);
+    material = new THREE.MeshStandardMaterial({ 
+      color: new THREE.Color(0.35 + Math.random() * 0.15, 0.2 + Math.random() * 0.1, 0.1 + Math.random() * 0.05),
+      roughness: 0.8 + Math.random() * 0.2 
     });
-    const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-    trunk.position.y = 4;
+    trunk = new THREE.Mesh(geometry, material);
+    trunk.position.y = trunkHeight / 2;
     
-    // Create multiple foliage cones for a more realistic look
-    const foliageGroup = new THREE.Group();
-    
-    // Bottom foliage (widest)
-    const foliageBottom = new THREE.Mesh(
-      new THREE.ConeGeometry(4, 5, 8),
-      new THREE.MeshStandardMaterial({ color: '#228B22', roughness: 0.8 })
+    // Create foliage based on shape
+    let foliageColor = new THREE.Color(
+      0.1 + Math.random() * 0.2, 
+      0.4 + Math.random() * 0.3, 
+      0.1 + Math.random() * 0.15
     );
-    foliageBottom.position.y = 3;
     
-    // Middle foliage
-    const foliageMiddle = new THREE.Mesh(
-      new THREE.ConeGeometry(3, 4, 8),
-      new THREE.MeshStandardMaterial({ color: '#228B22', roughness: 0.8 })
-    );
-    foliageMiddle.position.y = 6;
+    if (foliageShape === 'cone') {
+      geometry = new THREE.ConeGeometry(foliageRadius, foliageHeight, 8);
+      material = new THREE.MeshStandardMaterial({ color: foliageColor, roughness: 1.0 });
+      foliage = new THREE.Mesh(geometry, material);
+      foliage.position.y = trunkHeight + foliageHeight / 2;
+    } else if (foliageShape === 'sphere') {
+      geometry = new THREE.SphereGeometry(foliageRadius, 8, 8);
+      material = new THREE.MeshStandardMaterial({ color: foliageColor, roughness: 1.0 });
+      foliage = new THREE.Mesh(geometry, material);
+      foliage.position.y = trunkHeight + foliageRadius * 0.8;
+    } else { // irregular
+      // Create multiple sphere clusters for irregular foliage
+      const foliageGroup = new THREE.Group();
+      const numClusters = 3 + Math.random() * 3;
+      
+      for (let i = 0; i < numClusters; i++) {
+        const size = foliageRadius * (0.7 + Math.random() * 0.6);
+        geometry = new THREE.SphereGeometry(size, 8, 8);
+        material = new THREE.MeshStandardMaterial({ 
+          color: new THREE.Color(
+            foliageColor.r * (0.9 + Math.random() * 0.2),
+            foliageColor.g * (0.9 + Math.random() * 0.2),
+            foliageColor.b * (0.9 + Math.random() * 0.2)
+          ),
+          roughness: 1.0 
+        });
+        const cluster = new THREE.Mesh(geometry, material);
+        cluster.position.set(
+          (Math.random() - 0.5) * foliageRadius,
+          trunkHeight + foliageHeight * (0.5 + Math.random() * 0.5),
+          (Math.random() - 0.5) * foliageRadius
+        );
+        foliageGroup.add(cluster);
+      }
+      foliage = foliageGroup;
+    }
     
-    // Top foliage (smallest)
-    const foliageTop = new THREE.Mesh(
-      new THREE.ConeGeometry(2, 3.5, 8),
-      new THREE.MeshStandardMaterial({ color: '#1a661a', roughness: 0.8 })
-    );
-    foliageTop.position.y = 9;
-    
-    foliageGroup.add(foliageBottom);
-    foliageGroup.add(foliageMiddle);
-    foliageGroup.add(foliageTop);
-    
+    // Combine trunk and foliage
     const tree = new THREE.Group();
     tree.add(trunk);
-    tree.add(foliageGroup);
+    tree.add(foliage);
+    
+    // Scale tree to target height
+    const currentHeight = trunkHeight + foliageHeight;
+    const scale = (targetHeight / currentHeight) * (1 + Math.random() * 0.5); // Removed the *2 multiplier to make trees 50% smaller
+    tree.scale.set(scale, scale, scale);
     
     return tree;
-  }, []);
+  }, [treeType, targetHeight]);
   
   // Load the tree model from public directory
   const { scene: loadedModel, error } = useGLTF('/models/tree.glb', false);
@@ -191,24 +256,19 @@ const TreeModel = ({ position, scale = 1, rotation = [0, 0, 0] }) => {
     }
     
     if (loadedModel) {
-      console.log('Tree model loaded successfully', loadedModel);
+      console.log('Tree model loaded successfully');
       
       // Calculate model size to determine appropriate scale
       const box = new THREE.Box3().setFromObject(loadedModel);
       const size = box.getSize(new THREE.Vector3());
       const maxDimension = Math.max(size.x, size.y, size.z);
       
-      console.log('Tree model dimensions:', size);
-      
-      // Automatically adjust scale based on model size
-      // Reducing from 8m to 4m (50% smaller)
-      const targetHeight = 4; // meters (reduced from 8m back to 4m)
+      // Base target height with variation (3m to 5m)
+      const targetHeight = 4 * scale; // Apply incoming scale factor directly to target height
       let calculatedScale = targetHeight / maxDimension;
       
-      // Apply the scaling to the incoming scale parameter
-      setModelScale(scale * calculatedScale);
-      
-      console.log('Calculated tree scale:', calculatedScale, 'Final scale:', scale * calculatedScale);
+      // Apply the scaling
+      setModelScale(calculatedScale);
       
       // Center the model at its base
       const center = box.getCenter(new THREE.Vector3());
@@ -227,7 +287,30 @@ const TreeModel = ({ position, scale = 1, rotation = [0, 0, 0] }) => {
           // Ensure materials are properly configured
           if (node.material) {
             node.material.roughness = 0.8;
-            node.material.metalness = 0.2;
+            node.material.metalness = 0.1;
+            
+            // Add slight color variation to make each tree look unique
+            if (scale !== 1 && node.material.color) {
+              // Vary colors based on scale to make each tree slightly different
+              const hueShift = (Math.random() - 0.5) * 0.1;
+              const saturationShift = (Math.random() - 0.5) * 0.2;
+              
+              // Convert RGB to HSL for easier modification
+              const color = new THREE.Color();
+              color.copy(node.material.color);
+              
+              // Apply the shift - we'll use a simple approach without full HSL conversion
+              color.r *= (1 + hueShift);
+              color.g *= (1 + saturationShift);
+              color.b *= (1 + (hueShift + saturationShift) * 0.5);
+              
+              // Ensure values stay in valid range
+              color.r = Math.max(0, Math.min(1, color.r));
+              color.g = Math.max(0, Math.min(1, color.g));
+              color.b = Math.max(0, Math.min(1, color.b));
+              
+              node.material.color = color;
+            }
           }
         }
       });
@@ -244,7 +327,7 @@ const TreeModel = ({ position, scale = 1, rotation = [0, 0, 0] }) => {
       console.warn('Tree model not loaded, using fallback tree');
       setTreeModel(createFallbackTree());
     }
-  }, [loadedModel, error, createFallbackTree, scale]);
+  }, [loadedModel, error, createFallbackTree, scale, treeType]);
   
   // Clone the tree to avoid sharing materials/geometries
   const clonedTree = useMemo(() => {
@@ -255,10 +338,17 @@ const TreeModel = ({ position, scale = 1, rotation = [0, 0, 0] }) => {
     return null;
   }
   
+  // Create the final position with proper y-coordinate for terrain surface
+  const finalPosition = [
+    position[0],
+    terrainSurfaceY,
+    position[2]
+  ];
+  
   return (
     <primitive 
       object={clonedTree} 
-      position={position}
+      position={finalPosition}
       scale={[modelScale, modelScale, modelScale]} 
       rotation={rotation}
       castShadow
@@ -267,39 +357,248 @@ const TreeModel = ({ position, scale = 1, rotation = [0, 0, 0] }) => {
   );
 };
 
+// Create a terrain plane with depth layers
+const TerrainPlane = ({ buildingLength, buildingWidth }) => {
+  // Calculate the radius based on the building dimensions
+  const buildingDiagonal = Math.sqrt(buildingLength * buildingLength + buildingWidth * buildingWidth);
+  // Reduce multiplier from 1.5 to 1.3 to make disc diameter smaller
+  const radius = buildingDiagonal * 1.3;
+  
+  // Create terrain materials
+  const grassTexture = createGrassTexture();
+  grassTexture.repeat.set(10, 10);
+  
+  // Top grass layer
+  const grassMaterial = new THREE.MeshStandardMaterial({
+    map: grassTexture,
+    roughness: 0.8,
+    metalness: 0.0,
+    color: new THREE.Color('#4B7E2A'), // Rich green for grass
+  });
+  
+  // Soil layer (dark brown)
+  const soilMaterial = new THREE.MeshStandardMaterial({
+    color: new THREE.Color('#3D2817'),
+    roughness: 1.0,
+    metalness: 0.0,
+  });
+  
+  // Subsoil layer (lighter brown with some variations)
+  const subsoilMaterial = new THREE.MeshStandardMaterial({
+    color: new THREE.Color('#6E4E37'),
+    roughness: 0.9,
+    metalness: 0.0,
+  });
+  
+  // Rock base layer (grayish brown)
+  const rockMaterial = new THREE.MeshStandardMaterial({
+    color: new THREE.Color('#5D5450'),
+    roughness: 0.7,
+    metalness: 0.2,
+  });
+  
+  // Layer thicknesses - increase soil and subsoil depths
+  const grassThickness = 0.05;   // Grass layer is thin
+  const soilThickness = 0.7;     // Increased from 0.5
+  const subsoilThickness = 1.8;  // Increased from 1.2
+  const rockThickness = 1.8;     // Kept the same
+  const totalThickness = grassThickness + soilThickness + subsoilThickness + rockThickness;
+  
+  // Create circular geometries for each layer
+  const circleSegments = 64; // Smooth circle
+  
+  return (
+    <group position={[0, -totalThickness, 0]}>
+      {/* Grass surface layer */}
+      <mesh receiveShadow position={[0, totalThickness - grassThickness/2, 0]}>
+        <cylinderGeometry args={[radius, radius, grassThickness, circleSegments]} />
+        <primitive object={grassMaterial} />
+      </mesh>
+      
+      {/* Soil layer beneath grass */}
+      <mesh receiveShadow position={[0, totalThickness - grassThickness - soilThickness/2, 0]}>
+        <cylinderGeometry args={[radius, radius, soilThickness, circleSegments]} />
+        <primitive object={soilMaterial} />
+      </mesh>
+      
+      {/* Subsoil layer */}
+      <mesh position={[0, totalThickness - grassThickness - soilThickness - subsoilThickness/2, 0]}>
+        <cylinderGeometry args={[radius, radius, subsoilThickness, circleSegments]} />
+        <primitive object={subsoilMaterial} />
+      </mesh>
+      
+      {/* Rock base layer - removed taper to make straight sides */}
+      <mesh position={[0, totalThickness - grassThickness - soilThickness - subsoilThickness - rockThickness/2, 0]}>
+        <cylinderGeometry args={[radius, radius, rockThickness, circleSegments]} />
+        <primitive object={rockMaterial} />
+      </mesh>
+      
+      {/* Side wall of the cross-section */}
+      <mesh position={[0, totalThickness/2 - grassThickness/2, 0]}>
+        <cylinderGeometry args={[radius, radius, totalThickness, circleSegments, 1, true]} />
+        <meshStandardMaterial 
+          color="#5D4037" 
+          roughness={0.9} 
+          metalness={0.1} 
+          side={THREE.BackSide}
+        />
+      </mesh>
+    </group>
+  );
+};
+
 // Trees layout around the building
 const TreesArrangement = ({ buildingLength, buildingWidth }) => {
-  // Calculate positions for trees based on building dimensions
+  // Calculate building dimensions for tree placement
   const buildingDiagonal = Math.sqrt(buildingLength * buildingLength + buildingWidth * buildingWidth);
-  const radius = buildingDiagonal * 1.2; // Slightly inside the grass circle
+  const innerRadius = buildingDiagonal * 0.8; // Inner boundary to avoid trees too close to building
+  const outerRadius = buildingDiagonal * 1.25; // Outer boundary reduced from 1.45 to match smaller terrain disc
   
-  // Generate positions in a circle around the building
+  // Generate positions with more natural, random distribution
   const treePositions = [];
-  const treeCount = 12; // Number of trees to place
+  const treeCount = 18; // Increased number of trees for more variety
   
-  console.log('Building dimensions for trees:', { buildingLength, buildingWidth, diagonal: buildingDiagonal, radius });
+  console.log('Building dimensions for trees:', { buildingLength, buildingWidth, diagonal: buildingDiagonal });
   
-  for (let i = 0; i < treeCount; i++) {
-    const angle = (i / treeCount) * Math.PI * 2;
-    const x = Math.sin(angle) * radius;
-    const z = Math.cos(angle) * radius;
-    
-    // Add some randomness to positions and scales
-    const jitter = 0.8 + Math.random() * 0.4; // Random factor between 0.8 and 1.2
-    
-    // Base scale - reduced by 50% from previous value
-    const scale = (1 + Math.random() * 0.5); // Removed the *2 multiplier to make trees 50% smaller
-    
-    const rotationY = Math.random() * Math.PI * 2; // Random rotation around Y axis
-    
-    const treePosition = {
-      position: [x * jitter, 0, z * jitter],
-      scale: scale,
-      rotation: [0, rotationY, 0]
+  // Create some trees in clusters and some individual trees
+  const createTrees = () => {
+    // Function to check if a new position is too close to existing trees
+    const isTooClose = (newPos, minDistance) => {
+      for (const pos of treePositions) {
+        const dx = newPos.position[0] - pos.position[0];
+        const dz = newPos.position[2] - pos.position[2];
+        const distance = Math.sqrt(dx * dx + dz * dz);
+        if (distance < minDistance) return true;
+      }
+      return false;
     };
     
-    treePositions.push(treePosition);
-  }
+    // Create some evenly spaced trees around the perimeter (but with jitter)
+    for (let i = 0; i < 10; i++) {
+      const angle = (i / 10) * Math.PI * 2; 
+      // Randomize the distance from building (between inner and outer radius)
+      // Ensure trees stay within the terrain disc
+      const distance = innerRadius + Math.random() * (outerRadius - innerRadius) * 0.9;
+      
+      // Add significant jitter to angle for less uniformity
+      const jitteredAngle = angle + (Math.random() * 0.3 - 0.15) * Math.PI;
+      
+      const x = Math.sin(jitteredAngle) * distance;
+      const z = Math.cos(jitteredAngle) * distance;
+      
+      // Randomize scale more dramatically (60% to 140% of base size)
+      const scale = 0.6 + Math.random() * 0.8;
+      
+      const rotationY = Math.random() * Math.PI * 2; // Random rotation around Y axis
+      
+      const treePosition = {
+        position: [x, 0, z],
+        scale: scale,
+        rotation: [0, rotationY, 0]
+      };
+      
+      treePositions.push(treePosition);
+    }
+    
+    // Add some random trees (with collision detection)
+    for (let i = 0; i < treeCount - 10; i++) {
+      let attempts = 0;
+      let validPosition = false;
+      let treePosition;
+      
+      // Try to find a position that's not too close to other trees
+      while (!validPosition && attempts < 20) {
+        // Random angle
+        const angle = Math.random() * Math.PI * 2;
+        
+        // Random distance from building center, but always within grass plane
+        const distance = innerRadius * 0.7 + Math.random() * (outerRadius - innerRadius * 0.7) * 0.9;
+        
+        const x = Math.sin(angle) * distance;
+        const z = Math.cos(angle) * distance;
+        
+        // Ensure trees are within the terrain disc
+        const distanceFromCenter = Math.sqrt(x*x + z*z);
+        if (distanceFromCenter > outerRadius * 0.95) {
+          attempts++;
+          continue; // Skip this position if outside terrain boundaries
+        }
+        
+        // Even more varied scale for the random trees
+        const scale = 0.5 + Math.random() * 1.0;
+        
+        const rotationY = Math.random() * Math.PI * 2;
+        
+        treePosition = {
+          position: [x, 0, z],
+          scale: scale,
+          rotation: [0, rotationY, 0]
+        };
+        
+        // Check if this position is too close to existing trees
+        // Use a smaller minimum distance for denser clusters in some areas
+        const minDistance = 2 + Math.random() * 4; // Varied minimum distances between 2-6 meters
+        
+        if (!isTooClose(treePosition, minDistance)) {
+          validPosition = true;
+        }
+        
+        attempts++;
+      }
+      
+      if (validPosition) {
+        treePositions.push(treePosition);
+      }
+    }
+    
+    // Add a few small clusters (2-3 trees close together)
+    const clusterCount = 3;
+    for (let c = 0; c < clusterCount; c++) {
+      const angle = Math.random() * Math.PI * 2;
+      // Keep clusters well within terrain boundaries
+      const distance = innerRadius + Math.random() * (outerRadius - innerRadius) * 0.8;
+      
+      const baseX = Math.sin(angle) * distance;
+      const baseZ = Math.cos(angle) * distance;
+      
+      // Create 2-3 trees in this cluster
+      const treesInCluster = 2 + Math.floor(Math.random() * 2);
+      
+      for (let i = 0; i < treesInCluster; i++) {
+        // Small offset from the cluster center
+        const offsetX = (Math.random() * 2 - 1) * 3;
+        const offsetZ = (Math.random() * 2 - 1) * 3;
+        
+        const x = baseX + offsetX;
+        const z = baseZ + offsetZ;
+        
+        // Ensure tree with offset is still within terrain
+        const distanceFromCenter = Math.sqrt(x*x + z*z);
+        if (distanceFromCenter > outerRadius * 0.9) {
+          continue; // Skip this tree if offset puts it outside boundaries
+        }
+        
+        // Varied scale within the cluster
+        const scale = 0.6 + Math.random() * 0.6;
+        
+        const rotationY = Math.random() * Math.PI * 2;
+        
+        const treePosition = {
+          position: [x, 0, z],
+          scale: scale,
+          rotation: [0, rotationY, 0]
+        };
+        
+        // Only add if not too close to existing trees
+        if (!isTooClose(treePosition, 2)) {
+          treePositions.push(treePosition);
+        }
+      }
+    }
+  };
+  
+  // Generate all the tree positions
+  createTrees();
   
   return (
     <group>
@@ -948,18 +1247,11 @@ export default function BuildingVisualization() {
         
         <Environment preset="city" /> {/* Always use city preset */}
         
-        {/* Use textured or plain grass based on render mode */}
-        {renderMode === 'architectural' ? (
-          <GrassTexturedPlane 
-            buildingLength={buildingData.buildingLength} 
-            buildingWidth={buildingData.buildingWidth} 
-          />
-        ) : (
-          <GrassPlane 
-            buildingLength={buildingData.buildingLength} 
-            buildingWidth={buildingData.buildingWidth} 
-          />
-        )}
+        {/* Use the new TerrainPlane instead of the flat grass plane */}
+        <TerrainPlane 
+          buildingLength={buildingData.buildingLength} 
+          buildingWidth={buildingData.buildingWidth} 
+        />
         
         <BuildingWithJoistPosition data={buildingData} />
         

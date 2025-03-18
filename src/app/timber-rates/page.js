@@ -23,23 +23,43 @@ export default function TimberRatesPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    // Parse values to ensure they're numbers
+    const parsedBeamRate = parseFloat(beamRate);
+    const parsedColumnRate = parseFloat(columnRate);
+    
     // Validate inputs
-    if (beamRate <= 0 || columnRate <= 0) {
-      setMessage('Rates must be greater than zero');
+    if (isNaN(parsedBeamRate) || parsedBeamRate <= 0 || isNaN(parsedColumnRate) || parsedColumnRate <= 0) {
+      setMessage('Beam and column rates must be valid numbers greater than zero');
       setMessageType('error');
       return;
     }
     
     // Check if any joist rate is invalid
-    const hasInvalidJoistRate = Object.values(joistRates).some(rate => rate <= 0);
+    const hasInvalidJoistRate = Object.values(joistRates).some(rate => {
+      const parsed = parseFloat(rate);
+      return isNaN(parsed) || parsed <= 0;
+    });
+    
     if (hasInvalidJoistRate) {
-      setMessage('All joist rates must be greater than zero');
+      setMessage('All joist rates must be valid numbers greater than zero');
       setMessageType('error');
       return;
     }
     
+    // Prepare the formatted joist rates object with parsed values
+    const formattedJoistRates = {};
+    Object.entries(joistRates).forEach(([key, value]) => {
+      formattedJoistRates[key] = parseFloat(value);
+    });
+    
     // Save rates
-    const success = saveRates(beamRate, columnRate, joistRates);
+    console.log('Attempting to save rates:', {
+      beamRate: parsedBeamRate,
+      columnRate: parsedColumnRate,
+      joistRatesCount: Object.keys(formattedJoistRates).length
+    });
+    
+    const success = saveRates(parsedBeamRate, parsedColumnRate, formattedJoistRates);
     
     if (success) {
       setMessage('Rates saved successfully');
@@ -56,11 +76,24 @@ export default function TimberRatesPage() {
     }, 3000);
   };
 
+  // Handle beam rate change
+  const handleBeamRateChange = (value) => {
+    const parsed = parseFloat(value);
+    setBeamRate(isNaN(parsed) ? 0 : parsed);
+  };
+  
+  // Handle column rate change
+  const handleColumnRateChange = (value) => {
+    const parsed = parseFloat(value);
+    setColumnRate(isNaN(parsed) ? 0 : parsed);
+  };
+
   // Handle joist rate change
   const handleJoistRateChange = (sizeKey, value) => {
+    const parsed = parseFloat(value);
     setJoistRates(prev => ({
       ...prev,
-      [sizeKey]: parseFloat(value) || 0
+      [sizeKey]: isNaN(parsed) ? 0 : parsed
     }));
   };
 
@@ -99,7 +132,7 @@ export default function TimberRatesPage() {
                   id="beamRate"
                   className="pl-8 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   value={beamRate}
-                  onChange={(e) => setBeamRate(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => handleBeamRateChange(e.target.value)}
                   min="0"
                   step="1"
                 />
@@ -117,7 +150,7 @@ export default function TimberRatesPage() {
                   id="columnRate"
                   className="pl-8 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   value={columnRate}
-                  onChange={(e) => setColumnRate(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => handleColumnRateChange(e.target.value)}
                   min="0"
                   step="1"
                 />

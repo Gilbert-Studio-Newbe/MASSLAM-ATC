@@ -1072,8 +1072,22 @@ export function calculateTimberWeight(joistSize, beamSize, columnSize, buildingL
   // Calculate column volume
   const columnWidth = columnSize.width / 1000; // Convert mm to m
   const columnDepth = columnSize.depth / 1000; // Convert mm to m
-  const columnHeight = columnSize.height; // Already in m
-  const columnVolume = columnWidth * columnDepth * columnHeight * totalColumns;
+  
+  // Multiply by numFloors to get the total height of all columns
+  // columnSize.height is the height per floor, not the total height
+  const totalColumnHeight = columnSize.height * numFloors;
+  const columnVolume = columnWidth * columnDepth * totalColumnHeight * totalColumns;
+  
+  // Log calculation details for debugging
+  console.log('Timber Engineering - Column Volume Calculation:', {
+    columnWidthM: columnWidth,
+    columnDepthM: columnDepth,
+    columnHeightPerFloor: columnSize.height,
+    numFloors,
+    totalColumnHeight,
+    totalColumns,
+    calculatedVolume: columnVolume
+  });
   
   // Total volume
   const totalVolume = joistVolume + beamVolume + columnVolume;

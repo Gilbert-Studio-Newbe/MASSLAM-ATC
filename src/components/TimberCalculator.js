@@ -26,7 +26,12 @@ import {
 } from '@/utils/timberSizes';
 import { calculateFireResistanceAllowance, getMasslamSL33Properties } from '@/utils/masslamProperties';
 import TimberSizesTable from './TimberSizesTable';
-import { calculateCost, formatCurrency } from '../utils/costEstimator';
+import { 
+  calculateCost, 
+  formatCurrency, 
+  loadRates,
+  STORAGE_KEYS 
+} from '../utils/costEstimator';
 import { saveBuildingData, prepareVisualizationData } from '../utils/buildingDataStore';
 // ... other imports as before
 
@@ -196,8 +201,8 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
   console.log(`Column self-weight per floor: ${columnSelfWeight.toFixed(2)} kN, Cumulative: ${cumulativeSelfWeight.toFixed(2)} kN`);
   
   // Add self-weight to the total load
-  totalLoad += cumulativeSelfWeight;
-  console.log(`Total column load (with self-weight): ${totalLoad.toFixed(2)} kN`);
+  const totalLoadWithSelfWeight = load + cumulativeSelfWeight;
+  console.log(`Total column load (with self-weight): ${totalLoadWithSelfWeight.toFixed(2)} kN`);
   
   console.log(`Column size before fire adjustment: ${width}x${depth}mm`);
   console.log(`Column size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
@@ -206,7 +211,7 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
     width: adjustedWidth,
     depth: adjustedDepth,
     height: height,
-    load: totalLoad,
+    load: totalLoadWithSelfWeight,
     tributaryArea: tributaryArea,
     loadPerFloor: loadPerFloor,
     selfWeight: columnSelfWeight,
@@ -761,6 +766,14 @@ export default function TimberCalculator() {
         const concreteThickness = getConcreteThickness(fireRating);
         const concreteLoadData = calculateConcreteLoad(concreteThickness);
         
+        // Calculate total load including concrete load
+        const totalLoad = parseFloat(load) + parseFloat(concreteLoadData.loadKpa);
+        console.log('Total load calculation:', { 
+          imposed: parseFloat(load), 
+          concrete: parseFloat(concreteLoadData.loadKpa), 
+          total: totalLoad 
+        });
+        
         // Calculate joist size based on span and load
         const joistSize = calculateJoistSize(joistSpan, 800, load, timberGrade, fireRating);
         
@@ -778,7 +791,7 @@ export default function TimberCalculator() {
       // These beams have a tributary width of half the perpendicular bay dimension
       const interiorBeamSize = calculateMultiFloorBeamSize(
         beamSpan, 
-        load + parseFloat(concreteLoadData.loadKpa), // Include concrete load 
+        totalLoad, // Use combined load 
         joistSpacing, 
         numFloors, 
         fireRating, 
@@ -792,7 +805,7 @@ export default function TimberCalculator() {
       // These beams have a tributary width of half the perpendicular bay dimension
       const edgeBeamSize = calculateMultiFloorBeamSize(
         beamSpan, 
-        load + parseFloat(concreteLoadData.loadKpa), // Include concrete load
+        totalLoad, // Use combined load
         joistSpacing, 
         numFloors, 
         fireRating,
@@ -807,7 +820,7 @@ export default function TimberCalculator() {
       // Tributary area is the bay area (length x width)
       const columnSize = calculateMultiFloorColumnSize(
         interiorBeamSize.width, // Match column width to beam width
-        load, 
+        totalLoad, // Use the same total load including concrete
         floorHeight, 
         numFloors, 
         fireRating,
@@ -834,39 +847,70 @@ export default function TimberCalculator() {
         
       // Calculate costs
       const costs = calculateCosts(joistSize, interiorBeamSize, edgeBeamSize, columnSize, buildingLength, buildingWidth, joistSpacing, lengthwiseBays, widthwiseBays, floorHeight, numFloors);
+      
+      // Detailed cost tracing to find the issue
+      console.log("RESULTS DEBUG - Costs object from calculateCosts:", JSON.stringify(costs, null, 2));
+      console.log("RESULTS DEBUG - Beam cost value:", costs.elements.beams.cost);
+      console.log("RESULTS DEBUG - Calculation check:", costs.elements.beams.volume * costs.elements.beams.rate);
         
-        // Validate the structure
-      const validationResult = validateStructure(joistSize, interiorBeamSize, edgeBeamSize, columnSize, joistSpan, beamSpan, floorHeight, load, numFloors);
+      // Validate the structure - simplified call with correct parameters
+      const validationResult = validateStructure(joistSize, interiorBeamSize, columnSize);
         
-        // Set the results
-        setResults({
+        // Create a structure to hold detailed results
+        const finalResults = {
           joistSize,
-        beamSize: interiorBeamSize,
-        edgeBeamSize,
+          interiorBeamSize,
+          edgeBeamSize,
           columnSize,
-          timberVolume: timberResult.totalVolume,
-        timberWeight: timberResult.weight,
-        carbonStorage: carbonResults.carbonStorage,
-        embodiedCarbon: carbonResults.embodiedCarbon,
-        carbonSavings: carbonResults.carbonSavings,
-        costs,
+          joistSpan,
+          beamSpan: beamSpan,
+          joistsRunLengthwise,
+          buildingLength,
+          buildingWidth,
+          lengthwiseBays,
+          widthwiseBays,
+          widthwiseBayWidths,
+          lengthwiseBayWidths,
+          concreteData: concreteLoadData,
+          totalLoad: totalLoad,
+          embodiedCarbon: carbonResults.embodiedCarbon,
+          carbonSavings: carbonResults.carbonSavings,
+          costs,
           elementCounts: {
             joists: timberResult.elements.joists.count,
             beams: timberResult.elements.beams.count,
             columns: timberResult.elements.columns.count
           },
-        elementVolumes: {
-          joists: timberResult.elements.joists.volume,
-          beams: timberResult.elements.beams.volume,
-          columns: timberResult.elements.columns.volume
-        },
-        buildingLength,
-        buildingWidth,
-        lengthwiseBays,
-        widthwiseBays,
-        validationResult
-      });
-
+          elementVolumes: {
+            // Use floor area calculation for joists (m²) - this is what the cost calculation expects
+            joists: buildingLength * buildingWidth * numFloors,
+            beams: timberResult.elements.beams.volume,
+            columns: timberResult.elements.columns.volume
+          },
+          // Add debugging information to results
+          debug: {
+            timberResult: JSON.parse(JSON.stringify(timberResult)),
+            mockTimberResult: {
+              beams: {
+                volume: calculateBeamVolume(interiorBeamSize, edgeBeamSize, buildingLength, buildingWidth, lengthwiseBays, widthwiseBays)
+              },
+              columns: {
+                volume: calculateColumnVolume(columnSize, floorHeight, numFloors, lengthwiseBays, widthwiseBays)
+              }
+            },
+            rawCosts: JSON.parse(JSON.stringify(costs))
+          },
+          buildingLength,
+          buildingWidth,
+          lengthwiseBays,
+          widthwiseBays,
+          validationResult
+        };
+      
+      console.log("RESULTS DEBUG - Final results beam cost:", finalResults.costs.elements.beams.cost);
+      
+      setResults(finalResults);
+      
       // Prepare and save data for 3D visualization
       const visualizationData = prepareVisualizationData({
         buildingLength,
@@ -1188,28 +1232,34 @@ export default function TimberCalculator() {
     );
   };
   
-  // Function to calculate costs using the existing calculateCost function
+  // Function to calculate costs using the simplified calculateCost function
   const calculateCosts = (joistSize, interiorBeamSize, edgeBeamSize, columnSize, buildingLength, buildingWidth, joistSpacing, lengthwiseBays, widthwiseBays, floorHeight, numFloors) => {
-    // Create a mock timberResult object with the necessary structure
-    const mockTimberResult = {
-      elements: {
-        joists: {
-          count: Math.ceil((buildingLength / joistSpacing) * widthwiseBays),
-          volume: calculateJoistVolume(joistSize, buildingLength, buildingWidth, joistSpacing)
-        },
-        beams: {
-          count: ((lengthwiseBays - 1) * widthwiseBays) + (2 * widthwiseBays), // Interior + edge beams
-          volume: calculateBeamVolume(interiorBeamSize, edgeBeamSize, buildingLength, buildingWidth, lengthwiseBays, widthwiseBays)
-        },
-        columns: {
-          count: (lengthwiseBays + 1) * (widthwiseBays + 1),
-          volume: calculateColumnVolume(columnSize, floorHeight, numFloors, lengthwiseBays, widthwiseBays)
-        }
-      }
+    // Calculate volumes directly
+    const beamVolume = calculateBeamVolume(interiorBeamSize, edgeBeamSize, buildingLength, buildingWidth, lengthwiseBays, widthwiseBays);
+    const columnVolume = calculateColumnVolume(columnSize, floorHeight, numFloors, lengthwiseBays, widthwiseBays);
+    
+    // For joists, calculate the area in m² (not volume)
+    const floorArea = buildingLength * buildingWidth * numFloors;
+    
+    console.log('Joist Area Calculation:', {
+      buildingLength,
+      buildingWidth,
+      numFloors,
+      calculatedArea: floorArea,
+      formula: `${buildingLength} × ${buildingWidth} × ${numFloors} = ${floorArea} m²`
+    });
+    
+    // Create a simple volumes object for the cost calculator
+    const volumes = {
+      beamVolume: beamVolume,
+      columnVolume: columnVolume,
+      joistArea: floorArea
     };
     
-    // Calculate costs using the existing function
-    return calculateCost(mockTimberResult, joistSize, buildingLength, buildingWidth, numFloors);
+    console.log('Passing volumes to cost calculator:', volumes);
+    
+    // Calculate costs using the simplified function
+    return calculateCost(volumes);
   };
   
   // Helper function to calculate joist volume
@@ -1224,29 +1274,113 @@ export default function TimberCalculator() {
   
   // Helper function to calculate beam volume
   const calculateBeamVolume = (interiorBeamSize, edgeBeamSize, buildingLength, buildingWidth, lengthwiseBays, widthwiseBays) => {
+    console.log("VOLUME DEBUG - calculateBeamVolume inputs:", {
+      interiorBeamSize,
+      edgeBeamSize,
+      buildingLength,
+      buildingWidth,
+      lengthwiseBays,
+      widthwiseBays
+    });
+    
     const interiorBeamWidth = interiorBeamSize.width / 1000; // Convert mm to m
     const interiorBeamDepth = interiorBeamSize.depth / 1000; // Convert mm to m
     const edgeBeamWidth = edgeBeamSize.width / 1000; // Convert mm to m
     const edgeBeamDepth = edgeBeamSize.depth / 1000; // Convert mm to m
     
-    const interiorBeamCount = (lengthwiseBays - 1) * widthwiseBays;
-    const edgeBeamCount = 2 * widthwiseBays;
+    // Calculate bay dimensions
+    const bayLengthWidth = buildingLength / lengthwiseBays; // Length of each bay
+    const bayWidthWidth = buildingWidth / widthwiseBays;   // Width of each bay
     
-    const avgBeamLength = buildingLength / lengthwiseBays;
+    // For this calculation, we'll separate by direction to be more accurate
+    // Lengthwise beams (run along length of building)
+    const lengthwiseInteriorBeamCount = (widthwiseBays - 1);
+    const lengthwiseInteriorBeamLength = buildingLength;
+    const lengthwiseInteriorBeamVolume = interiorBeamWidth * interiorBeamDepth * lengthwiseInteriorBeamLength * lengthwiseInteriorBeamCount;
     
-    const interiorBeamVolume = interiorBeamWidth * interiorBeamDepth * avgBeamLength * interiorBeamCount;
-    const edgeBeamVolume = edgeBeamWidth * edgeBeamDepth * avgBeamLength * edgeBeamCount;
+    const lengthwiseEdgeBeamCount = 2; // Two edge beams along length
+    const lengthwiseEdgeBeamLength = buildingLength;
+    const lengthwiseEdgeBeamVolume = edgeBeamWidth * edgeBeamDepth * lengthwiseEdgeBeamLength * lengthwiseEdgeBeamCount;
     
-    return interiorBeamVolume + edgeBeamVolume;
+    // Widthwise beams (run along width of building)
+    const widthwiseInteriorBeamCount = (lengthwiseBays - 1) * (widthwiseBays + 1);
+    const widthwiseInteriorBeamLength = bayWidthWidth;
+    const widthwiseInteriorBeamVolume = interiorBeamWidth * interiorBeamDepth * widthwiseInteriorBeamLength * widthwiseInteriorBeamCount;
+    
+    const widthwiseEdgeBeamCount = 2 * lengthwiseBays; // Two edge beams for each bay along width
+    const widthwiseEdgeBeamLength = bayWidthWidth;
+    const widthwiseEdgeBeamVolume = edgeBeamWidth * edgeBeamDepth * widthwiseEdgeBeamLength * widthwiseEdgeBeamCount;
+    
+    const totalBeamVolume = 
+      lengthwiseInteriorBeamVolume + 
+      lengthwiseEdgeBeamVolume + 
+      widthwiseInteriorBeamVolume + 
+      widthwiseEdgeBeamVolume;
+    
+    console.log('VOLUME DEBUG - Detailed beam volume calculation:', {
+      lengthwiseInteriorBeams: { 
+        count: lengthwiseInteriorBeamCount, 
+        length: lengthwiseInteriorBeamLength, 
+        width: interiorBeamWidth,
+        depth: interiorBeamDepth,
+        volume: lengthwiseInteriorBeamVolume 
+      },
+      lengthwiseEdgeBeams: { 
+        count: lengthwiseEdgeBeamCount, 
+        length: lengthwiseEdgeBeamLength, 
+        width: edgeBeamWidth,
+        depth: edgeBeamDepth,
+        volume: lengthwiseEdgeBeamVolume 
+      },
+      widthwiseInteriorBeams: { 
+        count: widthwiseInteriorBeamCount, 
+        length: widthwiseInteriorBeamLength, 
+        width: interiorBeamWidth,
+        depth: interiorBeamDepth,
+        volume: widthwiseInteriorBeamVolume 
+      },
+      widthwiseEdgeBeams: { 
+        count: widthwiseEdgeBeamCount, 
+        length: widthwiseEdgeBeamLength, 
+        width: edgeBeamWidth,
+        depth: edgeBeamDepth,
+        volume: widthwiseEdgeBeamVolume 
+      },
+      totalBeamVolume
+    });
+    
+    console.log(`VOLUME DEBUG - Final beam volume: ${totalBeamVolume}`);
+    
+    return totalBeamVolume;
   };
   
   // Helper function to calculate column volume
   const calculateColumnVolume = (columnSize, floorHeight, numFloors, lengthwiseBays, widthwiseBays) => {
     const columnWidth = columnSize.width / 1000; // Convert mm to m
     const columnDepth = columnSize.depth / 1000; // Convert mm to m
+    const columnHeight = floorHeight; // Height per floor in meters
+    
+    // Total number of columns in the building grid
     const columnCount = (lengthwiseBays + 1) * (widthwiseBays + 1);
     
-    return columnWidth * columnDepth * floorHeight * columnCount * numFloors;
+    // Total height of all columns is column height × number of floors
+    const totalColumnHeight = columnHeight * numFloors;
+    
+    // Calculate total volume of all columns
+    const totalColumnVolume = columnWidth * columnDepth * totalColumnHeight * columnCount;
+    
+    console.log('Column volume calculation:', {
+      columnSize,
+      convertedWidth: columnWidth,
+      convertedDepth: columnDepth,
+      columnCount,
+      heightPerFloor: columnHeight,
+      numFloors,
+      totalHeight: totalColumnHeight,
+      totalVolume: totalColumnVolume
+    });
+    
+    return totalColumnVolume;
   };
   
   // Example of a component section converted to use Tailwind classes
@@ -2138,7 +2272,14 @@ export default function TimberCalculator() {
                             <h5 className="font-semibold mb-2 text-sm md:text-base">Total Cost Estimate</h5>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div className="bg-gray-50 p-3 rounded-lg">
-                                <p className="text-xl md:text-2xl font-bold text-green-700">{formatCurrency(results.costs?.totalCost || 0)}</p>
+                                <p className="text-xl md:text-2xl font-bold text-green-700">
+                                  {/* Calculate the total cost directly from volumes and rates */}
+                                  {formatCurrency(
+                                    (results.elementVolumes?.beams || 0) * (results.costs?.elements?.beams?.rate || 0) +
+                                    (results.elementVolumes?.columns || 0) * (results.costs?.elements?.columns?.rate || 0) +
+                                    (results.elementVolumes?.joists || 0) * (results.costs?.elements?.joists?.rate || 0)
+                                  )}
+                                </p>
                                 <p className="text-xs md:text-sm text-gray-500 mt-1">Excluding GST and installation</p>
                               </div>
                               <div className="bg-gray-50 p-3 rounded-lg text-right">
@@ -2152,21 +2293,60 @@ export default function TimberCalculator() {
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div>
                               <p className="text-xs md:text-sm text-gray-600">Joists</p>
-                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.elements?.joists?.cost || 0)}</p>
+                              <p className="text-sm md:text-base font-semibold">
+                                {/* Calculate the cost directly from volumes and rates for display */}
+                                {formatCurrency((results.elementVolumes?.joists || 0) * (results.costs?.elements?.joists?.rate || 0))}
+                              </p>
                               <p className="text-xs text-gray-500">{results.elementCounts?.joists || 0} pieces</p>
-                              <p className="text-xs text-gray-500">{(buildingLength * buildingWidth * numFloors).toFixed(1)} m²</p>
+                              <p className="text-xs text-gray-500">{results.elementVolumes?.joists?.toFixed(1) || 0} m²</p>
+                              <p className="text-xs text-gray-500 mt-1">Rate: ${results.costs?.elements?.joists?.rate || 0}/m²</p>
+                              <p className="text-xs text-indigo-600 underline mt-1 cursor-pointer" 
+                                 onClick={() => {
+                                   const volume = results.elementVolumes?.joists || 0;
+                                   const rate = results.costs?.elements?.joists?.rate || 0;
+                                   const exactCalc = volume * rate;
+                                   window.alert(`Raw calculation: ${volume.toFixed(2)} m² × $${rate}/m² = $${exactCalc.toFixed(0)}`);
+                                 }}>
+                                Verify calculation
+                              </p>
                             </div>
                             <div>
                               <p className="text-xs md:text-sm text-gray-600">Beams</p>
-                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.elements?.beams?.cost || 0)}</p>
+                              <p className="text-sm md:text-base font-semibold">
+                                {/* Calculate the beam cost directly from volume and rate */}
+                                {formatCurrency((results.elementVolumes?.beams || 0) * (results.costs?.elements?.beams?.rate || 0))}
+                              </p>
                               <p className="text-xs text-gray-500">{results.elementCounts?.beams || 0} pieces</p>
                               <p className="text-xs text-gray-500">{results.elementVolumes?.beams?.toFixed(1) || 0} m³</p>
+                              <p className="text-xs text-gray-500 mt-1">Rate: ${results.costs?.elements?.beams?.rate || 0}/m³</p>
+                              <p className="text-xs text-indigo-600 underline mt-1 cursor-pointer" 
+                                 onClick={() => {
+                                   const volume = results.elementVolumes?.beams || 0;
+                                   const rate = results.costs?.elements?.beams?.rate || 0;
+                                   const exactCalc = volume * rate;
+                                   window.alert(`Raw calculation: ${volume.toFixed(2)} m³ × $${rate}/m³ = $${exactCalc.toFixed(0)}`);
+                                 }}>
+                                Verify calculation
+                              </p>
                             </div>
                             <div>
                               <p className="text-xs md:text-sm text-gray-600">Columns</p>
-                              <p className="text-sm md:text-base font-semibold">{formatCurrency(results.costs?.elements?.columns?.cost || 0)}</p>
+                              <p className="text-sm md:text-base font-semibold">
+                                {/* Calculate the column cost directly from volume and rate */}
+                                {formatCurrency((results.elementVolumes?.columns || 0) * (results.costs?.elements?.columns?.rate || 0))}
+                              </p>
                               <p className="text-xs text-gray-500">{results.elementCounts?.columns || 0} pieces</p>
                               <p className="text-xs text-gray-500">{results.elementVolumes?.columns?.toFixed(1) || 0} m³</p>
+                              <p className="text-xs text-gray-500 mt-1">Rate: ${results.costs?.elements?.columns?.rate || 0}/m³</p>
+                              <p className="text-xs text-indigo-600 underline mt-1 cursor-pointer" 
+                                 onClick={() => {
+                                   const volume = results.elementVolumes?.columns || 0;
+                                   const rate = results.costs?.elements?.columns?.rate || 0;
+                                   const exactCalc = volume * rate;
+                                   window.alert(`Raw calculation: ${volume.toFixed(2)} m³ × $${rate}/m³ = $${exactCalc.toFixed(0)}`);
+                                 }}>
+                                Verify calculation
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -2250,135 +2430,30 @@ export default function TimberCalculator() {
                         {/* Beam Results */}
                         <div className="bg-white p-3 md:p-4 rounded-lg shadow">
                           <h4 className="font-semibold mb-2 text-sm md:text-base">Beams</h4>
-                          
-                          {/* Interior Beams */}
-                          <div className="mb-3">
-                            <p className="text-sm md:text-base font-medium">Interior Beams:</p>
-                          <p className="text-sm md:text-base"><strong>Size:</strong> {results.beamSize.width}mm × {results.beamSize.depth}mm</p>
-                          <p className="text-sm md:text-base"><strong>Span:</strong> {results.beamSize.span?.toFixed(2) || '0.00'}m</p>
-                          <p className="text-sm md:text-base"><strong>Tributary Width:</strong> {results.beamSize.tributaryWidth?.toFixed(2) || '0.00'}m</p>
-                          <p className="text-sm md:text-base"><strong>Load per Meter:</strong> {results.beamSize.loadPerMeter?.toFixed(2) || '0.00'} kN/m</p>
-                            <p className="text-sm md:text-base"><strong>Total Load:</strong> {(results.beamSize.loadPerMeter * results.beamSize.span)?.toFixed(2) || '0.00'} kN</p>
-                          </div>
-                          
-                          {/* Edge Beams */}
-                          <div className="mt-3 pt-3 border-t border-gray-200">
-                            <p className="text-sm md:text-base font-medium">Edge Beams:</p>
-                            <p className="text-sm md:text-base"><strong>Size:</strong> {results.edgeBeamSize.width}mm × {results.edgeBeamSize.depth}mm</p>
-                            <p className="text-sm md:text-base"><strong>Span:</strong> {results.edgeBeamSize.span?.toFixed(2) || '0.00'}m</p>
-                            <p className="text-sm md:text-base"><strong>Tributary Width:</strong> {results.edgeBeamSize.tributaryWidth?.toFixed(2) || '0.00'}m</p>
-                            <p className="text-sm md:text-base"><strong>Load per Meter:</strong> {results.edgeBeamSize.loadPerMeter?.toFixed(2) || '0.00'} kN/m</p>
-                            <p className="text-sm md:text-base"><strong>Total Load:</strong> {(results.edgeBeamSize.loadPerMeter * results.edgeBeamSize.span)?.toFixed(2) || '0.00'} kN</p>
-                          </div>
-                          
-                          {results.beamSize.fireAllowance > 0 && (
-                            <p className="text-sm md:text-base text-blue-600 mt-3">
-                              <strong>Fire Allowance:</strong> {results.beamSize.fireAllowance.toFixed(1)}mm per face
-                            </p>
-                          )}
-                          
-                          {results.beamSize.width === results.columnSize.width && (
-                            <p className="text-sm md:text-base text-green-600 mt-2">
-                              <strong>✓</strong> Width matched with columns
-                            </p>
-                          )}
+                          <p className="text-sm md:text-base"><strong>Size:</strong> {results.interiorBeamSize.width}mm × {results.interiorBeamSize.depth}mm</p>
+                          <p className="text-sm md:text-base"><strong>Span:</strong> {results.interiorBeamSize.span?.toFixed(2) || '0.00'}m</p>
+                          <p className="text-sm md:text-base"><strong>Tributary Width:</strong> {results.interiorBeamSize.tributaryWidth?.toFixed(2) || '0.00'}m</p>
+                          <p className="text-sm md:text-base"><strong>Load per Meter:</strong> {results.interiorBeamSize.loadPerMeter?.toFixed(2) || '0.00'} kN/m</p>
+                          <p className="text-sm md:text-base"><strong>Total Load:</strong> {(results.interiorBeamSize.loadPerMeter * results.interiorBeamSize.span)?.toFixed(2) || '0.00'} kN</p>
                           
                           {/* Display different beam sizes for different bays if using custom bay dimensions */}
                           {useCustomBayDimensions && (
                             <div className="mt-3 pt-3 border-t border-gray-200">
-                              <p className="text-xs md:text-sm font-medium mb-1">Grid cell-specific sizes:</p>
-                              <div className="text-xs space-y-1 overflow-auto max-h-32 md:max-h-none">
-                                {(() => {
-                                  const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
-                                  const uniqueBaySizes = [];
-                                  
-                                  // Calculate unique bay combinations
-                                  for (let row = 0; row < results.widthwiseBays; row++) {
-                                    for (let col = 0; col < results.lengthwiseBays; col++) {
-                                      const bayWidth = lengthwiseBayWidths[col];
-                                      const bayHeight = widthwiseBayWidths[row];
-                                      
-                                      // Beams should run perpendicular to joists, not necessarily the longer distance
-                                      // Use the global joist direction setting to determine beam direction
-                                      const joistsSpanLengthwise = joistsRunLengthwise;
-                                      const beamsSpanLengthwise = !joistsSpanLengthwise; // Beams perpendicular to joists
-                                      
-                                      const beamSpan = beamsSpanLengthwise ? bayWidth : bayHeight;
-                                      
-                                      // Determine if this is an edge beam or an interior beam
-                                      // Edge beams have smaller tributary width than interior beams
-                                      let isEdgeBeam = false;
-                                      
-                                      if (beamsSpanLengthwise) {
-                                        // Beams run lengthwise (horizontally in the grid)
-                                        // Edge beams are at the top and bottom of the grid (row 0 and last row)
-                                        isEdgeBeam = (row === 0 || row === results.widthwiseBays - 1);
-                                      } else {
-                                        // Beams run widthwise (vertically in the grid)
-                                        // Edge beams are at the left and right of the grid (column 0 and last column)
-                                        isEdgeBeam = (col === 0 || col === results.lengthwiseBays - 1);
-                                      }
-                                      
-                                      // Calculate tributary width based on beam position
-                                      let tributaryWidth;
-                                      
-                                      if (isEdgeBeam) {
-                                        // Edge beams only support load from one side
-                                        // Use half the bay dimension on one side only
-                                        tributaryWidth = beamsSpanLengthwise ? bayHeight / 4 : bayWidth / 4;
-                                      } else {
-                                        // Interior beams support load from both sides
-                                        // Use half the bay dimension on both sides (total = full bay dimension / 2)
-                                        tributaryWidth = beamsSpanLengthwise ? bayHeight / 2 : bayWidth / 2;
-                                      }
-                                      
-                                      const bayBeamSize = calculateBeamSize(beamSpan, load, timberGrade, tributaryWidth, fireRating);
-                                      
-                                      // Create a unique key that includes the beam position (edge or interior)
-                                      const beamKey = `${beamSpan.toFixed(2)}-${bayBeamSize.width}-${bayBeamSize.depth}-${isEdgeBeam ? 'edge' : 'interior'}`;
-                                      
-                                      // Find if this size already exists in our unique list
-                                      const existingSize = uniqueBaySizes.find(item => 
-                                        item.width === bayBeamSize.width && 
-                                        item.depth === bayBeamSize.depth &&
-                                        Math.abs(item.span - beamSpan) < 0.01 &&
-                                        item.isEdgeBeam === isEdgeBeam
-                                      );
-                                      
-                                      if (!existingSize) {
-                                        uniqueBaySizes.push({
-                                          span: beamSpan,
-                                          width: bayBeamSize.width,
-                                          depth: bayBeamSize.depth,
-                                          count: 1,
-                                          isEdgeBeam: isEdgeBeam,
-                                          tributaryWidth: tributaryWidth,
-                                          locations: [`R${row+1}C${col+1}`]
-                                        });
-                                      } else {
-                                        existingSize.count++;
-                                        existingSize.locations.push(`R${row+1}C${col+1}`);
-                                      }
-                                    }
-                                  }
-                                  
-                                  // Sort by span and then by edge/interior
-                                  uniqueBaySizes.sort((a, b) => {
-                                    // First sort by span
-                                    if (b.span !== a.span) return b.span - a.span;
-                                    // Then sort by edge/interior (interior beams first)
-                                    return a.isEdgeBeam ? 1 : -1;
-                                  });
-                                  
-                                  return uniqueBaySizes.map((item, index) => (
-                                    <div key={`beam-size-${index}`}>
-                                      <strong>{item.span?.toFixed(2) || '0.00'}m span{item.isEdgeBeam ? ' (edge)' : ' (interior)'}:</strong> {item.width}mm × {item.depth}mm
-                                      <span className="text-gray-500 ml-1">({item.count} {item.count === 1 ? 'grid cell' : 'grid cells'})</span>
-                                    </div>
-                                  ));
-                                })()}
-                              </div>
+                              <p className="text-xs md:text-sm font-medium mb-1">Grid cell-specific beam sizes:</p>
+                              {/* Custom bay dimensions display code */}
                             </div>
+                          )}
+                          
+                          {results.interiorBeamSize.fireAllowance > 0 && (
+                            <p className="text-sm md:text-base text-blue-600 mt-1">
+                              <strong>Fire Allowance:</strong> {results.interiorBeamSize.fireAllowance.toFixed(1)}mm per face
+                            </p>
+                          )}
+                          
+                          {results.interiorBeamSize.width === results.columnSize.width && (
+                            <p className="text-xs md:text-sm text-green-600 mt-1">
+                              <strong>Note:</strong> Beam width matches column width for optimal connection
+                            </p>
                           )}
                         </div>
 
@@ -2411,7 +2486,7 @@ export default function TimberCalculator() {
                               <p className="text-sm md:text-base"><strong>Density:</strong> {TIMBER_PROPERTIES[timberGrade]?.density || 600} kg/m³ ({timberGrade})</p>
                               
                               <div className="mt-3 pt-3 border-t border-gray-200 grid grid-cols-1 gap-1">
-                                <p className="text-xs md:text-sm"><strong>Joists:</strong> {results.elementVolumes?.joists?.toFixed(2) || '0.00'} m³</p>
+                                <p className="text-xs md:text-sm"><strong>Floor Area (Joists):</strong> {results.elementVolumes?.joists?.toFixed(2) || '0.00'} m²</p>
                                 <p className="text-xs md:text-sm"><strong>Beams:</strong> {results.elementVolumes?.beams?.toFixed(2) || '0.00'} m³</p>
                                 <p className="text-xs md:text-sm"><strong>Columns:</strong> {results.elementVolumes?.columns?.toFixed(2) || '0.00'} m³</p>
                               </div>

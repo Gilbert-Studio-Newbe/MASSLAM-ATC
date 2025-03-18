@@ -20,7 +20,7 @@ const DEFAULT_JOIST_RATES = {
 };
 
 // Storage keys for local storage
-const STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   BEAM_RATE: 'timber_beam_rate',
   COLUMN_RATE: 'timber_column_rate',
   JOIST_RATES: 'timber_joist_rates'
@@ -40,9 +40,21 @@ export function loadRates() {
     const storedColumnRate = localStorage.getItem(STORAGE_KEYS.COLUMN_RATE);
     const storedJoistRates = localStorage.getItem(STORAGE_KEYS.JOIST_RATES);
 
+    console.log('Storage values loaded:', {
+      storedBeamRate,
+      storedColumnRate,
+      storedJoistRates: storedJoistRates ? 'Present (JSON string)' : null
+    });
+
     if (storedBeamRate) beamRate = parseFloat(storedBeamRate);
     if (storedColumnRate) columnRate = parseFloat(storedColumnRate);
     if (storedJoistRates) joistRates = JSON.parse(storedJoistRates);
+    
+    console.log('Parsed rates:', {
+      beamRate,
+      columnRate,
+      joistRatesCount: Object.keys(joistRates).length
+    });
   } catch (error) {
     console.error('Error loading rates from local storage:', error);
   }
@@ -59,9 +71,39 @@ export function loadRates() {
  */
 export function saveRates(beamRate, columnRate, joistRates) {
   try {
-    localStorage.setItem(STORAGE_KEYS.BEAM_RATE, beamRate.toString());
-    localStorage.setItem(STORAGE_KEYS.COLUMN_RATE, columnRate.toString());
+    console.log('Saving rates to localStorage:', {
+      beamRate,
+      columnRate,
+      joistRatesCount: Object.keys(joistRates).length
+    });
+    
+    // Ensure values are properly formatted
+    const formattedBeamRate = parseFloat(beamRate);
+    const formattedColumnRate = parseFloat(columnRate);
+    
+    // Validate the values
+    if (isNaN(formattedBeamRate) || formattedBeamRate <= 0) {
+      console.error('Invalid beam rate:', beamRate);
+      return false;
+    }
+    
+    if (isNaN(formattedColumnRate) || formattedColumnRate <= 0) {
+      console.error('Invalid column rate:', columnRate);
+      return false;
+    }
+
+    // Save to local storage
+    localStorage.setItem(STORAGE_KEYS.BEAM_RATE, formattedBeamRate.toString());
+    localStorage.setItem(STORAGE_KEYS.COLUMN_RATE, formattedColumnRate.toString());
     localStorage.setItem(STORAGE_KEYS.JOIST_RATES, JSON.stringify(joistRates));
+    
+    // Verify the saved values
+    console.log('Saved values (verification):', {
+      savedBeamRate: localStorage.getItem(STORAGE_KEYS.BEAM_RATE),
+      savedColumnRate: localStorage.getItem(STORAGE_KEYS.COLUMN_RATE),
+      savedJoistRates: localStorage.getItem(STORAGE_KEYS.JOIST_RATES) ? 'Present (JSON string)' : null
+    });
+    
     return true;
   } catch (error) {
     console.error('Error saving rates to local storage:', error);
@@ -70,58 +112,59 @@ export function saveRates(beamRate, columnRate, joistRates) {
 }
 
 /**
- * Calculate the cost of timber elements
- * @param {Object} timberResult - Result from calculateTimberWeight
- * @param {Object} joistSize - Joist size object with width and depth
- * @param {number} buildingLength - Building length in meters
- * @param {number} buildingWidth - Building width in meters
- * @param {number} numFloors - Number of floors
- * @returns {Object} - Cost breakdown and total
+ * Simple function to calculate cost based on volumes and rates
+ * @param {Object} volumes - Object containing volumes of different timber elements in m³ or m²
+ * @returns {Object} - Cost breakdown and total 
  */
-export function calculateCost(timberResult, joistSize, buildingLength, buildingWidth, numFloors) {
-  // Load rates
-  const { beamRate, columnRate, joistRates } = loadRates();
+export function calculateCost(volumes) {
+  // Simply get the rates from localStorage or use defaults
+  const beamRate = parseFloat(localStorage.getItem(STORAGE_KEYS.BEAM_RATE)) || DEFAULT_BEAM_RATE;
+  const columnRate = parseFloat(localStorage.getItem(STORAGE_KEYS.COLUMN_RATE)) || DEFAULT_COLUMN_RATE;
+  const joistRate = parseFloat(localStorage.getItem('joistRate')) || DEFAULT_JOIST_RATE;
   
-  // Calculate floor area
-  const floorArea = buildingLength * buildingWidth * numFloors;
+  console.log('Calculate Cost - Input volumes:', volumes);
+  console.log('Calculate Cost - Using rates:', { beamRate, columnRate, joistRate });
   
-  // Get joist size key
-  const joistSizeKey = `${joistSize.width}x${joistSize.depth}`;
+  // Get volumes from the input (ensure positive numbers)
+  const beamVolume = Math.max(0, volumes.beamVolume || 0);
+  const columnVolume = Math.max(0, volumes.columnVolume || 0);
+  const joistArea = Math.max(0, volumes.joistArea || 0);
   
-  // Get joist rate (default to DEFAULT_JOIST_RATE if not found)
-  const joistRate = joistRates[joistSizeKey] || DEFAULT_JOIST_RATE;
-  
-  // Calculate costs
-  const beamCost = timberResult.elements.beams.volume * beamRate;
-  const columnCost = timberResult.elements.columns.volume * columnRate;
-  const joistCost = floorArea * joistRate;
+  // Simple direct calculations
+  const beamCost = beamVolume * beamRate;
+  const columnCost = columnVolume * columnRate;
+  const joistCost = joistArea * joistRate;
   
   // Calculate total cost
   const totalCost = beamCost + columnCost + joistCost;
   
+  console.log('Calculate Cost - Results:', {
+    beamCalculation: `${beamVolume} m³ × $${beamRate}/m³ = $${beamCost}`,
+    columnCalculation: `${columnVolume} m³ × $${columnRate}/m³ = $${columnCost}`,
+    joistCalculation: `${joistArea} m² × $${joistRate}/m² = $${joistCost}`,
+    totalCost
+  });
+  
+  // Return a simple object with the cost breakdown
   return {
+    total: totalCost,
     elements: {
-      joists: {
-        count: timberResult.elements.joists.count,
-        volume: timberResult.elements.joists.volume,
-        area: floorArea,
-        rate: joistRate,
-        cost: joistCost
-      },
       beams: {
-        count: timberResult.elements.beams.count,
-        volume: timberResult.elements.beams.volume,
+        cost: beamCost,
         rate: beamRate,
-        cost: beamCost
+        volume: beamVolume
       },
       columns: {
-        count: timberResult.elements.columns.count,
-        volume: timberResult.elements.columns.volume,
+        cost: columnCost,
         rate: columnRate,
-        cost: columnCost
+        volume: columnVolume
+      },
+      joists: {
+        cost: joistCost,
+        rate: joistRate,
+        volume: joistArea
       }
-    },
-    totalCost
+    }
   };
 }
 
@@ -131,6 +174,13 @@ export function calculateCost(timberResult, joistSize, buildingLength, buildingW
  * @returns {string} - Formatted currency string
  */
 export function formatCurrency(amount) {
+  // Ensure we're working with a number
+  if (typeof amount !== 'number') {
+    console.error(`formatCurrency received non-number value: ${amount}, type: ${typeof amount}`);
+    amount = Number(amount) || 0;
+  }
+  
+  // Format without rounding
   return new Intl.NumberFormat('en-AU', {
     style: 'currency',
     currency: 'AUD',
