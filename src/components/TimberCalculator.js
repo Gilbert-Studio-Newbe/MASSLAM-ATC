@@ -2528,16 +2528,16 @@ export default function TimberCalculator() {
                     onClick={() => setShowSaveModal(true)}
                   >
                     Save Project
-              </button>
-            </div>
-          </div>
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="apple-card p-6 text-center">
               <h2 className="text-xl font-semibold mb-4">Results</h2>
               <p style={{ color: 'var(--apple-text-secondary)' }}>Configure your timber structure parameters to see calculation results.</p>
-          </div>
-        )}
+            </div>
+          )}
         </div>
       </div>
       
@@ -2594,14 +2594,6 @@ export default function TimberCalculator() {
         </div>
       )}
       
-      {/* Calculated Bay Sizes */}
-      <div className="mb-6 md:mb-8 p-4 md:p-6 rounded-lg" style={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
-        <h4 className="text-sm md:text-md font-medium mb-3 md:mb-4">Calculated Bay Sizes</h4>
-        <div className="grid grid-cols-1 gap-2 md:gap-3">
-          <p className="text-sm"><strong>Bay Size (Length):</strong> {(buildingLength / lengthwiseBays).toFixed(2)} m</p>
-          <p className="text-sm"><strong>Bay Size (Width):</strong> {(buildingWidth / widthwiseBays).toFixed(2)} m</p>
-        </div>
-      </div>
     </div>
   );
 }
