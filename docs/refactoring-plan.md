@@ -66,9 +66,12 @@ src/
 
 ### 4. Refactoring Phases
 
-#### Phase 1: Extract Utilities
-- Move calculation functions to utility files
-- Create helper functions for repeated tasks
+#### Phase 1: Extract Utilities ← [CURRENT PHASE]
+- [COMPLETED] Create utils/calculations directory
+- [COMPLETED] Move beam calculation functions to utils/calculations/beamCalculations.js
+- [COMPLETED] Move column calculation functions to utils/calculations/columnCalculations.js 
+- [COMPLETED] Move joist calculation functions to utils/calculations/joistCalculations.js
+- [PENDING] Create helper functions for repeated tasks
 
 #### Phase 2: Componentize UI
 - Extract UI components from TimberCalculator.js
@@ -107,8 +110,7 @@ src/
 - Address build configuration problems
 
 ## Dependency Management
-- Audit and resolve package dependencies
-- Fix the issue with missing 'didyoumean' dependency
+- ✅ Fixed the issue with missing 'didyoumean' dependency
 - Address webpack caching problems
 
 ## Testing Strategy
