@@ -66,6 +66,16 @@ export function clearBuildingData() {
 export function prepareVisualizationData(results) {
   if (!results) return null;
 
+  // Determine which beam size property to use, with appropriate fallbacks
+  const beamSize = results.interiorBeamSize || results.beamSize || { width: 165, depth: 330 };
+  const edgeBeamSize = results.edgeBeamSize || beamSize;
+
+  console.log('Preparing visualization data with beam properties:', { 
+    interiorBeamSize: results.interiorBeamSize, 
+    beamSize: results.beamSize, 
+    resolvedValue: beamSize 
+  });
+
   return {
     buildingLength: results.buildingLength,
     buildingWidth: results.buildingWidth,
@@ -73,10 +83,12 @@ export function prepareVisualizationData(results) {
     floorHeight: results.floorHeight || 3.2,
     lengthwiseBays: results.lengthwiseBays,
     widthwiseBays: results.widthwiseBays,
-    joistSize: results.joistSize,
-    beamSize: results.interiorBeamSize,
-    edgeBeamSize: results.edgeBeamSize || results.interiorBeamSize,
-    columnSize: results.columnSize,
+    joistSize: results.joistSize || { width: 120, depth: 200 },
+    // Include both naming conventions for maximum compatibility
+    interiorBeamSize: beamSize,
+    beamSize: beamSize, 
+    edgeBeamSize: edgeBeamSize,
+    columnSize: results.columnSize || { width: 250, depth: 250, height: 3.2 },
     joistsRunLengthwise: results.joistsRunLengthwise || true,
     fireRating: results.fireRating || 'none',
     timberGrade: results.timberGrade || 'ML38'

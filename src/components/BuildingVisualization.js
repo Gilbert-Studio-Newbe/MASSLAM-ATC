@@ -15,7 +15,7 @@ const mockData = {
   lengthwiseBays: 3,
   widthwiseBays: 2,
   joistSize: { width: 120, depth: 200 },
-  beamSize: { width: 165, depth: 330 },
+  interiorBeamSize: { width: 165, depth: 330 },
   edgeBeamSize: { width: 165, depth: 330 },
   columnSize: { width: 250, depth: 250, height: 3.2 },
   fireRating: '60/60/60',
@@ -861,29 +861,33 @@ const TexturedBuilding = ({ data, renderMode }) => {
   
   // Use the data from props
   const {
-    buildingLength,
-    buildingWidth,
-    numFloors,
-    floorHeight,
-    lengthwiseBays,
-    widthwiseBays,
-    joistSize,
-    beamSize,
-    edgeBeamSize,
-    columnSize,
-    joistsRunLengthwise,
+    buildingLength = 18,
+    buildingWidth = 14,
+    numFloors = 6,
+    floorHeight = 3.2,
+    lengthwiseBays = 3,
+    widthwiseBays = 2,
+    joistSize = { width: 120, depth: 200 },
+    interiorBeamSize,
+    beamSize, // Support both naming conventions
+    edgeBeamSize = { width: 165, depth: 330 },
+    columnSize = { width: 250, depth: 250, height: 3.2 },
+    joistsRunLengthwise = true,
     getBeamPosition
-  } = data;
+  } = data || {};
+
+  // Handle both beamSize and interiorBeamSize naming
+  const actualBeamSize = interiorBeamSize || beamSize || { width: 165, depth: 330 };
 
   // Convert millimeters to meters for member sizes
-  const joistWidth = joistSize.width / 1000;
-  const joistDepth = joistSize.depth / 1000;
-  const beamWidth = beamSize.width / 1000;
-  const beamDepth = beamSize.depth / 1000;
-  const edgeBeamWidth = edgeBeamSize.width / 1000;
-  const edgeBeamDepth = edgeBeamSize.depth / 1000;
-  const columnWidth = columnSize.width / 1000;
-  const columnDepth = columnSize.depth / 1000;
+  const joistWidth = (joistSize?.width || 120) / 1000;
+  const joistDepth = (joistSize?.depth || 200) / 1000;
+  const beamWidth = (actualBeamSize?.width || 165) / 1000;
+  const beamDepth = (actualBeamSize?.depth || 330) / 1000;
+  const edgeBeamWidth = (edgeBeamSize?.width || 165) / 1000;
+  const edgeBeamDepth = (edgeBeamSize?.depth || 330) / 1000;
+  const columnWidth = (columnSize?.width || 250) / 1000;
+  const columnDepth = (columnSize?.depth || 250) / 1000;
 
   // Calculate bay dimensions
   const bayLength = buildingLength / lengthwiseBays;
@@ -1103,7 +1107,29 @@ export default function BuildingVisualization() {
         
         if (data) {
           console.log('Loaded building data from localStorage:', data);
-          setBuildingData(data);
+          
+          // Normalize the data to handle both beamSize and interiorBeamSize properties
+          const normalizedData = { ...data };
+          
+          // If interiorBeamSize is missing but beamSize exists, create interiorBeamSize from beamSize
+          if (!normalizedData.interiorBeamSize && normalizedData.beamSize) {
+            normalizedData.interiorBeamSize = normalizedData.beamSize;
+            console.log('Using beamSize as interiorBeamSize for compatibility');
+          }
+          
+          // If beamSize is missing but interiorBeamSize exists, create beamSize from interiorBeamSize
+          if (!normalizedData.beamSize && normalizedData.interiorBeamSize) {
+            normalizedData.beamSize = normalizedData.interiorBeamSize;
+            console.log('Using interiorBeamSize as beamSize for compatibility');
+          }
+          
+          // Ensure all required properties are present with defaults
+          normalizedData.joistSize = normalizedData.joistSize || { width: 120, depth: 200 };
+          normalizedData.interiorBeamSize = normalizedData.interiorBeamSize || { width: 165, depth: 330 };
+          normalizedData.edgeBeamSize = normalizedData.edgeBeamSize || { width: 165, depth: 330 };
+          normalizedData.columnSize = normalizedData.columnSize || { width: 250, depth: 250, height: 3.2 };
+          
+          setBuildingData(normalizedData);
         } else {
           console.log('No data in localStorage, using mock data');
           // Use mock data as fallback
@@ -1193,8 +1219,36 @@ export default function BuildingVisualization() {
 
   // Update the Building component to use the new getBeamPosition function
   const BuildingWithJoistPosition = (props) => {
+    // Ensure we have valid data
+    if (!props.data) {
+      console.error('BuildingWithJoistPosition: No data provided');
+      return null;
+    }
+    
+    // Create a defensive copy of the data
+    const safeData = { ...props.data };
+    
+    // Ensure both beamSize and interiorBeamSize are available for maximum compatibility
+    if (!safeData.interiorBeamSize && safeData.beamSize) {
+      safeData.interiorBeamSize = safeData.beamSize;
+    }
+    
+    if (!safeData.beamSize && safeData.interiorBeamSize) {
+      safeData.beamSize = safeData.interiorBeamSize;
+    }
+    
+    // Make sure columnSize exists and has a height property
+    if (!safeData.columnSize) {
+      safeData.columnSize = { width: 250, depth: 250, height: safeData.floorHeight || 3.2 };
+    } else if (!safeData.columnSize.height) {
+      // If columnSize exists but height is missing, set it to floorHeight
+      safeData.columnSize.height = safeData.floorHeight || 3.2;
+      console.log('Set missing columnSize.height to floorHeight:', safeData.columnSize.height);
+    }
+    
+    // Add the getBeamPosition function
     const updatedData = {
-      ...props.data,
+      ...safeData,
       getBeamPosition: getBeamPosition
     };
     
