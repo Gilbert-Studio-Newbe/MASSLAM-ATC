@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, PerspectiveCamera, useTexture } from '@react-three/drei';
+import { OrbitControls, Environment, PerspectiveCamera, useTexture, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { getBuildingData } from '../utils/buildingDataStore';
 
@@ -24,10 +24,10 @@ const mockData = {
 
 // Colors for different structural members
 const COLORS = {
-  COLUMN: new THREE.Color('#8B4513'),  // SaddleBrown
-  BEAM: new THREE.Color('#A0522D'),    // Sienna
-  EDGE_BEAM: new THREE.Color('#CD853F'), // Peru
-  JOIST: new THREE.Color('#DEB887'),   // BurlyWood
+  COLUMN: new THREE.Color('#8B4513').multiplyScalar(1.2),  // Intensified SaddleBrown
+  BEAM: new THREE.Color('#A0522D').multiplyScalar(1.2),    // Intensified Sienna
+  EDGE_BEAM: new THREE.Color('#CD853F').multiplyScalar(1.2), // Intensified Peru
+  JOIST: new THREE.Color('#DEB887').multiplyScalar(1.2),   // Intensified BurlyWood
   FLOOR: new THREE.Color('#F5F5DC').multiplyScalar(0.9),  // Beige, slightly darkened
   GRID: new THREE.Color('#333333'),
   GRASS: new THREE.Color('#526D29')  // Darker green for grass, matching the image
@@ -125,6 +125,191 @@ const createGrassTexture = () => {
   return texture;
 };
 
+// Tree Model Component
+const TreeModel = ({ position, scale = 1, rotation = [0, 0, 0] }) => {
+  const [modelLoaded, setModelLoaded] = useState(false);
+  const [modelError, setModelError] = useState(false);
+  const [treeModel, setTreeModel] = useState(null);
+  const [modelScale, setModelScale] = useState(scale);
+  
+  // Create a simple fallback tree if the model fails to load
+  const createFallbackTree = useCallback(() => {
+    // Create a more detailed tree with better proportions for small scale
+    const trunkGeometry = new THREE.CylinderGeometry(0.4, 0.6, 8, 8);
+    const trunkMaterial = new THREE.MeshStandardMaterial({ 
+      color: '#8B4513', 
+      roughness: 0.9 
+    });
+    const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+    trunk.position.y = 4;
+    
+    // Create multiple foliage cones for a more realistic look
+    const foliageGroup = new THREE.Group();
+    
+    // Bottom foliage (widest)
+    const foliageBottom = new THREE.Mesh(
+      new THREE.ConeGeometry(4, 5, 8),
+      new THREE.MeshStandardMaterial({ color: '#228B22', roughness: 0.8 })
+    );
+    foliageBottom.position.y = 3;
+    
+    // Middle foliage
+    const foliageMiddle = new THREE.Mesh(
+      new THREE.ConeGeometry(3, 4, 8),
+      new THREE.MeshStandardMaterial({ color: '#228B22', roughness: 0.8 })
+    );
+    foliageMiddle.position.y = 6;
+    
+    // Top foliage (smallest)
+    const foliageTop = new THREE.Mesh(
+      new THREE.ConeGeometry(2, 3.5, 8),
+      new THREE.MeshStandardMaterial({ color: '#1a661a', roughness: 0.8 })
+    );
+    foliageTop.position.y = 9;
+    
+    foliageGroup.add(foliageBottom);
+    foliageGroup.add(foliageMiddle);
+    foliageGroup.add(foliageTop);
+    
+    const tree = new THREE.Group();
+    tree.add(trunk);
+    tree.add(foliageGroup);
+    
+    return tree;
+  }, []);
+  
+  // Load the tree model from public directory
+  const { scene: loadedModel, error } = useGLTF('/models/tree.glb', false);
+  
+  // Set up model or fallback
+  useEffect(() => {
+    if (error) {
+      console.warn('Error loading tree model:', error);
+      setModelError(true);
+      setTreeModel(createFallbackTree());
+      return;
+    }
+    
+    if (loadedModel) {
+      console.log('Tree model loaded successfully', loadedModel);
+      
+      // Calculate model size to determine appropriate scale
+      const box = new THREE.Box3().setFromObject(loadedModel);
+      const size = box.getSize(new THREE.Vector3());
+      const maxDimension = Math.max(size.x, size.y, size.z);
+      
+      console.log('Tree model dimensions:', size);
+      
+      // Automatically adjust scale based on model size
+      // Reducing from 8m to 4m (50% smaller)
+      const targetHeight = 4; // meters (reduced from 8m back to 4m)
+      let calculatedScale = targetHeight / maxDimension;
+      
+      // Apply the scaling to the incoming scale parameter
+      setModelScale(scale * calculatedScale);
+      
+      console.log('Calculated tree scale:', calculatedScale, 'Final scale:', scale * calculatedScale);
+      
+      // Center the model at its base
+      const center = box.getCenter(new THREE.Vector3());
+      loadedModel.position.x = -center.x;
+      loadedModel.position.z = -center.z;
+      
+      // Position the bottom of the model at y=0
+      loadedModel.position.y = -box.min.y;
+      
+      // Apply shadows to all meshes in the model
+      loadedModel.traverse((node) => {
+        if (node.isMesh) {
+          node.castShadow = true;
+          node.receiveShadow = true;
+          
+          // Ensure materials are properly configured
+          if (node.material) {
+            node.material.roughness = 0.8;
+            node.material.metalness = 0.2;
+          }
+        }
+      });
+      
+      // Check if model has any children
+      if (loadedModel.children && loadedModel.children.length === 0) {
+        console.warn('Tree model has no children, using fallback tree');
+        setTreeModel(createFallbackTree());
+      } else {
+        setModelLoaded(true);
+        setTreeModel(loadedModel);
+      }
+    } else {
+      console.warn('Tree model not loaded, using fallback tree');
+      setTreeModel(createFallbackTree());
+    }
+  }, [loadedModel, error, createFallbackTree, scale]);
+  
+  // Clone the tree to avoid sharing materials/geometries
+  const clonedTree = useMemo(() => {
+    return treeModel ? treeModel.clone() : null;
+  }, [treeModel]);
+  
+  if (!clonedTree) {
+    return null;
+  }
+  
+  return (
+    <primitive 
+      object={clonedTree} 
+      position={position}
+      scale={[modelScale, modelScale, modelScale]} 
+      rotation={rotation}
+      castShadow
+      receiveShadow
+    />
+  );
+};
+
+// Trees layout around the building
+const TreesArrangement = ({ buildingLength, buildingWidth }) => {
+  // Calculate positions for trees based on building dimensions
+  const buildingDiagonal = Math.sqrt(buildingLength * buildingLength + buildingWidth * buildingWidth);
+  const radius = buildingDiagonal * 1.2; // Slightly inside the grass circle
+  
+  // Generate positions in a circle around the building
+  const treePositions = [];
+  const treeCount = 12; // Number of trees to place
+  
+  console.log('Building dimensions for trees:', { buildingLength, buildingWidth, diagonal: buildingDiagonal, radius });
+  
+  for (let i = 0; i < treeCount; i++) {
+    const angle = (i / treeCount) * Math.PI * 2;
+    const x = Math.sin(angle) * radius;
+    const z = Math.cos(angle) * radius;
+    
+    // Add some randomness to positions and scales
+    const jitter = 0.8 + Math.random() * 0.4; // Random factor between 0.8 and 1.2
+    
+    // Base scale - reduced by 50% from previous value
+    const scale = (1 + Math.random() * 0.5); // Removed the *2 multiplier to make trees 50% smaller
+    
+    const rotationY = Math.random() * Math.PI * 2; // Random rotation around Y axis
+    
+    const treePosition = {
+      position: [x * jitter, 0, z * jitter],
+      scale: scale,
+      rotation: [0, rotationY, 0]
+    };
+    
+    treePositions.push(treePosition);
+  }
+  
+  return (
+    <group>
+      {treePositions.map((props, index) => (
+        <TreeModel key={`tree-${index}`} {...props} />
+      ))}
+    </group>
+  );
+};
+
 // Texture Loading Component for Grass
 const GrassTexturedPlane = ({ buildingLength, buildingWidth }) => {
   // Create texture programmatically instead of loading from file
@@ -217,43 +402,138 @@ const floorMaterial = new THREE.MeshStandardMaterial({
 
 // Texture Loading Component for Building
 const TexturedBuilding = ({ data, renderMode }) => {
-  // Create texture programmatically instead of loading from file
-  const timberTexture = createWoodTexture();
+  // Try to load custom timber texture from public directory
+  const [timberTexture, setTimberTexture] = useState(null);
+  const [textureError, setTextureError] = useState(false);
   
-  // Configure texture
-  timberTexture.wrapS = timberTexture.wrapT = THREE.RepeatWrapping;
+  // Generate procedural texture only when needed
+  const generateWoodTexture = useCallback(() => {
+    console.log('Generating procedural wood texture as fallback');
+    const generatedTexture = createWoodTexture();
+    setTimberTexture(generatedTexture);
+  }, []);
+
+  // Load custom texture or use fallback
+  useEffect(() => {
+    if (renderMode === 'architectural') {
+      // Only load the texture in architectural mode
+      try {
+        const loader = new THREE.TextureLoader();
+        
+        // Try multiple possible locations for the texture
+        const texturePaths = [
+          '/textures/custom-timber.jpg',
+          '/custom-timber.jpg',
+          '/images/custom-timber.jpg',
+          '/models/custom-timber.jpg'
+        ];
+        
+        console.log('Attempting to load timber texture from multiple possible locations');
+        
+        // OnLoad callback for texture
+        const onTextureLoad = (texture, path) => {
+          console.log(`Successfully loaded timber texture from: ${path}`);
+          
+          // Enhanced texture settings
+          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+          
+          // Increase repetition to make grain more visible
+          texture.repeat.set(3, 3); // Repeat more times to show more grain detail
+          
+          // Enhance contrast and color
+          texture.colorSpace = THREE.SRGBColorSpace; // Ensure correct color space
+          
+          setTimberTexture(texture);
+          setTextureError(false);
+        };
+        
+        // Function to try loading from the next path in the array
+        const tryLoadTexture = (index) => {
+          if (index >= texturePaths.length) {
+            console.warn('Failed to load timber texture from all possible paths');
+            setTextureError(true);
+            generateWoodTexture();
+            return;
+          }
+          
+          console.log(`Attempting to load texture from: ${texturePaths[index]}`);
+          
+          loader.load(
+            texturePaths[index],
+            // OnLoad callback
+            (texture) => onTextureLoad(texture, texturePaths[index]),
+            // OnProgress callback (not used)
+            undefined,
+            // OnError callback
+            (err) => {
+              console.warn(`Could not load timber texture from: ${texturePaths[index]}`, err);
+              // Try the next path
+              tryLoadTexture(index + 1);
+            }
+          );
+        };
+        
+        // Start trying from the first path
+        tryLoadTexture(0);
+        
+      } catch (err) {
+        console.warn('Error setting up texture loader:', err);
+        setTextureError(true);
+        generateWoodTexture();
+      }
+    } else if (!timberTexture) {
+      // Generate texture for engineering mode as well
+      generateWoodTexture();
+    }
+  }, [renderMode, generateWoodTexture]);
   
-  // Create materials with texture - configure different repeat patterns for different elements
-  const columnTextureMaterial = new THREE.MeshStandardMaterial({ 
-    map: timberTexture,
-    roughness: 0.7, 
-    metalness: 0.05
-  });
+  // Create materials with texture
+  const columnTextureMaterial = useMemo(() => {
+    if (!timberTexture) return null;
+    
+    return new THREE.MeshStandardMaterial({ 
+      map: timberTexture,
+      roughness: 0.9,  // Keep the roughness for natural wood look
+      metalness: 0.0   // Keep metalness at zero for wood
+    });
+  }, [timberTexture]);
   
-  const beamTextureMaterial = new THREE.MeshStandardMaterial({ 
-    map: timberTexture,
-    roughness: 0.8, 
-    metalness: 0.1
-  });
+  const beamTextureMaterial = useMemo(() => {
+    if (!timberTexture) return null;
+    
+    return new THREE.MeshStandardMaterial({ 
+      map: timberTexture,
+      roughness: 0.85, 
+      metalness: 0.0
+    });
+  }, [timberTexture]);
   
-  const edgeBeamTextureMaterial = new THREE.MeshStandardMaterial({ 
-    map: timberTexture,
-    roughness: 0.8, 
-    metalness: 0.1
-  });
+  const edgeBeamTextureMaterial = useMemo(() => {
+    if (!timberTexture) return null;
+    
+    return new THREE.MeshStandardMaterial({ 
+      map: timberTexture,
+      roughness: 0.85, 
+      metalness: 0.0
+    });
+  }, [timberTexture]);
   
-  const joistTextureMaterial = new THREE.MeshStandardMaterial({ 
-    map: timberTexture,
-    roughness: 0.8, 
-    metalness: 0.1
-  });
+  const joistTextureMaterial = useMemo(() => {
+    if (!timberTexture) return null;
+    
+    return new THREE.MeshStandardMaterial({ 
+      map: timberTexture,
+      roughness: 0.8, 
+      metalness: 0.0
+    });
+  }, [timberTexture]);
   
   // Select materials based on render mode
   const activeMaterials = {
-    column: renderMode === 'architectural' ? columnTextureMaterial : columnMaterial,
-    beam: renderMode === 'architectural' ? beamTextureMaterial : beamMaterial,
-    edgeBeam: renderMode === 'architectural' ? edgeBeamTextureMaterial : edgeBeamMaterial,
-    joist: renderMode === 'architectural' ? joistTextureMaterial : joistMaterial
+    column: renderMode === 'architectural' && columnTextureMaterial ? columnTextureMaterial : columnMaterial,
+    beam: renderMode === 'architectural' && beamTextureMaterial ? beamTextureMaterial : beamMaterial,
+    edgeBeam: renderMode === 'architectural' && edgeBeamTextureMaterial ? edgeBeamTextureMaterial : edgeBeamMaterial,
+    joist: renderMode === 'architectural' && joistTextureMaterial ? joistTextureMaterial : joistMaterial
   };
   
   // Function to create a mesh with edge highlighting
@@ -508,6 +788,7 @@ export default function BuildingVisualization() {
   const [error, setError] = useState(null);
   const [joistPosition, setJoistPosition] = useState('ontop'); // 'ontop', 'halfnotch', or 'inline'
   const [renderMode, setRenderMode] = useState('engineering'); // 'engineering' or 'architectural'
+  const [showDebugTree, setShowDebugTree] = useState(false); // Debug mode for tree scaling
 
   useEffect(() => {
     // Fetch data from localStorage
@@ -624,7 +905,7 @@ export default function BuildingVisualization() {
   return (
     <div className="relative h-full w-full">
       <Canvas shadows>
-        <color attach="background" args={['#FFFFFF']} /> {/* White background color */}
+        <color attach="background" args={['#FFFFFF']} /> {/* White background */}
         
         <PerspectiveCamera 
           makeDefault 
@@ -632,13 +913,13 @@ export default function BuildingVisualization() {
           fov={50}
         />
         
-        {/* Optimize lighting based on render mode */}
-        <ambientLight intensity={renderMode === 'architectural' ? 0.4 : 0.5} />
+        {/* Standard lighting */}
+        <ambientLight intensity={renderMode === 'architectural' ? 0.5 : 0.6} />
         
-        {/* Main directional light with improved shadows for architectural view */}
+        {/* Main directional light */}
         <directionalLight 
           position={[10, 10, 5]} 
-          intensity={renderMode === 'architectural' ? 0.8 : 1} 
+          intensity={renderMode === 'architectural' ? 1.0 : 1.2} 
           castShadow={renderMode === 'architectural'}
           shadow-mapSize-width={2048} 
           shadow-mapSize-height={2048}
@@ -654,18 +935,18 @@ export default function BuildingVisualization() {
           <>
             <directionalLight 
               position={[-10, 8, -5]} 
-              intensity={0.3} 
+              intensity={0.4} 
               castShadow={false}
             />
             <directionalLight 
               position={[0, 5, -10]} 
-              intensity={0.2} 
+              intensity={0.3} 
               castShadow={false}
             />
           </>
         )}
         
-        <Environment preset="city" />
+        <Environment preset="city" /> {/* Always use city preset */}
         
         {/* Use textured or plain grass based on render mode */}
         {renderMode === 'architectural' ? (
@@ -681,6 +962,28 @@ export default function BuildingVisualization() {
         )}
         
         <BuildingWithJoistPosition data={buildingData} />
+        
+        {/* Trees only in architectural mode */}
+        {renderMode === 'architectural' && (
+          <>
+            <TreesArrangement 
+              buildingLength={buildingData.buildingLength} 
+              buildingWidth={buildingData.buildingWidth} 
+            />
+            
+            {/* Debug tree for scale reference */}
+            {showDebugTree && (
+              <mesh 
+                position={[0, 1, 0]} 
+                castShadow 
+                receiveShadow
+              >
+                <boxGeometry args={[1, 2, 1]} />
+                <meshStandardMaterial color="red" />
+              </mesh>
+            )}
+          </>
+        )}
         
         <OrbitControls 
           enableDamping={true}
@@ -766,6 +1069,18 @@ export default function BuildingVisualization() {
             <span>Architectural</span>
           </label>
         </div>
+        
+        {/* Debug controls */}
+        <p className="font-semibold mb-2 mt-4">Debug</p>
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={showDebugTree}
+            onChange={() => setShowDebugTree(!showDebugTree)}
+            className="mr-2"
+          />
+          <span>Show Scale Reference</span>
+        </label>
       </div>
       
       <div className="absolute top-4 right-4 bg-white bg-opacity-80 p-3 rounded-lg shadow text-sm">
