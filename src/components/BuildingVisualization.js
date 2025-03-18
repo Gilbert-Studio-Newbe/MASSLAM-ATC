@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei';
+import { OrbitControls, Environment, PerspectiveCamera, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { getBuildingData } from '../utils/buildingDataStore';
 
@@ -29,10 +29,138 @@ const COLORS = {
   EDGE_BEAM: new THREE.Color('#CD853F'), // Peru
   JOIST: new THREE.Color('#DEB887'),   // BurlyWood
   FLOOR: new THREE.Color('#F5F5DC').multiplyScalar(0.9),  // Beige, slightly darkened
-  GRID: new THREE.Color('#333333')
+  GRID: new THREE.Color('#333333'),
+  GRASS: new THREE.Color('#526D29')  // Darker green for grass, matching the image
 };
 
-// Material definitions
+// Create a simple wood texture directly in code
+const createWoodTexture = () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  
+  // Fill with base wood color
+  ctx.fillStyle = '#8B4513'; // SaddleBrown
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Add wood grain
+  for (let i = 0; i < 60; i++) {
+    const x = Math.random() * canvas.width;
+    const y = 0;
+    const width = 2 + Math.random() * 3;
+    const height = canvas.height;
+    
+    // Vary the grain color slightly
+    const colorVariation = Math.random() * 0.1 - 0.05;
+    const r = Math.floor(139 + colorVariation * 30); // Base R from SaddleBrown
+    const g = Math.floor(69 + colorVariation * 30);  // Base G from SaddleBrown
+    const b = Math.floor(19 + colorVariation * 30);  // Base B from SaddleBrown
+    
+    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+    ctx.globalAlpha = 0.2 + Math.random() * 0.4;
+    ctx.fillRect(x, y, width, height);
+  }
+  
+  // Add some knots
+  for (let i = 0; i < 8; i++) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    const radius = 5 + Math.random() * 15;
+    
+    const grd = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    grd.addColorStop(0, '#52300A');
+    grd.addColorStop(1, '#8B4513');
+    
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Create a texture from the canvas
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  return texture;
+};
+
+// Create a simple grass texture directly in code
+const createGrassTexture = () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  
+  // Base color
+  ctx.fillStyle = '#526D29'; // Dark grass green
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Add grass texture
+  for (let i = 0; i < 8000; i++) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    const width = 1 + Math.random() * 2;
+    const height = 3 + Math.random() * 7;
+    
+    // Vary the grass color slightly
+    const r = Math.floor(82 + (Math.random() * 20 - 10));  // Base R from grass color
+    const g = Math.floor(109 + (Math.random() * 20 - 10)); // Base G from grass color
+    const b = Math.floor(41 + (Math.random() * 10 - 5));   // Base B from grass color
+    
+    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+    ctx.globalAlpha = 0.7 + Math.random() * 0.3;
+    
+    // Draw grass blade
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate((Math.random() - 0.5) * Math.PI / 6);
+    ctx.fillRect(-width/2, -height/2, width, height);
+    ctx.restore();
+  }
+  
+  // Create a texture from the canvas
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  return texture;
+};
+
+// Texture Loading Component for Grass
+const GrassTexturedPlane = ({ buildingLength, buildingWidth }) => {
+  // Create texture programmatically instead of loading from file
+  const texture = createGrassTexture();
+  texture.repeat.set(10, 10); // Repeat the texture multiple times across the surface
+  
+  // Calculate the radius based on the building dimensions
+  const buildingDiagonal = Math.sqrt(buildingLength * buildingLength + buildingWidth * buildingWidth);
+  const radius = buildingDiagonal * 1.5;
+  
+  // Create a circular disc
+  const circleGeometry = new THREE.CircleGeometry(radius, 64);
+  circleGeometry.rotateX(-Math.PI / 2);
+  
+  // Create material with the texture, but apply a color filter to darken it
+  const material = new THREE.MeshStandardMaterial({ 
+    map: texture,
+    roughness: 0.9,
+    metalness: 0.0,
+    color: new THREE.Color('#526D29') // Apply a darker green tint to match the image
+  });
+  
+  return (
+    <mesh geometry={circleGeometry} material={material} position={[0, -0.05, 0]} receiveShadow />
+  );
+};
+
+// Material for grass (non-textured fallback)
+const grassMaterial = new THREE.MeshStandardMaterial({ 
+  color: COLORS.GRASS, 
+  roughness: 0.9, 
+  metalness: 0.0,
+  wireframe: false
+});
+
+// Engineering materials (colored)
 const columnMaterial = new THREE.MeshStandardMaterial({ 
   color: COLORS.COLUMN, 
   roughness: 0.7, 
@@ -61,6 +189,23 @@ const joistMaterial = new THREE.MeshStandardMaterial({
   wireframe: false
 });
 
+// Edge material for highlighting structural elements
+const edgeMaterial = new THREE.LineBasicMaterial({ 
+  color: '#111111', // Darker edge color, almost black
+  linewidth: 1.5    // Slightly thicker lines
+});
+
+// Architectural materials (with wood texture)
+const createTimberMaterial = () => {
+  // The texture will be loaded by useTexture in the component
+  return new THREE.MeshStandardMaterial({ 
+    roughness: 0.8, 
+    metalness: 0.1,
+    wireframe: false
+  });
+};
+
+// Material for floor
 const floorMaterial = new THREE.MeshStandardMaterial({ 
   color: COLORS.FLOOR, 
   roughness: 0.9, 
@@ -70,32 +215,72 @@ const floorMaterial = new THREE.MeshStandardMaterial({
   wireframe: false
 });
 
-// Edge material for highlighting structural elements
-const edgeMaterial = new THREE.LineBasicMaterial({ 
-  color: '#111111', // Darker edge color, almost black
-  linewidth: 1.5    // Slightly thicker lines
-});
-
-// Function to create a mesh with edge highlighting
-const createMeshWithEdges = (geometry, material, position, key) => {
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.set(...position);
+// Texture Loading Component for Building
+const TexturedBuilding = ({ data, renderMode }) => {
+  // Create texture programmatically instead of loading from file
+  const timberTexture = createWoodTexture();
   
-  // Create edges
-  const edges = new THREE.EdgesGeometry(geometry);
-  const line = new THREE.LineSegments(edges, edgeMaterial);
+  // Configure texture
+  timberTexture.wrapS = timberTexture.wrapT = THREE.RepeatWrapping;
   
-  // Group the mesh and its edges
-  const group = new THREE.Group();
-  group.add(mesh);
-  group.add(line);
+  // Create materials with texture - configure different repeat patterns for different elements
+  const columnTextureMaterial = new THREE.MeshStandardMaterial({ 
+    map: timberTexture,
+    roughness: 0.7, 
+    metalness: 0.05
+  });
   
-  return (
-    <primitive key={key} object={group} />
-  );
-};
-
-const Building = ({ data }) => {
+  const beamTextureMaterial = new THREE.MeshStandardMaterial({ 
+    map: timberTexture,
+    roughness: 0.8, 
+    metalness: 0.1
+  });
+  
+  const edgeBeamTextureMaterial = new THREE.MeshStandardMaterial({ 
+    map: timberTexture,
+    roughness: 0.8, 
+    metalness: 0.1
+  });
+  
+  const joistTextureMaterial = new THREE.MeshStandardMaterial({ 
+    map: timberTexture,
+    roughness: 0.8, 
+    metalness: 0.1
+  });
+  
+  // Select materials based on render mode
+  const activeMaterials = {
+    column: renderMode === 'architectural' ? columnTextureMaterial : columnMaterial,
+    beam: renderMode === 'architectural' ? beamTextureMaterial : beamMaterial,
+    edgeBeam: renderMode === 'architectural' ? edgeBeamTextureMaterial : edgeBeamMaterial,
+    joist: renderMode === 'architectural' ? joistTextureMaterial : joistMaterial
+  };
+  
+  // Function to create a mesh with edge highlighting
+  const createMeshWithEdges = (geometry, material, position, key, castShadow = true) => {
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(...position);
+    
+    // Only enable shadows in architectural mode for better performance
+    mesh.castShadow = renderMode === 'architectural' && castShadow;
+    mesh.receiveShadow = renderMode === 'architectural';
+    
+    // Create edges (only for engineering mode)
+    const edges = new THREE.EdgesGeometry(geometry);
+    const line = new THREE.LineSegments(edges, edgeMaterial);
+    line.visible = renderMode === 'engineering'; // Only show edges in engineering mode
+    
+    // Group the mesh and its edges
+    const group = new THREE.Group();
+    group.add(mesh);
+    group.add(line);
+    
+    return (
+      <primitive key={key} object={group} />
+    );
+  };
+  
+  // Use the data from props
   const {
     buildingLength,
     buildingWidth,
@@ -145,7 +330,7 @@ const Building = ({ data }) => {
 
         const geometry = new THREE.BoxGeometry(columnWidth, floorHeight, columnDepth);
         columns.push(
-          createMeshWithEdges(geometry, columnMaterial, [posX, posY, posZ], `column-${floor}-${x}-${y}`)
+          createMeshWithEdges(geometry, activeMaterials.column, [posX, posY, posZ], `column-${floor}-${x}-${y}`)
         );
       }
     }
@@ -168,7 +353,7 @@ const Building = ({ data }) => {
           
           const geometry = new THREE.BoxGeometry(beamWidth, beamDepth, bayWidth);
           beams.push(
-            createMeshWithEdges(geometry, beamMaterial, [posX, posY, posZ], `beam-widthwise-${floor}-${x}-${z}`)
+            createMeshWithEdges(geometry, activeMaterials.beam, [posX, posY, posZ], `beam-widthwise-${floor}-${x}-${z}`)
           );
         }
       }
@@ -181,7 +366,7 @@ const Building = ({ data }) => {
         
         const frontGeometry = new THREE.BoxGeometry(bayLength, edgeBeamDepth, edgeBeamWidth);
         edgeBeams.push(
-          createMeshWithEdges(frontGeometry, edgeBeamMaterial, [frontPosX, posY, frontPosZ], `edge-beam-front-${floor}-${x}`)
+          createMeshWithEdges(frontGeometry, activeMaterials.edgeBeam, [frontPosX, posY, frontPosZ], `edge-beam-front-${floor}-${x}`)
         );
         
         // Back edge
@@ -190,7 +375,7 @@ const Building = ({ data }) => {
         
         const backGeometry = new THREE.BoxGeometry(bayLength, edgeBeamDepth, edgeBeamWidth);
         edgeBeams.push(
-          createMeshWithEdges(backGeometry, edgeBeamMaterial, [backPosX, posY, backPosZ], `edge-beam-back-${floor}-${x}`)
+          createMeshWithEdges(backGeometry, activeMaterials.edgeBeam, [backPosX, posY, backPosZ], `edge-beam-back-${floor}-${x}`)
         );
       }
     } else {
@@ -203,7 +388,7 @@ const Building = ({ data }) => {
           
           const geometry = new THREE.BoxGeometry(bayLength, beamDepth, beamWidth);
           beams.push(
-            createMeshWithEdges(geometry, beamMaterial, [posX, posY, posZ], `beam-lengthwise-${floor}-${z}-${x}`)
+            createMeshWithEdges(geometry, activeMaterials.beam, [posX, posY, posZ], `beam-lengthwise-${floor}-${z}-${x}`)
           );
         }
       }
@@ -216,7 +401,7 @@ const Building = ({ data }) => {
         
         const leftGeometry = new THREE.BoxGeometry(edgeBeamWidth, edgeBeamDepth, bayWidth);
         edgeBeams.push(
-          createMeshWithEdges(leftGeometry, edgeBeamMaterial, [leftPosX, posY, leftPosZ], `edge-beam-left-${floor}-${z}`)
+          createMeshWithEdges(leftGeometry, activeMaterials.edgeBeam, [leftPosX, posY, leftPosZ], `edge-beam-left-${floor}-${z}`)
         );
         
         // Right edge
@@ -225,7 +410,7 @@ const Building = ({ data }) => {
         
         const rightGeometry = new THREE.BoxGeometry(edgeBeamWidth, edgeBeamDepth, bayWidth);
         edgeBeams.push(
-          createMeshWithEdges(rightGeometry, edgeBeamMaterial, [rightPosX, posY, rightPosZ], `edge-beam-right-${floor}-${z}`)
+          createMeshWithEdges(rightGeometry, activeMaterials.edgeBeam, [rightPosX, posY, rightPosZ], `edge-beam-right-${floor}-${z}`)
         );
       }
     }
@@ -249,7 +434,7 @@ const Building = ({ data }) => {
             
             const geometry = new THREE.BoxGeometry(bayLength, joistDepth, joistWidth);
             joists.push(
-              createMeshWithEdges(geometry, joistMaterial, [posX, posY, posZ], `joist-lengthwise-${floor}-${x}-${z}-${j}`)
+              createMeshWithEdges(geometry, activeMaterials.joist, [posX, posY, posZ], `joist-lengthwise-${floor}-${x}-${z}-${j}`)
             );
           }
         }
@@ -267,7 +452,7 @@ const Building = ({ data }) => {
             
             const geometry = new THREE.BoxGeometry(joistWidth, joistDepth, bayWidth);
             joists.push(
-              createMeshWithEdges(geometry, joistMaterial, [posX, posY, posZ], `joist-widthwise-${floor}-${x}-${z}-${j}`)
+              createMeshWithEdges(geometry, activeMaterials.joist, [posX, posY, posZ], `joist-widthwise-${floor}-${x}-${z}-${j}`)
             );
           }
         }
@@ -299,13 +484,21 @@ const Building = ({ data }) => {
   );
 };
 
-// Grid helper component
-const GridHelper = ({ size, divisions }) => {
+// Create a circular grass plane without texture
+const GrassPlane = ({ buildingLength, buildingWidth }) => {
+  // Calculate the radius based on the building dimensions
+  // Make the grass circle at least 1.5x the building's diagonal
+  const buildingDiagonal = Math.sqrt(buildingLength * buildingLength + buildingWidth * buildingWidth);
+  const radius = buildingDiagonal * 1.5;
+  
+  // Create a circular disc with high segment count for smooth edges
+  const circleGeometry = new THREE.CircleGeometry(radius, 64);
+  
+  // Rotate it to be flat on the ground (XZ plane)
+  circleGeometry.rotateX(-Math.PI / 2);
+  
   return (
-    <gridHelper 
-      args={[size, divisions, COLORS.GRID, COLORS.GRID]} 
-      position={[0, 0, 0]} 
-    />
+    <mesh geometry={circleGeometry} material={grassMaterial} position={[0, -0.05, 0]} receiveShadow />
   );
 };
 
@@ -314,6 +507,7 @@ export default function BuildingVisualization() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [joistPosition, setJoistPosition] = useState('ontop'); // 'ontop', 'halfnotch', or 'inline'
+  const [renderMode, setRenderMode] = useState('engineering'); // 'engineering' or 'architectural'
 
   useEffect(() => {
     // Fetch data from localStorage
@@ -424,13 +618,13 @@ export default function BuildingVisualization() {
       getBeamPosition: getBeamPosition
     };
     
-    return <Building data={updatedData} />;
+    return <TexturedBuilding data={updatedData} renderMode={renderMode} />;
   };
 
   return (
     <div className="relative h-full w-full">
       <Canvas shadows>
-        <color attach="background" args={['#f8f9fa']} />
+        <color attach="background" args={['#FFFFFF']} /> {/* White background color */}
         
         <PerspectiveCamera 
           makeDefault 
@@ -438,18 +632,53 @@ export default function BuildingVisualization() {
           fov={50}
         />
         
-        <ambientLight intensity={0.5} />
+        {/* Optimize lighting based on render mode */}
+        <ambientLight intensity={renderMode === 'architectural' ? 0.4 : 0.5} />
+        
+        {/* Main directional light with improved shadows for architectural view */}
         <directionalLight 
           position={[10, 10, 5]} 
-          intensity={1} 
-          castShadow 
+          intensity={renderMode === 'architectural' ? 0.8 : 1} 
+          castShadow={renderMode === 'architectural'}
           shadow-mapSize-width={2048} 
           shadow-mapSize-height={2048}
+          shadow-camera-far={50}
+          shadow-camera-left={-20}
+          shadow-camera-right={20}
+          shadow-camera-top={20}
+          shadow-camera-bottom={-20}
         />
+        
+        {/* Add fill light for architectural mode to soften shadows */}
+        {renderMode === 'architectural' && (
+          <>
+            <directionalLight 
+              position={[-10, 8, -5]} 
+              intensity={0.3} 
+              castShadow={false}
+            />
+            <directionalLight 
+              position={[0, 5, -10]} 
+              intensity={0.2} 
+              castShadow={false}
+            />
+          </>
+        )}
         
         <Environment preset="city" />
         
-        <GridHelper size={Math.max(buildingData.buildingLength, buildingData.buildingWidth) * 2} divisions={20} />
+        {/* Use textured or plain grass based on render mode */}
+        {renderMode === 'architectural' ? (
+          <GrassTexturedPlane 
+            buildingLength={buildingData.buildingLength} 
+            buildingWidth={buildingData.buildingWidth} 
+          />
+        ) : (
+          <GrassPlane 
+            buildingLength={buildingData.buildingLength} 
+            buildingWidth={buildingData.buildingWidth} 
+          />
+        )}
         
         <BuildingWithJoistPosition data={buildingData} />
         
@@ -508,6 +737,33 @@ export default function BuildingVisualization() {
               className="mr-2"
             />
             <span>Inline</span>
+          </label>
+        </div>
+        
+        {/* Render Mode Controls */}
+        <p className="font-semibold mb-2 mt-4">View Style</p>
+        <div className="flex flex-col space-y-2">
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="renderMode"
+              value="engineering"
+              checked={renderMode === 'engineering'}
+              onChange={() => setRenderMode('engineering')}
+              className="mr-2"
+            />
+            <span>Engineering</span>
+          </label>
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="renderMode"
+              value="architectural"
+              checked={renderMode === 'architectural'}
+              onChange={() => setRenderMode('architectural')}
+              className="mr-2"
+            />
+            <span>Architectural</span>
           </label>
         </div>
       </div>
