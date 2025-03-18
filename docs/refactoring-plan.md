@@ -66,16 +66,25 @@ src/
 
 ### 4. Refactoring Phases
 
-#### Phase 1: Extract Utilities ← [CURRENT PHASE]
-- [COMPLETED] Create utils/calculations directory
-- [COMPLETED] Move beam calculation functions to utils/calculations/beamCalculations.js
-- [COMPLETED] Move column calculation functions to utils/calculations/columnCalculations.js 
-- [COMPLETED] Move joist calculation functions to utils/calculations/joistCalculations.js
-- [PENDING] Create helper functions for repeated tasks
+#### Phase 1: Extract Utilities ✅ COMPLETED
+- ✅ Create utils/calculations directory
+- ✅ Move beam calculation functions to utils/calculations/beamCalculations.js
+- ✅ Move column calculation functions to utils/calculations/columnCalculations.js 
+- ✅ Move joist calculation functions to utils/calculations/joistCalculations.js
+- ✅ Create helper functions for repeated tasks
 
-#### Phase 2: Componentize UI
-- Extract UI components from TimberCalculator.js
-- Create reusable components for consistent patterns
+#### Phase 2: Componentize UI ← [CURRENT PHASE]
+- ✅ Extract SliderInput to common/SliderInput.js
+- ✅ Extract SuccessMessage to common/SuccessMessage.js
+- ✅ Extract FireRatingSelector to calculator/FireRatingSelector.js
+- ✅ Extract LoadTypeSelector to calculator/LoadTypeSelector.js
+- ✅ Extract SaveProjectModal to calculator/SaveProjectModal.js
+- ✅ Extract DimensionsSection to calculator/DimensionsSection.js
+- ✅ Extract TimberGradeSelector to calculator/TimberGradeSelector.js
+- ✅ Extract StructureConfigSection to calculator/StructureConfigSection.js
+- ✅ Extract ResultsDisplay to calculator/ResultsDisplay.js
+
+Phase 2 is now complete! We've successfully extracted all the major UI components from the monolithic TimberCalculator.js file.
 
 #### Phase 3: State Management
 - Implement React Context for global state
@@ -100,7 +109,7 @@ src/
 - `useLocalStorage`: For persistent storage of calculator state
 
 ### Component Extraction Priorities
-1. `SliderInput` - Used extensively and self-contained
+1. `SliderInput` - Used extensively and self-contained ✅
 2. Results display components
 3. Form sections by logical grouping
 

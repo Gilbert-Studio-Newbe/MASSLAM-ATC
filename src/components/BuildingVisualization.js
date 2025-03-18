@@ -1342,15 +1342,51 @@ export default function BuildingVisualization() {
         />
       </Canvas>
       
-      <div className="absolute bottom-4 left-4 bg-white bg-opacity-80 p-3 rounded-lg shadow text-sm">
-        <p className="font-semibold mb-1">Building Info</p>
-        <p>Length: {buildingData.buildingLength}m × Width: {buildingData.buildingWidth}m</p>
-        <p>Floors: {buildingData.numFloors} (Height: {buildingData.floorHeight}m each)</p>
-        <p>Bays: {buildingData.lengthwiseBays} × {buildingData.widthwiseBays}</p>
-        <p>Fire Rating: {buildingData.fireRating}</p>
+      {/* View Style Controls - Top Right */}
+      <div className="absolute top-4 right-4 bg-white bg-opacity-80 p-3 rounded-lg shadow text-sm">
+        <p className="font-semibold mb-2">View Style</p>
+        <div className="flex flex-col space-y-2">
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="renderMode"
+              value="engineering"
+              checked={renderMode === 'engineering'}
+              onChange={() => setRenderMode('engineering')}
+              className="mr-2"
+            />
+            <span>Engineering</span>
+          </label>
+          <label className="flex items-center">
+            <input
+              type="radio"
+              name="renderMode"
+              value="architectural"
+              checked={renderMode === 'architectural'}
+              onChange={() => setRenderMode('architectural')}
+              className="mr-2"
+            />
+            <span>Architectural</span>
+          </label>
+        </div>
+        
+        {/* Debug controls - only shown if needed */}
+        {showDebugTree !== undefined && (
+          <div className="mt-4">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={showDebugTree}
+                onChange={() => setShowDebugTree(!showDebugTree)}
+                className="mr-2"
+              />
+              <span>Show Scale Reference</span>
+            </label>
+          </div>
+        )}
       </div>
       
-      {/* Joist Position Controls */}
+      {/* Joist Position Controls - Bottom Right */}
       <div className="absolute bottom-4 right-4 bg-white bg-opacity-80 p-3 rounded-lg shadow text-sm">
         <p className="font-semibold mb-2">Joist Position</p>
         <div className="flex flex-col space-y-2">
@@ -1388,53 +1424,15 @@ export default function BuildingVisualization() {
             <span>Inline</span>
           </label>
         </div>
-        
-        {/* Render Mode Controls */}
-        <p className="font-semibold mb-2 mt-4">View Style</p>
-        <div className="flex flex-col space-y-2">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="renderMode"
-              value="engineering"
-              checked={renderMode === 'engineering'}
-              onChange={() => setRenderMode('engineering')}
-              className="mr-2"
-            />
-            <span>Engineering</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="renderMode"
-              value="architectural"
-              checked={renderMode === 'architectural'}
-              onChange={() => setRenderMode('architectural')}
-              className="mr-2"
-            />
-            <span>Architectural</span>
-          </label>
-        </div>
-        
-        {/* Debug controls */}
-        <p className="font-semibold mb-2 mt-4">Debug</p>
-        <label className="flex items-center">
-          <input
-            type="checkbox"
-            checked={showDebugTree}
-            onChange={() => setShowDebugTree(!showDebugTree)}
-            className="mr-2"
-          />
-          <span>Show Scale Reference</span>
-        </label>
       </div>
       
-      <div className="absolute top-4 right-4 bg-white bg-opacity-80 p-3 rounded-lg shadow text-sm">
-        <p className="font-semibold mb-1">Controls</p>
-        <p>Left-click + drag: Rotate</p>
-        <p>Middle-click + drag: Pan</p>
-        <p>Scroll: Zoom</p>
-        <p>Right-click + drag: Rotate</p>
+      {/* Building Info - Bottom Left */}
+      <div className="absolute bottom-4 left-4 bg-white bg-opacity-80 p-3 rounded-lg shadow text-sm">
+        <p className="font-semibold mb-1">Building Info</p>
+        <p>Length: {buildingData.buildingLength}m × Width: {buildingData.buildingWidth}m</p>
+        <p>Floors: {buildingData.numFloors} (Height: {buildingData.floorHeight}m each)</p>
+        <p>Bays: {buildingData.lengthwiseBays} × {buildingData.widthwiseBays}</p>
+        <p>Fire Rating: {buildingData.fireRating}</p>
       </div>
     </div>
   );
