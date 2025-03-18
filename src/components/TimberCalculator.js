@@ -12,6 +12,13 @@ import {
   TIMBER_PROPERTIES,
   loadTimberProperties
 } from '@/utils/timberEngineering';
+import {
+  calculateMultiFloorBeamSize,
+  calculateMultiFloorColumnSize,
+  calculateBeamVolume,
+  calculateColumnVolume,
+  calculateJoistVolume
+} from '@/utils/calculations';
 import { 
   loadMasslamSizes,
   findNearestWidth,
@@ -34,193 +41,6 @@ import {
 } from '../utils/costEstimator';
 import { saveBuildingData, prepareVisualizationData } from '../utils/buildingDataStore';
 // ... other imports as before
-
-// Custom function for beam size calculation with tributary area
-const calculateMultiFloorBeamSize = (span, load, joistSpacing, numFloors, fireRating = 'none', joistsRunLengthwise = true, avgBayWidth = 0, avgBayLength = 0, isEdgeBeam = false) => {
-  // Calculate tributary width for the beam (in meters)
-  // For a more realistic calculation, use half the perpendicular dimension to the beam span
-  // If beam spans lengthwise (joists run widthwise), tributary width is half the bay width
-  // If beam spans widthwise (joists run lengthwise), tributary width is half the bay length
-  let tributaryWidth;
-  
-  if (avgBayWidth > 0 && avgBayLength > 0) {
-    // If we have bay dimensions, use them for a more realistic tributary width
-    if (isEdgeBeam) {
-      // Edge beams only support load from one side (half the tributary width of interior beams)
-      tributaryWidth = joistsRunLengthwise ? avgBayWidth / 4 : avgBayLength / 4;
-    } else {
-      // Interior beams support load from both sides
-      tributaryWidth = joistsRunLengthwise ? avgBayWidth / 2 : avgBayLength / 2;
-    }
-  } else {
-    // Fallback to the old calculation if bay dimensions aren't provided
-    tributaryWidth = isEdgeBeam ? joistSpacing / 2 : joistSpacing;
-  }
-  
-  console.log(`Beam tributary width (${isEdgeBeam ? 'edge' : 'interior'}): ${tributaryWidth.toFixed(2)} m`);
-  
-  // Calculate load per meter of beam (kN/m)
-  // load is in kPa (kN/m²), so multiply by tributary width to get kN/m
-  let loadPerMeter = load * tributaryWidth;
-  console.log(`Initial beam load per meter (without self-weight): ${loadPerMeter.toFixed(2)} kN/m`);
-  
-  // Calculate theoretical width and depth
-  const spanMm = span * 1000; // Convert to mm
-  const theoreticalWidth = Math.max(65, Math.ceil(spanMm / 25)); // Simplified calculation
-  const theoreticalDepth = Math.max(240, Math.ceil(spanMm / 12)); // Simplified calculation
-  
-  // Calculate fire resistance allowance if needed
-  let fireAllowance = 0;
-  if (fireRating && fireRating !== 'none') {
-    fireAllowance = calculateFireResistanceAllowance(fireRating);
-  }
-  
-  // Add fire resistance allowance to width and depth
-  // For beams, typically 3 sides are exposed (bottom and two sides)
-  const fireAdjustedWidth = theoreticalWidth + (2 * fireAllowance); // Both sides exposed
-  const fireAdjustedDepth = theoreticalDepth + fireAllowance; // Only bottom exposed
-  
-  // Find the nearest available width and depth
-  const width = findNearestWidth(fireAdjustedWidth);
-  const depth = findNearestDepth(width, fireAdjustedDepth);
-  
-  // Calculate self-weight based on size estimate
-  // Convert dimensions to meters
-  const beamWidth = width / 1000; // m
-  const beamDepth = depth / 1000; // m
-  
-  // Get timber density from properties (kg/m³)
-  const density = TIMBER_PROPERTIES['MASSLAM_SL33']?.density || 600; // Default to 600 kg/m³
-  
-  // Calculate beam volume per meter (m³/m)
-  const beamVolumePerMeter = beamWidth * beamDepth * 1.0; // 1.0 meter length
-  
-  // Calculate beam weight per meter (kg/m)
-  const beamWeightPerMeter = beamVolumePerMeter * density;
-  
-  // Convert to kN/m (1 kg = 0.00981 kN)
-  const beamSelfWeightPerMeter = beamWeightPerMeter * 0.00981;
-  
-  console.log(`Beam self-weight: ${beamSelfWeightPerMeter.toFixed(2)} kN/m`);
-  
-  // Add self-weight to the load per meter
-  loadPerMeter += beamSelfWeightPerMeter;
-  console.log(`Total beam load per meter (with self-weight): ${loadPerMeter.toFixed(2)} kN/m`);
-  
-  // Calculate total distributed load on the beam (including self-weight)
-  const totalDistributedLoad = loadPerMeter * span;
-  console.log(`Total distributed load on beam (including self-weight): ${totalDistributedLoad.toFixed(2)} kN`);
-  
-  console.log(`Beam size before fire adjustment: ${theoreticalWidth}x${theoreticalDepth}mm`);
-  console.log(`Beam size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
-  
-  return {
-    width: width,
-    depth: depth,
-    span: span,
-    tributaryWidth: tributaryWidth,
-    loadPerMeter: loadPerMeter,
-    selfWeight: beamSelfWeightPerMeter,
-    totalDistributedLoad: totalDistributedLoad,
-    fireRating: fireRating,
-    fireAllowance: fireAllowance,
-    isEdgeBeam: isEdgeBeam
-  };
-};
-
-// Rename the custom function to avoid naming conflict
-const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRating = 'none', bayLength, bayWidth) => {
-  // Column width should match beam width
-  const width = beamWidth;
-  console.log(`Setting column width to match beam width: ${width}mm`);
-  
-  // Calculate tributary area for the column (in square meters)
-  // Each column typically supports a quarter of each of the four adjacent bays
-  const tributaryArea = bayLength * bayWidth;
-  console.log(`Column tributary area: ${tributaryArea.toFixed(2)} m²`);
-  
-  // Calculate load based on number of floors and tributary area
-  // load is in kPa (kN/m²), so multiply by tributary area to get kN
-  const loadPerFloor = load * tributaryArea;
-  let totalLoad = loadPerFloor * floors;
-  console.log(`Initial column load per floor: ${loadPerFloor.toFixed(2)} kN, Total load (without self-weight): ${totalLoad.toFixed(2)} kN`);
-  
-  // Calculate minimum depth based on load and height
-  // For simplicity, we'll start with the width and increase based on load
-  let depth = width;
-  
-  // Increase depth based on number of floors and load
-  if (floors > 1) {
-    // Add 50mm per additional floor
-    depth += (floors - 1) * 50;
-  }
-  
-  // Ensure depth is at least equal to width (square column)
-  depth = Math.max(depth, width);
-  
-  // Calculate fire resistance allowance if needed
-  let fireAllowance = 0;
-  if (fireRating && fireRating !== 'none') {
-    fireAllowance = calculateFireResistanceAllowance(fireRating);
-  }
-  
-  // Add fire resistance allowance to width and depth
-  // For columns, all 4 sides are exposed
-  const fireAdjustedWidth = width + (2 * fireAllowance); // Both sides exposed
-  const fireAdjustedDepth = depth + (2 * fireAllowance); // Both sides exposed
-  
-  // Find nearest available width and depth
-  const adjustedWidth = findNearestWidth(fireAdjustedWidth);
-  const adjustedDepth = findNearestDepth(adjustedWidth, fireAdjustedDepth);
-  
-  // Calculate self-weight of the column
-  // Convert dimensions to meters
-  const columnWidth = adjustedWidth / 1000; // m
-  const columnDepth = adjustedDepth / 1000; // m
-  
-  // Get timber density from properties (kg/m³)
-  const density = TIMBER_PROPERTIES['MASSLAM_SL33']?.density || 600; // Default to 600 kg/m³
-  
-  // Calculate column volume (m³)
-  const columnVolume = columnWidth * columnDepth * height;
-  
-  // Calculate column weight (kg)
-  const columnWeight = columnVolume * density;
-  
-  // Convert to kN (1 kg = 0.00981 kN)
-  const columnSelfWeight = columnWeight * 0.00981;
-  
-  // For multi-floor columns, calculate the cumulative self-weight
-  // Each floor's column adds weight to the floors below
-  let cumulativeSelfWeight = 0;
-  for (let i = 1; i <= floors; i++) {
-    // Weight of columns from this floor to the top
-    cumulativeSelfWeight += columnSelfWeight * (floors - i + 1);
-  }
-  
-  console.log(`Column self-weight per floor: ${columnSelfWeight.toFixed(2)} kN, Cumulative: ${cumulativeSelfWeight.toFixed(2)} kN`);
-  
-  // Add self-weight to the total load
-  const totalLoadWithSelfWeight = load + cumulativeSelfWeight;
-  console.log(`Total column load (with self-weight): ${totalLoadWithSelfWeight.toFixed(2)} kN`);
-  
-  console.log(`Column size before fire adjustment: ${width}x${depth}mm`);
-  console.log(`Column size after fire adjustment: ${fireAdjustedWidth}x${fireAdjustedDepth}mm`);
-  
-  return {
-    width: adjustedWidth,
-    depth: adjustedDepth,
-    height: height,
-    load: totalLoadWithSelfWeight,
-    tributaryArea: tributaryArea,
-    loadPerFloor: loadPerFloor,
-    selfWeight: columnSelfWeight,
-    cumulativeSelfWeight: cumulativeSelfWeight,
-    floors: floors,
-    fireRating: fireRating,
-    fireAllowance: fireAllowance
-  };
-};
 
 export default function TimberCalculator() {
   // State variables for project details and save modal
@@ -1234,20 +1054,27 @@ export default function TimberCalculator() {
   
   // Function to calculate costs using the simplified calculateCost function
   const calculateCosts = (joistSize, interiorBeamSize, edgeBeamSize, columnSize, buildingLength, buildingWidth, joistSpacing, lengthwiseBays, widthwiseBays, floorHeight, numFloors) => {
-    // Calculate volumes directly
+    console.log('Calculating costs with the following inputs:', {
+      joistSize, 
+      interiorBeamSize, 
+      edgeBeamSize,
+      columnSize,
+      buildingLength,
+      buildingWidth,
+      joistSpacing,
+      lengthwiseBays,
+      widthwiseBays,
+      floorHeight,
+      numFloors
+    });
+    
+    // Calculate beam and column volumes
     const beamVolume = calculateBeamVolume(interiorBeamSize, edgeBeamSize, buildingLength, buildingWidth, lengthwiseBays, widthwiseBays);
     const columnVolume = calculateColumnVolume(columnSize, floorHeight, numFloors, lengthwiseBays, widthwiseBays);
     
-    // For joists, calculate the area in m² (not volume)
+    // Calculate the floor area (for joist cost)
     const floorArea = buildingLength * buildingWidth * numFloors;
-    
-    console.log('Joist Area Calculation:', {
-      buildingLength,
-      buildingWidth,
-      numFloors,
-      calculatedArea: floorArea,
-      formula: `${buildingLength} × ${buildingWidth} × ${numFloors} = ${floorArea} m²`
-    });
+    console.log(`Floor area for joists: ${floorArea.toFixed(2)} m²`);
     
     // Create a simple volumes object for the cost calculator
     const volumes = {
@@ -1261,247 +1088,8 @@ export default function TimberCalculator() {
     // Calculate costs using the simplified function
     return calculateCost(volumes);
   };
-  
-  // Helper function to calculate joist volume
-  const calculateJoistVolume = (joistSize, buildingLength, buildingWidth, joistSpacing) => {
-    const joistWidth = joistSize.width / 1000; // Convert mm to m
-    const joistDepth = joistSize.depth / 1000; // Convert mm to m
-    const joistCount = Math.ceil((buildingLength / joistSpacing) * buildingWidth);
-    const avgJoistLength = buildingWidth; // Simplified calculation
-    
-    return joistWidth * joistDepth * avgJoistLength * joistCount;
-  };
-  
-  // Helper function to calculate beam volume
-  const calculateBeamVolume = (interiorBeamSize, edgeBeamSize, buildingLength, buildingWidth, lengthwiseBays, widthwiseBays) => {
-    console.log("VOLUME DEBUG - calculateBeamVolume inputs:", {
-      interiorBeamSize,
-      edgeBeamSize,
-      buildingLength,
-      buildingWidth,
-      lengthwiseBays,
-      widthwiseBays
-    });
-    
-    const interiorBeamWidth = interiorBeamSize.width / 1000; // Convert mm to m
-    const interiorBeamDepth = interiorBeamSize.depth / 1000; // Convert mm to m
-    const edgeBeamWidth = edgeBeamSize.width / 1000; // Convert mm to m
-    const edgeBeamDepth = edgeBeamSize.depth / 1000; // Convert mm to m
-    
-    // Calculate bay dimensions
-    const bayLengthWidth = buildingLength / lengthwiseBays; // Length of each bay
-    const bayWidthWidth = buildingWidth / widthwiseBays;   // Width of each bay
-    
-    // For this calculation, we'll separate by direction to be more accurate
-    // Lengthwise beams (run along length of building)
-    const lengthwiseInteriorBeamCount = (widthwiseBays - 1);
-    const lengthwiseInteriorBeamLength = buildingLength;
-    const lengthwiseInteriorBeamVolume = interiorBeamWidth * interiorBeamDepth * lengthwiseInteriorBeamLength * lengthwiseInteriorBeamCount;
-    
-    const lengthwiseEdgeBeamCount = 2; // Two edge beams along length
-    const lengthwiseEdgeBeamLength = buildingLength;
-    const lengthwiseEdgeBeamVolume = edgeBeamWidth * edgeBeamDepth * lengthwiseEdgeBeamLength * lengthwiseEdgeBeamCount;
-    
-    // Widthwise beams (run along width of building)
-    const widthwiseInteriorBeamCount = (lengthwiseBays - 1) * (widthwiseBays + 1);
-    const widthwiseInteriorBeamLength = bayWidthWidth;
-    const widthwiseInteriorBeamVolume = interiorBeamWidth * interiorBeamDepth * widthwiseInteriorBeamLength * widthwiseInteriorBeamCount;
-    
-    const widthwiseEdgeBeamCount = 2 * lengthwiseBays; // Two edge beams for each bay along width
-    const widthwiseEdgeBeamLength = bayWidthWidth;
-    const widthwiseEdgeBeamVolume = edgeBeamWidth * edgeBeamDepth * widthwiseEdgeBeamLength * widthwiseEdgeBeamCount;
-    
-    const totalBeamVolume = 
-      lengthwiseInteriorBeamVolume + 
-      lengthwiseEdgeBeamVolume + 
-      widthwiseInteriorBeamVolume + 
-      widthwiseEdgeBeamVolume;
-    
-    console.log('VOLUME DEBUG - Detailed beam volume calculation:', {
-      lengthwiseInteriorBeams: { 
-        count: lengthwiseInteriorBeamCount, 
-        length: lengthwiseInteriorBeamLength, 
-        width: interiorBeamWidth,
-        depth: interiorBeamDepth,
-        volume: lengthwiseInteriorBeamVolume 
-      },
-      lengthwiseEdgeBeams: { 
-        count: lengthwiseEdgeBeamCount, 
-        length: lengthwiseEdgeBeamLength, 
-        width: edgeBeamWidth,
-        depth: edgeBeamDepth,
-        volume: lengthwiseEdgeBeamVolume 
-      },
-      widthwiseInteriorBeams: { 
-        count: widthwiseInteriorBeamCount, 
-        length: widthwiseInteriorBeamLength, 
-        width: interiorBeamWidth,
-        depth: interiorBeamDepth,
-        volume: widthwiseInteriorBeamVolume 
-      },
-      widthwiseEdgeBeams: { 
-        count: widthwiseEdgeBeamCount, 
-        length: widthwiseEdgeBeamLength, 
-        width: edgeBeamWidth,
-        depth: edgeBeamDepth,
-        volume: widthwiseEdgeBeamVolume 
-      },
-      totalBeamVolume
-    });
-    
-    console.log(`VOLUME DEBUG - Final beam volume: ${totalBeamVolume}`);
-    
-    return totalBeamVolume;
-  };
-  
-  // Helper function to calculate column volume
-  const calculateColumnVolume = (columnSize, floorHeight, numFloors, lengthwiseBays, widthwiseBays) => {
-    const columnWidth = columnSize.width / 1000; // Convert mm to m
-    const columnDepth = columnSize.depth / 1000; // Convert mm to m
-    const columnHeight = floorHeight; // Height per floor in meters
-    
-    // Total number of columns in the building grid
-    const columnCount = (lengthwiseBays + 1) * (widthwiseBays + 1);
-    
-    // Total height of all columns is column height × number of floors
-    const totalColumnHeight = columnHeight * numFloors;
-    
-    // Calculate total volume of all columns
-    const totalColumnVolume = columnWidth * columnDepth * totalColumnHeight * columnCount;
-    
-    console.log('Column volume calculation:', {
-      columnSize,
-      convertedWidth: columnWidth,
-      convertedDepth: columnDepth,
-      columnCount,
-      heightPerFloor: columnHeight,
-      numFloors,
-      totalHeight: totalColumnHeight,
-      totalVolume: totalColumnVolume
-    });
-    
-    return totalColumnVolume;
-  };
-  
-  // Example of a component section converted to use Tailwind classes
-  return (
-    <div className="apple-section">
-      <div className="flex justify-between items-center mb-12">
-        <h1 style={{ color: 'var(--apple-text)' }}>Member Calculator</h1>
-          </div>
-      
-      {/* Success Message */}
-      {saveMessage && (
-        <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
-          <span className="block sm:inline">{saveMessage}</span>
-        </div>
-      )}
-      
-      {/* Save Project Modal */}
-      {showSaveModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="apple-card max-w-md w-full">
-            <div className="apple-card-header">
-              <h2 className="text-xl font-semibold">Save Project</h2>
-        </div>
-        
-            <div className="apple-card-body">
-              <div className="grid grid-cols-1 gap-4 mb-4">
-            <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Project Name</label>
-              <input 
-                type="text" 
-                    className="apple-input"
-                value={projectDetails.name}
-                onChange={(e) => setProjectDetails({...projectDetails, name: e.target.value})}
-              />
-            </div>
-            <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Client</label>
-              <input 
-                type="text" 
-                    className="apple-input"
-                value={projectDetails.client}
-                onChange={(e) => setProjectDetails({...projectDetails, client: e.target.value})}
-              />
-            </div>
-            <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--apple-text-secondary)' }}>Location</label>
-              <input 
-                type="text" 
-                    className="apple-input"
-                value={projectDetails.location}
-                onChange={(e) => setProjectDetails({...projectDetails, location: e.target.value})}
-              />
-            </div>
-          </div>
-        </div>
-        
-            <div className="apple-card-footer flex justify-end space-x-3">
-              <button 
-                className="apple-button apple-button-secondary"
-                onClick={() => setShowSaveModal(false)}
-              >
-                Cancel
-              </button>
-              <button 
-                className="apple-button apple-button-primary"
-                onClick={saveProject}
-              >
-                Save Project
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      <div className="apple-grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8">
-        {/* Config Panel */}
-        <div className="lg:col-span-6 xl:col-span-5 w-full">
-          <div className="apple-card">
-            <div className="apple-card-header flex justify-between items-center">
-              <h2 className="text-lg md:text-xl font-semibold m-0">Configuration</h2>
-            </div>
-            
-            <div className="apple-card-body">
-              <div className="apple-specs-table mb-6 md:mb-8">
-                <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Structure Configuration</h3>
-                
-                {/* Load Type with Radio Buttons */}
-                <div className="apple-specs-row">
-                  <div className="apple-specs-label">Load Type</div>
-                  <div className="apple-specs-value">
-                    <div className="flex flex-col space-y-3">
-                      <label className="inline-flex items-center">
-                        <input
-                          type="radio"
-                          id="residential"
-                          name="load"
-                          className="form-radio h-4 w-4 text-blue-600"
-                          checked={load === 2}
-                          onChange={() => handleLoadChange(2)}
-                        />
-                        <span className="ml-3">Residential (2 kPa)</span>
-                      </label>
-                      <label className="inline-flex items-center">
-                        <input
-                          type="radio"
-                          className="form-radio h-5 w-5"
-                          style={{ accentColor: 'var(--apple-blue)' }}
-                          name="loadType"
-                          checked={load === 3}
-                          onChange={() => handleLoadChange(3)}
-                        />
-                        <span className="ml-3">Commercial (3 kPa)</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Fire Rating with Select Dropdown */}
-                <div className="apple-specs-row">
-                  <div className="apple-specs-label">Fire Rating (FRL)</div>
-                  <div className="apple-specs-value">
+  // NOTE: The volume calculation functions (calculateJoistVolume, calculateBeamVolume, calculateColumnVolume)
+  // have been moved to separate utility files in src/utils/calculations/ and are now imported at the top of this file.
               <select 
                       className="apple-input apple-select mb-0"
                 value={fireRating}
