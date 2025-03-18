@@ -1090,7 +1090,7 @@ export default function BuildingVisualization() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [joistPosition, setJoistPosition] = useState('ontop'); // 'ontop', 'halfnotch', or 'inline'
-  const [renderMode, setRenderMode] = useState('engineering'); // 'engineering' or 'architectural'
+  const [renderMode, setRenderMode] = useState('architectural'); // 'engineering' or 'architectural'
   const [showDebugTree, setShowDebugTree] = useState(false); // Debug mode for tree scaling
 
   useEffect(() => {

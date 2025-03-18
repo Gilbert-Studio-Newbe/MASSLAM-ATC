@@ -1572,7 +1572,7 @@ export default function TimberCalculator() {
                   />
 
                   <SliderInput 
-                    label="Floor Height (m)"
+                    label="Floor to Floor (m)"
                       value={floorHeight} 
                     onChange={handleFloorHeightChange}
                     min={2.4}
@@ -1616,8 +1616,24 @@ export default function TimberCalculator() {
         <div className="lg:col-span-6 xl:col-span-7 w-full">
           {results ? (
             <div className="apple-results">
-              <div className="apple-results-header">
-                <h2 className="text-lg md:text-xl font-semibold">Bay Layout</h2>
+              <div className="apple-card-header flex justify-between items-center">
+                <h2 className="text-lg md:text-xl font-semibold m-0">Bay Layout</h2>
+                
+                {/* Save Project Button - Moved from below */}
+                <div className="flex">
+                  <Link 
+                    href="/3d-visualization" 
+                    className="apple-button apple-button-secondary mr-4"
+                  >
+                    View 3D Model
+                  </Link>
+                  <button 
+                    className="apple-button apple-button-primary"
+                    onClick={() => setShowSaveModal(true)}
+                  >
+                    Save Project
+                  </button>
+                </div>
               </div>
               
               <div className="apple-results-body">
@@ -2515,21 +2531,7 @@ export default function TimberCalculator() {
                   </div>
                 )}
                 
-                {/* Save Project Button */}
-                <div className="flex justify-end mt-8">
-                  <Link 
-                    href="/3d-visualization" 
-                    className="apple-button apple-button-secondary mr-4"
-                  >
-                    View 3D Model
-                  </Link>
-                  <button 
-                    className="apple-button apple-button-primary"
-                    onClick={() => setShowSaveModal(true)}
-                  >
-                    Save Project
-                  </button>
-                </div>
+                {/* Save Project Button moved to the header area */}
               </div>
             </div>
           ) : (
