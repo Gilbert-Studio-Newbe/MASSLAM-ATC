@@ -16,11 +16,7 @@ const BayLayoutVisualizer = ({
   customLengthwiseBayWidths = [],
   customWidthwiseBayWidths = [],
   useCustomBayDimensions = false,
-  isMobile = false,
-  onToggleJoistDirection = () => {}, // Add function prop for toggling joist direction
-  onToggleCustomBayDimensions = () => {},
-  onLengthwiseBayWidthChange = () => {},
-  onWidthwiseBayWidthChange = () => {}
+  isMobile = false
 }) => {
   // Function to calculate bay dimensions (copied from TimberCalculator.js)
   const calculateBayDimensions = () => {
@@ -130,7 +126,6 @@ const BayLayoutVisualizer = ({
                       max="10"
                       step="0.1"
                       value={customLengthwiseBayWidths[index]}
-                      onChange={(e) => onLengthwiseBayWidthChange(index, parseFloat(e.target.value))}
                       className="block w-full py-1 px-2 border border-gray-300 rounded-md shadow-sm text-sm"
                     />
                     <span className="ml-1">m</span>
@@ -162,7 +157,6 @@ const BayLayoutVisualizer = ({
                       max="10"
                       step="0.1"
                       value={customWidthwiseBayWidths[index]}
-                      onChange={(e) => onWidthwiseBayWidthChange(index, parseFloat(e.target.value))}
                       className="block w-full py-1 px-2 border border-gray-300 rounded-md shadow-sm text-sm"
                     />
                     <span className="ml-1">m</span>
@@ -194,7 +188,6 @@ const BayLayoutVisualizer = ({
               name="toggle"
               id="customBayToggle"
               checked={useCustomBayDimensions}
-              onChange={() => onToggleCustomBayDimensions(!useCustomBayDimensions)}
               className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
             />
             <label
@@ -673,30 +666,12 @@ const BayLayoutVisualizer = ({
           <div className="text-xs md:text-sm">Custom grid cell sizes applied</div>
         )}
         
-        {/* Joist direction toggle buttons */}
-        <div className="mt-3 mb-3">
-          <div className="flex rounded-md overflow-hidden w-full max-w-md mx-auto">
-            <button 
-              className={`flex-1 py-2 px-4 text-center ${joistsRunLengthwise ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}
-              onClick={() => !joistsRunLengthwise && onToggleJoistDirection()}
-            >
-              Vertical Joists ↕
-            </button>
-            <button 
-              className={`flex-1 py-2 px-4 text-center ${!joistsRunLengthwise ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}
-              onClick={() => joistsRunLengthwise && onToggleJoistDirection()}
-            >
-              Horizontal Joists ↔
-            </button>
-          </div>
-          
-          <p className="text-center text-xs text-gray-500 mt-2">
-            ↔ / ↕ Arrows indicate joist span direction (click arrows or use toggle above to change direction)
-          </p>
-          <p className="text-center text-xs text-gray-500 mt-1">
-            Joists are spaced at 800mm centres
-          </p>
-        </div>
+        <p className="text-center text-xs text-gray-500 mt-2">
+          ↔ / ↕ Arrows indicate joist span direction
+        </p>
+        <p className="text-center text-xs text-gray-500 mt-1">
+          Joists are spaced at 800mm centres
+        </p>
       </div>
     </div>
   );

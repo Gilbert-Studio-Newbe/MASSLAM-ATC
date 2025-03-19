@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import LoadTypeSelector from './LoadTypeSelector';
 import FireRatingSelector from './FireRatingSelector';
 
@@ -22,6 +23,24 @@ const StructureConfigSection = ({
   widthwiseBays,
   isMobile
 }) => {
+  const [isClient, setIsClient] = useState(false);
+  const [joistDirectionText, setJoistDirectionText] = useState('');
+  
+  // Set client-side state and calculate text only after component mounts
+  useEffect(() => {
+    setIsClient(true);
+    updateJoistDirectionText();
+  }, [joistsRunLengthwise, buildingLength, buildingWidth]);
+  
+  // Update joist direction text when relevant props change
+  const updateJoistDirectionText = () => {
+    if (joistsRunLengthwise) {
+      setJoistDirectionText(`Joists span ${buildingWidth}m width, supported by beams along length`);
+    } else {
+      setJoistDirectionText(`Joists span ${buildingLength}m length, supported by beams along width`);
+    }
+  };
+  
   return (
     <div className="apple-specs-table mb-6 md:mb-8">
       <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Structure Configuration</h3>
@@ -53,11 +72,11 @@ const StructureConfigSection = ({
             Widthwise
           </button>
         </div>
-        <p className="mt-1 text-xs text-gray-500">
-          {joistsRunLengthwise
-            ? `Joists span ${buildingWidth}m width, supported by beams along length`
-            : `Joists span ${buildingLength}m length, supported by beams along width`}
-        </p>
+        {isClient ? (
+          <p className="mt-1 text-xs text-gray-500">{joistDirectionText}</p>
+        ) : (
+          <p className="mt-1 text-xs text-gray-500">Joists span direction</p>
+        )}
       </div>
       
       {/* Custom Bay Dimensions */}

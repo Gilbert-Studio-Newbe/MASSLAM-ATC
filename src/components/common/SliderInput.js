@@ -32,7 +32,18 @@ const SliderInput = ({
 }) => {
   const [inputValue, setInputValue] = useState(value.toString());
   const [isEditing, setIsEditing] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [clientDescription, setClientDescription] = useState(description);
   const inputRef = useRef(null);
+  
+  // Set isClient to true when component mounts on client
+  useEffect(() => {
+    setIsClient(true);
+    // If description contains dynamic values, we store them client-side only
+    if (description) {
+      setClientDescription(description);
+    }
+  }, [description]);
   
   // Update local state when prop value changes
   useEffect(() => {
@@ -89,8 +100,8 @@ const SliderInput = ({
       <div className="flex justify-between items-center mb-1">
         <div className="flex-grow">
           <label className="text-sm font-medium text-gray-700">{label}</label>
-          {description && (
-            <div className="text-xs text-gray-500">{description}</div>
+          {isClient && clientDescription && (
+            <div className="text-xs text-gray-500">{clientDescription}</div>
           )}
         </div>
         <div className="flex items-center">

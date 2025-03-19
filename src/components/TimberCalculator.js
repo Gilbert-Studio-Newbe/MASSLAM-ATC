@@ -1247,8 +1247,14 @@ export default function TimberCalculator() {
   };
   
   // Handlers for custom bay dimensions
-  const handleToggleCustomBayDimensions = () => {
-    updateBuildingData('useCustomBayDimensions', !buildingData.useCustomBayDimensions);
+  const handleToggleCustomBayDimensions = (value) => {
+    if (value === true || value === false) {
+      // If a specific value is provided, use it
+      updateBuildingData('useCustomBayDimensions', value);
+    } else {
+      // Otherwise toggle current value
+      updateBuildingData('useCustomBayDimensions', !buildingData.useCustomBayDimensions);
+    }
   };
   
   const handleLengthwiseBayWidthChange = (index, value) => {
@@ -1346,8 +1352,14 @@ export default function TimberCalculator() {
   };
   
   // Toggle joist direction globally
-  const toggleJoistDirection = () => {
-    updateBuildingData('joistsRunLengthwise', !buildingData.joistsRunLengthwise);
+  const toggleJoistDirection = (direction) => {
+    if (direction === true || direction === false) {
+      // If a specific direction is provided, use it
+      updateBuildingData('joistsRunLengthwise', direction);
+    } else {
+      // Otherwise toggle current value
+      updateBuildingData('joistsRunLengthwise', !buildingData.joistsRunLengthwise);
+    }
   };
   
   // Handler for timber grade changes
@@ -1687,13 +1699,9 @@ export default function TimberCalculator() {
             lengthwiseBays={buildingData.lengthwiseBays}
             widthwiseBays={buildingData.widthwiseBays}
             joistsRunLengthwise={buildingData.joistsRunLengthwise}
-            onToggleJoistDirection={toggleJoistDirection}
             useCustomBayDimensions={buildingData.useCustomBayDimensions}
             customLengthwiseBayWidths={buildingData.customLengthwiseBayWidths}
             customWidthwiseBayWidths={buildingData.customWidthwiseBayWidths}
-            onToggleCustomBayDimensions={handleToggleCustomBayDimensions}
-            onLengthwiseBayWidthChange={handleLengthwiseBayWidthChange}
-            onWidthwiseBayWidthChange={handleWidthwiseBayWidthChange}
           />
         </div>
       </div>

@@ -19,7 +19,11 @@ const ResultsDisplay = ({
   joistsRunLengthwise,
   useCustomBayDimensions,
   customLengthwiseBayWidths,
-  customWidthwiseBayWidths
+  customWidthwiseBayWidths,
+  onToggleJoistDirection,
+  onToggleCustomBayDimensions,
+  onLengthwiseBayWidthChange,
+  onWidthwiseBayWidthChange
 }) => {
   // Add client-side state to avoid hydration mismatch
   const [isClient, setIsClient] = useState(false);
@@ -61,6 +65,7 @@ const ResultsDisplay = ({
   if (!isClient) {
     return (
       <div className="apple-card p-6 text-center">
+        <h2 className="text-xl font-semibold mb-4">Results</h2>
         <p style={{ color: 'var(--apple-text-secondary)' }}>Loading calculation results...</p>
       </div>
     );
@@ -70,6 +75,7 @@ const ResultsDisplay = ({
   if (!results) {
     return (
       <div className="apple-card p-6 text-center">
+        <h2 className="text-xl font-semibold mb-4">Results</h2>
         <p style={{ color: 'var(--apple-text-secondary)' }}>Configure your timber structure parameters to see calculation results.</p>
       </div>
     );
@@ -83,7 +89,44 @@ const ResultsDisplay = ({
   
   return (
     <div className="apple-results" key={resultsKey} ref={resultsRef}>
+      <style jsx>{`
+        /* Toggle Switch Styles */
+        .toggle-checkbox:checked {
+          right: 0;
+          border-color: #3b82f6;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+          background-color: #3b82f6;
+        }
+        .toggle-checkbox {
+          right: 0;
+          z-index: 5;
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+        .toggle-checkbox + .toggle-label {
+          position: relative;
+        }
+        .toggle-checkbox + .toggle-label:before {
+          content: '';
+          position: absolute;
+          width: 1.5rem;
+          height: 1.5rem;
+          border-radius: 50%;
+          background-color: white;
+          top: -3px;
+          left: 0;
+          transition: 0.2s;
+          box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+        }
+        .toggle-checkbox:checked + .toggle-label:before {
+          left: calc(100% - 1.5rem);
+        }
+      `}</style>
       <div className="apple-card-header flex justify-between items-center">
+        <h2 className="text-lg md:text-xl font-semibold m-0">Results</h2>
+        
         {/* Action Buttons */}
         <div className="flex">
           <Link 
@@ -120,6 +163,110 @@ const ResultsDisplay = ({
               customLengthwiseBayWidths={customLengthwiseBayWidths}
               customWidthwiseBayWidths={customWidthwiseBayWidths}
             />
+            
+            {/* Configuration Controls */}
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              {/* Joist Direction */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Joist Direction</label>
+                <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => onToggleJoistDirection(true)}
+                    className={`px-4 py-2 text-sm font-medium rounded-l-md ${
+                      joistsRunLengthwise
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Lengthwise
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onToggleJoistDirection(false)}
+                    className={`px-4 py-2 text-sm font-medium rounded-r-md ${
+                      !joistsRunLengthwise
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Widthwise
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  {joistsRunLengthwise
+                    ? `Joists span ${buildingWidth}m width, supported by beams along length`
+                    : `Joists span ${buildingLength}m length, supported by beams along width`}
+                </p>
+              </div>
+              
+              {/* Custom Bay Dimensions */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium text-gray-700">Custom Bay Dimensions</label>
+                  <div className="relative inline-block w-10 mr-2 align-middle select-none">
+                    <input
+                      type="checkbox"
+                      name="toggle"
+                      id="customBayToggle"
+                      checked={useCustomBayDimensions}
+                      onChange={() => onToggleCustomBayDimensions(!useCustomBayDimensions)}
+                      className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+                    />
+                    <label
+                      htmlFor="customBayToggle"
+                      className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"
+                    ></label>
+                  </div>
+                </div>
+                
+                {useCustomBayDimensions && (
+                  <div className={`mt-3 ${isMobile ? '' : 'grid grid-cols-2 gap-4'}`}>
+                    {/* Lengthwise Bay Widths */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Lengthwise Bay Widths (m)</label>
+                      <div className="space-y-2">
+                        {Array.from({ length: lengthwiseBays }).map((_, index) => (
+                          <div key={`lengthwise-bay-${index}`} className="flex items-center">
+                            <span className="text-sm text-gray-500 mr-2 w-6">L{index + 1}:</span>
+                            <input
+                              type="number"
+                              min="0.5"
+                              max="10"
+                              step="0.1"
+                              value={customLengthwiseBayWidths[index]}
+                              onChange={(e) => onLengthwiseBayWidthChange(index, parseFloat(e.target.value))}
+                              className="block w-full py-1 px-2 border border-gray-300 rounded-md shadow-sm text-sm"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Widthwise Bay Widths */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Widthwise Bay Widths (m)</label>
+                      <div className="space-y-2">
+                        {Array.from({ length: widthwiseBays }).map((_, index) => (
+                          <div key={`widthwise-bay-${index}`} className="flex items-center">
+                            <span className="text-sm text-gray-500 mr-2 w-6">W{index + 1}:</span>
+                            <input
+                              type="number"
+                              min="0.5"
+                              max="10"
+                              step="0.1"
+                              value={customWidthwiseBayWidths[index]}
+                              onChange={(e) => onWidthwiseBayWidthChange(index, parseFloat(e.target.value))}
+                              className="block w-full py-1 px-2 border border-gray-300 rounded-md shadow-sm text-sm"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

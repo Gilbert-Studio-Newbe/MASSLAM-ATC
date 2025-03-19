@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import SliderInput from '../common/SliderInput';
 
 /**
@@ -19,6 +20,17 @@ const DimensionsSection = ({
   onLengthwiseBaysChange,
   onWidthwiseBaysChange
 }) => {
+  const [isClient, setIsClient] = useState(false);
+  const [lengthwiseBayWidth, setLengthwiseBayWidth] = useState("");
+  const [widthwiseBayWidth, setWidthwiseBayWidth] = useState("");
+  
+  // Calculate bay widths client-side only to avoid hydration mismatches
+  useEffect(() => {
+    setIsClient(true);
+    setLengthwiseBayWidth(`Current bay width: ${(buildingLength / lengthwiseBays).toFixed(2)} m`);
+    setWidthwiseBayWidth(`Current bay depth: ${(buildingWidth / widthwiseBays).toFixed(2)} m`);
+  }, [buildingLength, buildingWidth, lengthwiseBays, widthwiseBays]);
+
   return (
     <div className="apple-specs-table mb-6 md:mb-8">
       <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Dimensions</h3>
@@ -71,7 +83,7 @@ const DimensionsSection = ({
         max={20}
         step={1}
         isInteger={true}
-        description={`Current bay width: ${(buildingLength / lengthwiseBays).toFixed(2)} m`}
+        description={isClient ? lengthwiseBayWidth : null}
       />
 
       <SliderInput 
@@ -82,7 +94,7 @@ const DimensionsSection = ({
         max={20}
         step={1}
         isInteger={true}
-        description={`Current bay depth: ${(buildingWidth / widthwiseBays).toFixed(2)} m`}
+        description={isClient ? widthwiseBayWidth : null}
       />
     </div>
   );
