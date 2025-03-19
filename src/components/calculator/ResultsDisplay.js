@@ -167,6 +167,7 @@ const ResultsDisplay = ({
                   <p><span className="text-gray-500">Volume:</span> {results.elementVolumes?.joists ? `${results.elementVolumes.joists.toFixed(2)} m³` : 'N/A'}</p>
                   <p><span className="text-gray-500">Quantity:</span> {results.elementCounts?.joists ? `${results.elementCounts.joists} pieces` : 'N/A'}</p>
                   <p><span className="text-gray-500">Size:</span> {results.joistSize ? `${results.joistSize.width}×${results.joistSize.depth}mm` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Floor Area:</span> {results.floorArea ? `${results.floorArea} m²` : 'N/A'}</p>
                 </div>
               </div>
               <div>
