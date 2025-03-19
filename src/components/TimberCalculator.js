@@ -937,7 +937,7 @@ export default function TimberCalculator() {
       // Calculate timber volume and weight using the existing function
         const timberResult = calculateTimberWeight(
           joistSize, 
-          interiorBeamSize,
+        interiorBeamSize,
           columnSize, 
           buildingData.buildingLength, 
           buildingData.buildingWidth, 

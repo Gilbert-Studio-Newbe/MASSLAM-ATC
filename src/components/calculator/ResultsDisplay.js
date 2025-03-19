@@ -97,6 +97,32 @@ const ResultsDisplay = ({
       </div>
       
       <div className="apple-results-body">
+        {/* Total Cost Estimate Section */}
+        <div className="apple-card mb-8">
+          <div className="apple-card-body">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-6 bg-gray-50 rounded-lg">
+                <h3 className="text-xl font-semibold mb-4">Total Cost Estimate</h3>
+                <div className="text-4xl font-bold text-green-600 mb-2">
+                  {results.costs?.total ? formatCurrency(results.costs.total) : 'N/A'}
+                </div>
+                <div className="text-sm text-gray-500">
+                  Excluding GST and installation
+                </div>
+              </div>
+              <div className="p-6 bg-gray-50 rounded-lg">
+                <h3 className="text-xl font-semibold mb-4">Carbon Saving vs Steel/Concrete:</h3>
+                <div className="text-4xl font-bold text-green-600 mb-2">
+                  {results.carbonSavings ? `${(results.carbonSavings / 1000).toFixed(2)} tonnes CO₂e` : 'N/A'}
+                </div>
+                <div className="text-sm text-gray-500">
+                  Equivalent to {results.carbonSavings ? `${Math.round(results.carbonSavings / 22)}` : 'N/A'} trees planted
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         {/* Member Sizes Section */}
         <div className="apple-card mb-8">
           <div className="apple-card-header">
@@ -154,6 +180,50 @@ const ResultsDisplay = ({
           </div>
         </div>
         
+        {/* Cost Breakdown Section */}
+        <div className="apple-card mb-8">
+          <div className="apple-card-header">
+            <h3 className="text-md font-semibold">Cost Breakdown</h3>
+          </div>
+          <div className="apple-card-body">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <h4 className="text-sm font-medium mb-2">Joist Costs</h4>
+                <div className="text-sm">
+                  <p><span className="text-gray-500">Total Cost:</span> {results.costs?.elements?.joists?.cost ? formatCurrency(results.costs.elements.joists.cost) : 'N/A'}</p>
+                  <p><span className="text-gray-500">Rate (per m²):</span> {results.costs?.elements?.joists?.rate ? `$${results.costs.elements.joists.rate.toFixed(2)}` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Area Used:</span> {results.costs?.elements?.joists?.volume ? `${results.costs.elements.joists.volume.toFixed(2)} m²` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Calculation:</span> {results.costs?.elements?.joists?.volume && results.costs?.elements?.joists?.rate ? `${results.costs.elements.joists.volume.toFixed(2)} m² × $${results.costs.elements.joists.rate.toFixed(2)}` : 'N/A'}</p>
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium mb-2">Beam Costs</h4>
+                <div className="text-sm">
+                  <p><span className="text-gray-500">Total Cost:</span> {results.costs?.elements?.beams?.cost ? formatCurrency(results.costs.elements.beams.cost) : 'N/A'}</p>
+                  <p><span className="text-gray-500">Rate (per m³):</span> {results.costs?.elements?.beams?.rate ? `$${results.costs.elements.beams.rate.toFixed(2)}` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Volume Used:</span> {results.costs?.elements?.beams?.volume ? `${results.costs.elements.beams.volume.toFixed(2)} m³` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Calculation:</span> {results.costs?.elements?.beams?.volume && results.costs?.elements?.beams?.rate ? `${results.costs.elements.beams.volume.toFixed(2)} m³ × $${results.costs.elements.beams.rate.toFixed(2)}` : 'N/A'}</p>
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium mb-2">Column Costs</h4>
+                <div className="text-sm">
+                  <p><span className="text-gray-500">Total Cost:</span> {results.costs?.elements?.columns?.cost ? formatCurrency(results.costs.elements.columns.cost) : 'N/A'}</p>
+                  <p><span className="text-gray-500">Rate (per m³):</span> {results.costs?.elements?.columns?.rate ? `$${results.costs.elements.columns.rate.toFixed(2)}` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Volume Used:</span> {results.costs?.elements?.columns?.volume ? `${results.costs.elements.columns.volume.toFixed(2)} m³` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Calculation:</span> {results.costs?.elements?.columns?.volume && results.costs?.elements?.columns?.rate ? `${results.costs.elements.columns.volume.toFixed(2)} m³ × $${results.costs.elements.columns.rate.toFixed(2)}` : 'N/A'}</p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="text-sm font-medium">
+                <p><span className="text-gray-700">Total Material Cost:</span> {results.costs?.total ? formatCurrency(results.costs.total) : 'N/A'}</p>
+                <p><span className="text-gray-700">Rate Sources:</span> Rates are stored in localStorage and can be customized.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         {/* Material Summary Section */}
         <div className="apple-card">
           <div className="apple-card-header">
@@ -192,65 +262,6 @@ const ResultsDisplay = ({
               <div className="text-sm font-medium">
                 <p><span className="text-gray-700">Total Timber Volume:</span> {results.timberVolume ? `${results.timberVolume.toFixed(2)} m³` : 'N/A'}</p>
                 <p><span className="text-gray-700">Total Mass:</span> {results.timberWeight ? `${(results.timberWeight / 1000).toFixed(2)} tonnes` : 'N/A'}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Cost Details Section */}
-        <div className="apple-card mt-8">
-          <div className="apple-card-header">
-            <h3 className="text-md font-semibold">Cost Details</h3>
-          </div>
-          <div className="apple-card-body">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <h4 className="text-sm font-medium mb-2">Joists</h4>
-                <div className="text-sm">
-                  <p><span className="text-gray-500">Area:</span> {results.costs?.elements?.joists?.volume ? `${results.costs.elements.joists.volume.toFixed(2)} m²` : 'N/A'}</p>
-                  <p><span className="text-gray-500">Rate:</span> {results.costs?.elements?.joists?.rate ? `$${results.costs.elements.joists.rate.toFixed(2)}/m²` : 'N/A'}</p>
-                  <p><span className="text-gray-500">Total Cost:</span> {results.costs?.elements?.joists?.cost ? formatCurrency(results.costs.elements.joists.cost) : 'N/A'}</p>
-                  <p><span className="text-gray-500">Calculation:</span> {results.costs?.elements?.joists?.volume && results.costs?.elements?.joists?.rate ? 
-                    `${results.costs.elements.joists.volume.toFixed(2)} m² × $${results.costs.elements.joists.rate.toFixed(2)}/m²` : 'N/A'}</p>
-                </div>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">Beams</h4>
-                <div className="text-sm">
-                  <p><span className="text-gray-500">Volume:</span> {results.costs?.elements?.beams?.volume ? `${results.costs.elements.beams.volume.toFixed(2)} m³` : 'N/A'}</p>
-                  <p><span className="text-gray-500">Rate:</span> {results.costs?.elements?.beams?.rate ? `$${results.costs.elements.beams.rate.toFixed(2)}/m³` : 'N/A'}</p>
-                  <p><span className="text-gray-500">Total Cost:</span> {results.costs?.elements?.beams?.cost ? formatCurrency(results.costs.elements.beams.cost) : 'N/A'}</p>
-                  <p><span className="text-gray-500">Calculation:</span> {results.costs?.elements?.beams?.volume && results.costs?.elements?.beams?.rate ? 
-                    `${results.costs.elements.beams.volume.toFixed(2)} m³ × $${results.costs.elements.beams.rate.toFixed(2)}/m³` : 'N/A'}</p>
-                </div>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">Columns</h4>
-                <div className="text-sm">
-                  <p><span className="text-gray-500">Volume:</span> {results.costs?.elements?.columns?.volume ? `${results.costs.elements.columns.volume.toFixed(2)} m³` : 'N/A'}</p>
-                  <p><span className="text-gray-500">Rate:</span> {results.costs?.elements?.columns?.rate ? `$${results.costs.elements.columns.rate.toFixed(2)}/m³` : 'N/A'}</p>
-                  <p><span className="text-gray-500">Total Cost:</span> {results.costs?.elements?.columns?.cost ? formatCurrency(results.costs.elements.columns.cost) : 'N/A'}</p>
-                  <p><span className="text-gray-500">Calculation:</span> {results.costs?.elements?.columns?.volume && results.costs?.elements?.columns?.rate ? 
-                    `${results.costs.elements.columns.volume.toFixed(2)} m³ × $${results.costs.elements.columns.rate.toFixed(2)}/m³` : 'N/A'}</p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="text-sm">
-                  <h4 className="text-sm font-medium mb-2">Summary</h4>
-                  <p><span className="text-gray-700">Total Material Cost:</span> {results.costs?.total ? formatCurrency(results.costs.total) : 'N/A'}</p>
-                  <p><span className="text-gray-700">Cost per m²:</span> {results.costs?.total && results.floorArea ? 
-                    formatCurrency(results.costs.total / parseFloat(results.floorArea)) + '/m²' : 'N/A'}</p>
-                  <p><span className="text-gray-700">Cost per m³:</span> {results.costs?.total && results.timberVolume ? 
-                    formatCurrency(results.costs.total / results.timberVolume) + '/m³' : 'N/A'}</p>
-                </div>
-                <div className="text-sm">
-                  <h4 className="text-sm font-medium mb-2">Environmental</h4>
-                  <p><span className="text-gray-700">Carbon Stored:</span> {results.timberWeight ? `${(results.timberWeight * 0.5 / 1000).toFixed(2)} tonnes CO₂` : 'N/A'}</p>
-                  <p><span className="text-gray-700">Carbon Saved vs Concrete/Steel:</span> {results.carbonSavings ? `${results.carbonSavings.toFixed(2)} kg CO₂` : 'N/A'}</p>
-                  <p><span className="text-gray-700">Equivalent to:</span> {results.carbonSavings ? `${(results.carbonSavings / 150).toFixed(1)} trees planted` : 'N/A'}</p>
-                </div>
               </div>
             </div>
           </div>
