@@ -174,7 +174,7 @@ function findNearestValue(target, values) {
  * @param {string} fireRating - Fire rating ('none', '30/30/30', '60/60/60', '90/90/90', '120/120/120')
  * @returns {number} Fixed width in mm based on fire rating
  */
-function getFixedWidthForFireRating(fireRating) {
+export function getFixedWidthForFireRating(fireRating) {
   switch (fireRating) {
     case 'none':
       return 120; // Available in CSV

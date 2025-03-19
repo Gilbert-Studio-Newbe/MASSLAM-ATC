@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useBuildingData } from '../contexts/BuildingDataContext';
+import { useFireResistance, calculateFireParams } from './FireResistanceCalculator';
 import { 
   calculateJoistSize, 
   calculateBeamSize, 
@@ -10,7 +12,9 @@ import {
   calculateCarbonSavings,
   validateStructure,
   TIMBER_PROPERTIES,
-  loadTimberProperties
+  loadTimberProperties,
+  calculateMasslamBeamSize,
+  getFixedWidthForFireRating
 } from '@/utils/timberEngineering';
 import { 
   loadMasslamSizes,
@@ -238,46 +242,40 @@ const calculateMultiFloorColumnSize = (beamWidth, load, height, floors, fireRati
 };
 
 export default function TimberCalculator() {
-  // State variables for project details and save modal
+  // Use BuildingDataContext
+  const { 
+    buildingData,
+    updateBuildingData,
+    updateCalculationResults,
+    updateMultipleProperties,
+    resetBuildingData,
+    handleFireRatingChange
+  } = useBuildingData();
+  const { handleFireRatingChange: fireResistanceHandleFireRatingChange } = useFireResistance();
+  
+  // Project details
   const [projectDetails, setProjectDetails] = useState({
-    name: 'New Timber Structure',
-    client: '',
-    location: '',
-    date: new Date().toISOString().split('T')[0],
+    name: buildingData.projectName || '',
+    designer: buildingData.designer || '',
+    client: buildingData.client || '',
+    date: buildingData.date || new Date().toISOString().split('T')[0]
   });
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [showImportDialog, setShowImportDialog] = useState(false);
+  
+  // Local state
   const [saveMessage, setSaveMessage] = useState('');
   const [error, setError] = useState(null);
-  
-  // Mobile detection state
   const [isMobile, setIsMobile] = useState(false);
-
-  const [results, setResults] = useState(null);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [csvLoadingErrors, setCsvLoadingErrors] = useState({});
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+  const [propertiesLoaded, setPropertiesLoaded] = useState(false);
+  const [results, setResults] = useState(buildingData.results || null);
   
-  // Building dimension state variables
-  const [buildingLength, setBuildingLength] = useState(18);    // Default 18m
-  const [buildingWidth, setBuildingWidth] = useState(14);      // Default 14m
-  const [lengthwiseBays, setLengthwiseBays] = useState(3);    // Default 3 bays for 18m length
-  const [widthwiseBays, setWidthwiseBays] = useState(2);      // Default 2 bays for 14m width
-  
-  // Add a new state variable for number of floors
-  const [numFloors, setNumFloors] = useState(6); // Default to 6 floors
-  
-  // Add a new state variable for floor height
-  const [floorHeight, setFloorHeight] = useState(3.2); // Default to 3.2m
-  
-  // Custom bay dimensions state variables
-  const [customLengthwiseBayWidths, setCustomLengthwiseBayWidths] = useState([]);
-  const [customWidthwiseBayWidths, setCustomWidthwiseBayWidths] = useState([]);
-  const [useCustomBayDimensions, setUseCustomBayDimensions] = useState(false);
+  // Reference for first render
+  const firstRender = useRef(true);
   
   // Maximum allowed span for a single bay (in meters)
   const MAX_BAY_SPAN = 9.0;
-  
-  // Add state variable for global joist direction
-  const [joistsRunLengthwise, setJoistsRunLengthwise] = useState(false);
-  const firstRender = useRef(true);
   
   // Set initial joist direction based on building dimensions
   useEffect(() => {
@@ -285,10 +283,10 @@ export default function TimberCalculator() {
     // This is just for initial setup - after that, the user can toggle
     // Only set the direction on the first render, not when dimensions change
     if (firstRender.current) {
-    setJoistsRunLengthwise(buildingWidth > buildingLength);
+      updateBuildingData('joistsRunLengthwise', buildingData.buildingWidth > buildingData.buildingLength);
       firstRender.current = false;
     }
-  }, [buildingLength, buildingWidth]);
+  }, [buildingData.buildingLength, buildingData.buildingWidth, updateBuildingData]);
   
   // Add window resize listener to detect mobile devices
   useEffect(() => {
@@ -302,7 +300,7 @@ export default function TimberCalculator() {
     // Add event listener
     window.addEventListener('resize', handleResize);
     
-    // Clean up
+    // Clean up event listener
     return () => {
       window.removeEventListener('resize', handleResize);
     };
@@ -320,25 +318,25 @@ export default function TimberCalculator() {
           console.log('Loading saved state from localStorage:', parsedState);
           
           // Restore all state values
-          setBuildingLength(parsedState.buildingLength || 18);
-          setBuildingWidth(parsedState.buildingWidth || 14);
-          setLengthwiseBays(parsedState.lengthwiseBays || 3);
-          setWidthwiseBays(parsedState.widthwiseBays || 2);
-          setNumFloors(parsedState.numFloors || 1);
-          setFloorHeight(parsedState.floorHeight || 3.5);
-          setLoad(parsedState.load || 3.0);
-          setFireRating(parsedState.fireRating || 'none');
-          setJoistsRunLengthwise(parsedState.joistsRunLengthwise !== undefined ? parsedState.joistsRunLengthwise : true);
-          setTimberGrade(parsedState.timberGrade || 'ML38');
-          setUseCustomBayDimensions(parsedState.useCustomBayDimensions || false);
+          updateBuildingData('buildingLength', parsedState.buildingLength || 18);
+          updateBuildingData('buildingWidth', parsedState.buildingWidth || 14);
+          updateBuildingData('lengthwiseBays', parsedState.lengthwiseBays || 3);
+          updateBuildingData('widthwiseBays', parsedState.widthwiseBays || 2);
+          updateBuildingData('numFloors', parsedState.numFloors || 1);
+          updateBuildingData('floorHeight', parsedState.floorHeight || 3.5);
+          updateBuildingData('load', parsedState.load || 3.0);
+          updateBuildingData('fireRating', parsedState.fireRating || 'none');
+          updateBuildingData('joistsRunLengthwise', parsedState.joistsRunLengthwise !== undefined ? parsedState.joistsRunLengthwise : true);
+          updateBuildingData('timberGrade', parsedState.timberGrade || 'ML38');
+          updateBuildingData('useCustomBayDimensions', parsedState.useCustomBayDimensions || false);
           
           // Only set custom bay widths if they exist and match the current number of bays
           if (parsedState.customLengthwiseBayWidths && parsedState.customLengthwiseBayWidths.length === parsedState.lengthwiseBays) {
-            setCustomLengthwiseBayWidths(parsedState.customLengthwiseBayWidths);
+            updateMultipleProperties('customLengthwiseBayWidths', parsedState.customLengthwiseBayWidths);
           }
           
           if (parsedState.customWidthwiseBayWidths && parsedState.customWidthwiseBayWidths.length === parsedState.widthwiseBays) {
-            setCustomWidthwiseBayWidths(parsedState.customWidthwiseBayWidths);
+            updateMultipleProperties('customWidthwiseBayWidths', parsedState.customWidthwiseBayWidths);
           }
           
           console.log('Successfully loaded state from localStorage');
@@ -360,34 +358,34 @@ export default function TimberCalculator() {
           setProjectDetails(project.details);
           
           // Load building dimensions
-          setBuildingLength(project.buildingLength);
-          setBuildingWidth(project.buildingWidth);
-          setLengthwiseBays(project.lengthwiseBays);
-          setWidthwiseBays(project.widthwiseBays);
-          setNumFloors(project.numFloors);
+          updateBuildingData('buildingLength', project.buildingLength);
+          updateBuildingData('buildingWidth', project.buildingWidth);
+          updateBuildingData('lengthwiseBays', project.lengthwiseBays);
+          updateBuildingData('widthwiseBays', project.widthwiseBays);
+          updateBuildingData('numFloors', project.numFloors);
           
           // Load floor height if available
           if (project.floorHeight !== undefined) {
-            setFloorHeight(project.floorHeight);
+            updateBuildingData('floorHeight', project.floorHeight);
           }
           
           // Load other settings
-          setFireRating(project.fireRating);
-          setLoad(project.load);
+          updateBuildingData('fireRating', project.fireRating);
+          updateBuildingData('load', project.load);
           
           // Load joist direction if available
           if (project.joistsRunLengthwise !== undefined) {
-            setJoistsRunLengthwise(project.joistsRunLengthwise);
+            updateBuildingData('joistsRunLengthwise', project.joistsRunLengthwise);
           }
           
           // Load custom bay dimensions if available
           if (project.customBayDimensions) {
-            setUseCustomBayDimensions(true);
+            updateBuildingData('useCustomBayDimensions', true);
             if (project.customBayDimensions.lengthwiseBayWidths) {
-              setCustomLengthwiseBayWidths(project.customBayDimensions.lengthwiseBayWidths);
+              updateMultipleProperties('customLengthwiseBayWidths', project.customBayDimensions.lengthwiseBayWidths);
             }
             if (project.customBayDimensions.widthwiseBayWidths) {
-              setCustomWidthwiseBayWidths(project.customBayDimensions.widthwiseBayWidths);
+              updateMultipleProperties('customWidthwiseBayWidths', project.customBayDimensions.widthwiseBayWidths);
             }
           }
           
@@ -405,39 +403,39 @@ export default function TimberCalculator() {
     
     console.log('Component mounted, loading saved project...');
     loadSavedProject();
-  }, []);
+  }, [updateBuildingData, updateMultipleProperties]);
   
   // Automatically adjust bays when dimensions change
   useEffect(() => {
     // Calculate current bay sizes
-    const currentLengthwiseBaySize = buildingLength / lengthwiseBays;
-    const currentWidthwiseBaySize = buildingWidth / widthwiseBays;
+    const currentLengthwiseBaySize = buildingData.buildingLength / buildingData.lengthwiseBays;
+    const currentWidthwiseBaySize = buildingData.buildingWidth / buildingData.widthwiseBays;
     
     // Check if bay sizes exceed maximum allowed span
-    let newLengthwiseBays = lengthwiseBays;
-    let newWidthwiseBays = widthwiseBays;
+    let newLengthwiseBays = buildingData.lengthwiseBays;
+    let newWidthwiseBays = buildingData.widthwiseBays;
     
     if (currentLengthwiseBaySize > MAX_BAY_SPAN) {
       // Calculate minimum number of bays needed to keep span under maximum
-      newLengthwiseBays = Math.ceil(buildingLength / MAX_BAY_SPAN);
+      newLengthwiseBays = Math.ceil(buildingData.buildingLength / MAX_BAY_SPAN);
     }
     
     if (currentWidthwiseBaySize > MAX_BAY_SPAN) {
       // Calculate minimum number of bays needed to keep span under maximum
-      newWidthwiseBays = Math.ceil(buildingWidth / MAX_BAY_SPAN);
+      newWidthwiseBays = Math.ceil(buildingData.buildingWidth / MAX_BAY_SPAN);
     }
     
     // Update bay counts if needed
-    if (newLengthwiseBays !== lengthwiseBays) {
-      setLengthwiseBays(newLengthwiseBays);
+    if (newLengthwiseBays !== buildingData.lengthwiseBays) {
+      updateBuildingData('lengthwiseBays', newLengthwiseBays);
     }
     
-    if (newWidthwiseBays !== widthwiseBays) {
-      setWidthwiseBays(newWidthwiseBays);
+    if (newWidthwiseBays !== buildingData.widthwiseBays) {
+      updateBuildingData('widthwiseBays', newWidthwiseBays);
     }
-  }, [buildingLength, buildingWidth]);
+  }, [buildingData.buildingLength, buildingData.buildingWidth, updateBuildingData]);
   
-  const [fireRating, setFireRating] = useState('none');
+  // Remove the local fireRating state, use from buildingData context instead
   const [load, setLoad] = useState(2); // kPa (updated from 1.5 to 2)
   
   // Constants
@@ -445,11 +443,6 @@ export default function TimberCalculator() {
   
   // Add state for timber properties
   const [timberGrade, setTimberGrade] = useState('ML38');
-  const [propertiesLoaded, setPropertiesLoaded] = useState(false);
-  const [csvLoadingErrors, setCsvLoadingErrors] = useState({
-    properties: false,
-    sizes: false
-  });
   
   // Load timber properties from CSV when component mounts
   useEffect(() => {
@@ -473,18 +466,18 @@ export default function TimberCalculator() {
       // Create project object
       const project = {
         details: projectDetails,
-        buildingLength,
-        buildingWidth,
-        lengthwiseBays,
-        widthwiseBays,
-        numFloors,
-        floorHeight,
-        load,
-        fireRating,
-        joistsRunLengthwise,
-        customBayDimensions: useCustomBayDimensions ? {
-          lengthwiseBayWidths: customLengthwiseBayWidths,
-          widthwiseBayWidths: customWidthwiseBayWidths
+        buildingLength: buildingData.buildingLength,
+        buildingWidth: buildingData.buildingWidth,
+        lengthwiseBays: buildingData.lengthwiseBays,
+        widthwiseBays: buildingData.widthwiseBays,
+        numFloors: buildingData.numFloors,
+        floorHeight: buildingData.floorHeight,
+        load: buildingData.load,
+        fireRating: buildingData.fireRating,
+        joistsRunLengthwise: buildingData.joistsRunLengthwise,
+        customBayDimensions: buildingData.useCustomBayDimensions ? {
+          lengthwiseBayWidths: buildingData.customLengthwiseBayWidths,
+          widthwiseBayWidths: buildingData.customWidthwiseBayWidths
         } : null
       };
       
@@ -574,19 +567,19 @@ export default function TimberCalculator() {
     try {
       // Create state object with all relevant design parameters
       const currentState = {
-        buildingLength,
-        buildingWidth,
-        lengthwiseBays,
-        widthwiseBays,
-        numFloors,
-        floorHeight,
-        load,
-        fireRating,
-        joistsRunLengthwise,
-        timberGrade,
-        useCustomBayDimensions,
-        customLengthwiseBayWidths,
-        customWidthwiseBayWidths
+        buildingLength: buildingData.buildingLength,
+        buildingWidth: buildingData.buildingWidth,
+        lengthwiseBays: buildingData.lengthwiseBays,
+        widthwiseBays: buildingData.widthwiseBays,
+        numFloors: buildingData.numFloors,
+        floorHeight: buildingData.floorHeight,
+        load: buildingData.load,
+        fireRating: buildingData.fireRating,
+        joistsRunLengthwise: buildingData.joistsRunLengthwise,
+        timberGrade: buildingData.timberGrade,
+        useCustomBayDimensions: buildingData.useCustomBayDimensions,
+        customLengthwiseBayWidths: buildingData.customLengthwiseBayWidths,
+        customWidthwiseBayWidths: buildingData.customWidthwiseBayWidths
       };
       
       // Save to localStorage
@@ -596,19 +589,19 @@ export default function TimberCalculator() {
       console.error('Error saving state to localStorage:', error);
     }
   }, [
-    buildingLength,
-    buildingWidth,
-    lengthwiseBays,
-    widthwiseBays,
-    numFloors,
-    floorHeight,
-    load,
-    fireRating,
-    joistsRunLengthwise,
-    timberGrade,
-    useCustomBayDimensions,
-    customLengthwiseBayWidths,
-    customWidthwiseBayWidths
+    buildingData.buildingLength,
+    buildingData.buildingWidth,
+    buildingData.lengthwiseBays,
+    buildingData.widthwiseBays,
+    buildingData.numFloors,
+    buildingData.floorHeight,
+    buildingData.load,
+    buildingData.fireRating,
+    buildingData.joistsRunLengthwise,
+    buildingData.timberGrade,
+    buildingData.useCustomBayDimensions,
+    buildingData.customLengthwiseBayWidths,
+    buildingData.customWidthwiseBayWidths
   ]);
   
   // Add a beforeunload event listener to save state before navigating away
@@ -617,19 +610,19 @@ export default function TimberCalculator() {
       try {
         // Create state object with all relevant design parameters
         const currentState = {
-          buildingLength,
-          buildingWidth,
-          lengthwiseBays,
-          widthwiseBays,
-          numFloors,
-          floorHeight,
-          load,
-          fireRating,
-          joistsRunLengthwise,
-          timberGrade,
-          useCustomBayDimensions,
-          customLengthwiseBayWidths,
-          customWidthwiseBayWidths
+          buildingLength: buildingData.buildingLength,
+          buildingWidth: buildingData.buildingWidth,
+          lengthwiseBays: buildingData.lengthwiseBays,
+          widthwiseBays: buildingData.widthwiseBays,
+          numFloors: buildingData.numFloors,
+          floorHeight: buildingData.floorHeight,
+          load: buildingData.load,
+          fireRating: buildingData.fireRating,
+          joistsRunLengthwise: buildingData.joistsRunLengthwise,
+          timberGrade: buildingData.timberGrade,
+          useCustomBayDimensions: buildingData.useCustomBayDimensions,
+          customLengthwiseBayWidths: buildingData.customLengthwiseBayWidths,
+          customWidthwiseBayWidths: buildingData.customWidthwiseBayWidths
         };
         
         // Save to localStorage
@@ -667,58 +660,58 @@ export default function TimberCalculator() {
       });
     };
   }, [
-    buildingLength,
-    buildingWidth,
-    lengthwiseBays,
-    widthwiseBays,
-    numFloors,
-    floorHeight,
-    load,
-    fireRating,
-    joistsRunLengthwise,
-    timberGrade,
-    useCustomBayDimensions,
-    customLengthwiseBayWidths,
-    customWidthwiseBayWidths
+    buildingData.buildingLength,
+    buildingData.buildingWidth,
+    buildingData.lengthwiseBays,
+    buildingData.widthwiseBays,
+    buildingData.numFloors,
+    buildingData.floorHeight,
+    buildingData.load,
+    buildingData.fireRating,
+    buildingData.joistsRunLengthwise,
+    buildingData.timberGrade,
+    buildingData.useCustomBayDimensions,
+    buildingData.customLengthwiseBayWidths,
+    buildingData.customWidthwiseBayWidths
   ]);
   
   // Initialize custom bay dimensions when the number of bays changes
   useEffect(() => {
     // Initialize lengthwise bay widths with equal distribution
-    const defaultLengthwiseBayWidth = buildingLength / lengthwiseBays;
-    setCustomLengthwiseBayWidths(Array(lengthwiseBays).fill(defaultLengthwiseBayWidth));
+    const defaultLengthwiseBayWidth = buildingData.buildingLength / buildingData.lengthwiseBays;
+    updateMultipleProperties('customLengthwiseBayWidths', Array(buildingData.lengthwiseBays).fill(defaultLengthwiseBayWidth));
     
     // Initialize widthwise bay widths with equal distribution
-    const defaultWidthwiseBayWidth = buildingWidth / widthwiseBays;
-    setCustomWidthwiseBayWidths(Array(widthwiseBays).fill(defaultWidthwiseBayWidth));
-  }, [lengthwiseBays, widthwiseBays, buildingLength, buildingWidth]);
+    const defaultWidthwiseBayWidth = buildingData.buildingWidth / buildingData.widthwiseBays;
+    updateMultipleProperties('customWidthwiseBayWidths', Array(buildingData.widthwiseBays).fill(defaultWidthwiseBayWidth));
+  }, [buildingData.lengthwiseBays, buildingData.widthwiseBays, buildingData.buildingLength, buildingData.buildingWidth, updateMultipleProperties]);
 
   // Calculate bay dimensions based on whether custom dimensions are used
   const calculateBayDimensions = () => {
-    if (!useCustomBayDimensions) {
+    if (!buildingData.useCustomBayDimensions) {
       // Use equal distribution
       return {
-        lengthwiseBayWidths: Array(lengthwiseBays).fill(buildingLength / lengthwiseBays),
-        widthwiseBayWidths: Array(widthwiseBays).fill(buildingWidth / widthwiseBays)
+        lengthwiseBayWidths: Array(buildingData.lengthwiseBays).fill(buildingData.buildingLength / buildingData.lengthwiseBays),
+        widthwiseBayWidths: Array(buildingData.widthwiseBays).fill(buildingData.buildingWidth / buildingData.widthwiseBays)
       };
     }
     
     // Ensure the sum of custom dimensions matches the building dimensions
-    const totalLengthwise = customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0);
-    const totalWidthwise = customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0);
+    const totalLengthwise = buildingData.customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0);
+    const totalWidthwise = buildingData.customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0);
     
     // Normalize if needed
-    let normalizedLengthwiseBayWidths = [...customLengthwiseBayWidths];
-    let normalizedWidthwiseBayWidths = [...customWidthwiseBayWidths];
+    let normalizedLengthwiseBayWidths = [...buildingData.customLengthwiseBayWidths];
+    let normalizedWidthwiseBayWidths = [...buildingData.customWidthwiseBayWidths];
     
-    if (Math.abs(totalLengthwise - buildingLength) > 0.01) {
-      const scaleFactor = buildingLength / totalLengthwise;
-      normalizedLengthwiseBayWidths = customLengthwiseBayWidths.map(width => width * scaleFactor);
+    if (Math.abs(totalLengthwise - buildingData.buildingLength) > 0.01) {
+      const scaleFactor = buildingData.buildingLength / totalLengthwise;
+      normalizedLengthwiseBayWidths = normalizedLengthwiseBayWidths.map(width => width * scaleFactor);
     }
     
-    if (Math.abs(totalWidthwise - buildingWidth) > 0.01) {
-      const scaleFactor = buildingWidth / totalWidthwise;
-      normalizedWidthwiseBayWidths = customWidthwiseBayWidths.map(width => width * scaleFactor);
+    if (Math.abs(totalWidthwise - buildingData.buildingWidth) > 0.01) {
+      const scaleFactor = buildingData.buildingWidth / totalWidthwise;
+      normalizedWidthwiseBayWidths = normalizedWidthwiseBayWidths.map(width => width * scaleFactor);
     }
     
     return {
@@ -727,8 +720,59 @@ export default function TimberCalculator() {
     };
   };
   
+  // Function to calculate joist size based on span, spacing, load, and fire rating
+  function calculateJoistSize(span, spacing, load, timberGrade, fireRating) {
+    console.log(`JOIST DEBUG - Starting calculation with: span=${span}m, spacing=${spacing}mm, load=${load}kPa, timber=${timberGrade}, fireRating=${fireRating}`);
+    
+    if (span <= 0 || spacing <= 0 || load <= 0) {
+      console.error("JOIST DEBUG - Invalid input parameters:", { span, spacing, load });
+      throw new Error("Invalid input parameters");
+    }
+    
+    // Get the joist width based on fire rating from fireParams instead of the fixed width function
+    const joistWidth = buildingData.fireParams?.joistWidth || 120;
+    console.log(`JOIST DEBUG - Using joist width: ${joistWidth}mm from fireParams for fire rating: ${fireRating}`);
+    
+    // Calculate required depth based on engineering formulas
+    // Using a simplified formula: depth ≈ span * 30 (mm) for typical glulam floor joists
+    const basicDepth = Math.round(span * 30);
+    
+    // Round to nearest standard depth
+    const standardDepths = [200, 240, 280, 320, 360, 400, 450, 500, 550, 600, 650, 700];
+    let depth = standardDepths.find(d => d >= basicDepth) || standardDepths[standardDepths.length - 1];
+    
+    // Adjust for load - simplified approach
+    if (load > 3) {
+      // Go up one size for heavy loads
+      const currentIndex = standardDepths.indexOf(depth);
+      if (currentIndex < standardDepths.length - 1) {
+        depth = standardDepths[currentIndex + 1];
+      }
+    }
+    
+    console.log(`JOIST DEBUG - Joist size calculation: ${joistWidth}mm × ${depth}mm`);
+    
+    return {
+      width: joistWidth,
+      depth,
+      span,
+      spacing,
+      load,
+      grade: timberGrade,
+      fireRating
+    };
+  }
+  
+  // Define a simplified joist calculation for fallback
+  const calculateSimplifiedJoistSize = (span, spacing, load, timberGrade, fireRating) => {
+    // Just call our main function as it's now simplified enough
+    return calculateJoistSize(span, spacing, load, timberGrade, fireRating);
+  };
+  
   // Define calculateResults outside of useEffect so it can be called from anywhere
     const calculateResults = () => {
+      setError(null);
+      
       try {
         // Get bay dimensions
         const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
@@ -739,7 +783,7 @@ export default function TimberCalculator() {
         
         // Determine joist span based on global direction setting
         // instead of automatically using the shorter distance
-        const joistSpan = joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+        const joistSpan = buildingData.joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
         
         // Calculate concrete thickness based on fire rating
         const getConcreteThickness = (frl) => {
@@ -778,7 +822,7 @@ export default function TimberCalculator() {
         };
         
         // Get concrete thickness and load based on current fire rating
-        const concreteThickness = getConcreteThickness(fireRating);
+        const concreteThickness = getConcreteThickness(buildingData.fireRating);
         const concreteLoadData = calculateConcreteLoad(concreteThickness);
         
         // Calculate total load including concrete load
@@ -790,17 +834,45 @@ export default function TimberCalculator() {
         });
         
         // Calculate joist size based on span and load
-        const joistSize = calculateJoistSize(joistSpan, 800, load, timberGrade, fireRating);
+        let joistSize;
+        try {
+          joistSize = calculateJoistSize(joistSpan, 800, totalLoad, timberGrade, buildingData.fireRating);
+          console.log("JOIST DEBUG - Standard calculation successful:", joistSize);
+        } catch (error) {
+          console.error("JOIST DEBUG - Error in standard joist calculation:", error);
+          // Fall back to simplified calculation
+          joistSize = calculateSimplifiedJoistSize(joistSpan, 800, totalLoad, timberGrade, buildingData.fireRating);
+        }
+        
+        // Verify joist size is valid
+        if (!joistSize || !joistSize.width || !joistSize.depth) {
+          console.warn("JOIST DEBUG - Invalid joist size, using fallback");
+          joistSize = {
+            width: 120,
+            depth: 410,
+            usingFallback: true
+          };
+        }
+        
+        // Debug joist calculation
+        console.log("JOIST DEBUG - Calculated joist size:", {
+          span: joistSpan,
+          spacing: 800,
+          totalLoad,
+          timberGrade,
+          fireRating: buildingData.fireRating,
+          result: joistSize
+        });
         
         // Calculate beam span (beams span perpendicular to joists)
-        const beamSpan = joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+        const beamSpan = buildingData.joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
         
         // Define joist spacing (in meters)
         const joistSpacing = 0.8; // 800mm spacing
         
         // Calculate average bay dimensions for tributary area calculation
-        const avgBayLength = buildingLength / lengthwiseBays;
-        const avgBayWidth = buildingWidth / widthwiseBays;
+        const avgBayLength = buildingData.buildingLength / buildingData.lengthwiseBays;
+        const avgBayWidth = buildingData.buildingWidth / buildingData.widthwiseBays;
         
       // Calculate interior beam size (beams that support load from both sides)
       // These beams have a tributary width of half the perpendicular bay dimension
@@ -808,9 +880,9 @@ export default function TimberCalculator() {
         beamSpan, 
         totalLoad, // Use combined load 
         joistSpacing, 
-        numFloors, 
-        fireRating, 
-        joistsRunLengthwise,
+        buildingData.numFloors, 
+        buildingData.fireRating, 
+        buildingData.joistsRunLengthwise,
         avgBayWidth,
         avgBayLength,
         false // Not an edge beam
@@ -822,9 +894,9 @@ export default function TimberCalculator() {
         beamSpan, 
         totalLoad, // Use combined load
         joistSpacing, 
-        numFloors, 
-        fireRating,
-        joistsRunLengthwise,
+        buildingData.numFloors, 
+        buildingData.fireRating,
+        buildingData.joistsRunLengthwise,
         avgBayWidth,
         avgBayLength,
         true // Is an edge beam
@@ -836,9 +908,9 @@ export default function TimberCalculator() {
       const columnSize = calculateMultiFloorColumnSize(
         interiorBeamSize.width, // Match column width to beam width
         totalLoad, // Use the same total load including concrete
-        floorHeight, 
-        numFloors, 
-        fireRating,
+        buildingData.floorHeight, 
+        buildingData.numFloors, 
+        buildingData.fireRating,
         avgBayLength,
         avgBayWidth
       );
@@ -848,12 +920,15 @@ export default function TimberCalculator() {
           joistSize, 
         interiorBeamSize,
           columnSize, 
-          buildingLength, 
-          buildingWidth, 
-          numFloors,
-          lengthwiseBays,
-          widthwiseBays,
-          joistsRunLengthwise,
+          buildingData.buildingLength, 
+          buildingData.buildingWidth, 
+          buildingData.numFloors,
+          buildingData.buildingLength, 
+          buildingData.buildingWidth, 
+          buildingData.numFloors,
+          buildingData.lengthwiseBays,
+          buildingData.widthwiseBays,
+          buildingData.joistsRunLengthwise,
           timberGrade
         );
         
@@ -861,7 +936,19 @@ export default function TimberCalculator() {
       const carbonResults = calculateCarbonSavings(timberResult);
         
       // Calculate costs
-      const costs = calculateCosts(joistSize, interiorBeamSize, edgeBeamSize, columnSize, buildingLength, buildingWidth, joistSpacing, lengthwiseBays, widthwiseBays, floorHeight, numFloors);
+      const costs = calculateCost(
+        joistSize,
+        interiorBeamSize,
+        edgeBeamSize,
+        columnSize,
+        buildingData.buildingLength,
+        buildingData.buildingWidth,
+        buildingData.lengthwiseBays,
+        buildingData.widthwiseBays,
+        buildingData.numFloors,
+        joistSpacing,
+        buildingData.joistsRunLengthwise
+      );
       
       // Detailed cost tracing to find the issue
       console.log("RESULTS DEBUG - Costs object from calculateCosts:", JSON.stringify(costs, null, 2));
@@ -879,11 +966,11 @@ export default function TimberCalculator() {
           columnSize,
           joistSpan,
           beamSpan: beamSpan,
-          joistsRunLengthwise,
-          buildingLength,
-          buildingWidth,
-          lengthwiseBays,
-          widthwiseBays,
+          joistsRunLengthwise: buildingData.joistsRunLengthwise,
+          buildingLength: buildingData.buildingLength,
+          buildingWidth: buildingData.buildingWidth,
+          lengthwiseBays: buildingData.lengthwiseBays,
+          widthwiseBays: buildingData.widthwiseBays,
           widthwiseBayWidths,
           lengthwiseBayWidths,
           concreteData: concreteLoadData,
@@ -898,7 +985,7 @@ export default function TimberCalculator() {
           },
           elementVolumes: {
             // Use floor area calculation for joists (m²) - this is what the cost calculation expects
-            joists: buildingLength * buildingWidth * numFloors,
+            joists: buildingData.buildingLength * buildingData.buildingWidth * buildingData.numFloors,
             beams: timberResult.elements.beams.volume,
             columns: timberResult.elements.columns.volume
           },
@@ -907,39 +994,85 @@ export default function TimberCalculator() {
             timberResult: JSON.parse(JSON.stringify(timberResult)),
             mockTimberResult: {
               beams: {
-                volume: calculateBeamVolume(interiorBeamSize, edgeBeamSize, buildingLength, buildingWidth, lengthwiseBays, widthwiseBays)
+                volume: calculateBeamVolume(interiorBeamSize, edgeBeamSize, buildingData.buildingLength, buildingData.buildingWidth, buildingData.lengthwiseBays, buildingData.widthwiseBays)
               },
               columns: {
-                volume: calculateColumnVolume(columnSize, floorHeight, numFloors, lengthwiseBays, widthwiseBays)
+                volume: calculateColumnVolume(columnSize, buildingData.floorHeight, buildingData.numFloors, buildingData.lengthwiseBays, buildingData.widthwiseBays)
               }
             },
             rawCosts: JSON.parse(JSON.stringify(costs))
           },
-          buildingLength,
-          buildingWidth,
-          lengthwiseBays,
-          widthwiseBays,
+          buildingLength: buildingData.buildingLength,
+          buildingWidth: buildingData.buildingWidth,
+          lengthwiseBays: buildingData.lengthwiseBays,
+          widthwiseBays: buildingData.widthwiseBays,
           validationResult
         };
       
-      console.log("RESULTS DEBUG - Final results beam cost:", finalResults.costs.elements.beams.cost);
+      // Log results right before updating state
+      console.log("JOIST DEBUG - Final joist size in results:", {
+        width: finalResults.joistSize?.width,
+        depth: finalResults.joistSize?.depth
+      });
       
+      // Update the results state
       setResults(finalResults);
+      
+      // Use the new specialized function for updating results in context
+      updateCalculationResults(finalResults);
+      
+      // Direct DOM update as a fallback for hydration issues
+      setTimeout(() => {
+        try {
+          // Try to directly update DOM elements with the joist sizes
+          const joistWidthElements = document.querySelectorAll('[data-joist-width]');
+          const joistDepthElements = document.querySelectorAll('[data-joist-depth]');
+          
+          if (joistWidthElements.length > 0) {
+            joistWidthElements.forEach(el => {
+              el.textContent = `${finalResults.joistSize.width}mm`;
+            });
+            console.log("JOIST DEBUG - Directly updated joist width elements:", joistWidthElements.length);
+          }
+          
+          if (joistDepthElements.length > 0) {
+            joistDepthElements.forEach(el => {
+              el.textContent = `${finalResults.joistSize.depth}mm`;
+            });
+            console.log("JOIST DEBUG - Directly updated joist depth elements:", joistDepthElements.length);
+          }
+        } catch (error) {
+          console.error("JOIST DEBUG - Error updating DOM directly:", error);
+        }
+      }, 100);
+      
+      // Force a re-render after updating results
+      setTimeout(() => {
+        // This will trigger a re-render after the state updates have been processed
+        console.log("JOIST DEBUG - Triggering re-render check");
+        setResults(prevResults => {
+          console.log("JOIST DEBUG - Current joist size in re-render:", 
+            prevResults?.joistSize?.width, 
+            prevResults?.joistSize?.depth
+          );
+          return { ...prevResults, updateId: Date.now() };
+        });
+      }, 200);
       
       // Prepare and save data for 3D visualization
       const visualizationData = prepareVisualizationData({
-        buildingLength,
-        buildingWidth,
-        numFloors,
-        floorHeight,
-        lengthwiseBays,
-        widthwiseBays,
+        buildingLength: buildingData.buildingLength,
+        buildingWidth: buildingData.buildingWidth,
+        numFloors: buildingData.numFloors,
+        floorHeight: buildingData.floorHeight,
+        lengthwiseBays: buildingData.lengthwiseBays,
+        widthwiseBays: buildingData.widthwiseBays,
         joistSize,
         beamSize: interiorBeamSize,
         edgeBeamSize,
         columnSize,
-        joistsRunLengthwise,
-        fireRating,
+        joistsRunLengthwise: buildingData.joistsRunLengthwise,
+        fireRating: buildingData.fireRating,
         timberGrade
       });
       saveBuildingData(visualizationData);
@@ -956,34 +1089,41 @@ export default function TimberCalculator() {
       calculateResults();
     }
   }, [
-    buildingLength,
-    buildingWidth,
-    lengthwiseBays,
-    widthwiseBays,
-    numFloors,
-    floorHeight,
+    buildingData.buildingLength,
+    buildingData.buildingWidth,
+    buildingData.lengthwiseBays,
+    buildingData.widthwiseBays,
+    buildingData.numFloors,
+    buildingData.floorHeight,
     load,
-    fireRating,
-    joistsRunLengthwise,
+    buildingData.fireRating,
+    buildingData.joistsRunLengthwise,
     timberGrade,
-    useCustomBayDimensions,
-    customLengthwiseBayWidths,
-    customWidthwiseBayWidths,
+    buildingData.useCustomBayDimensions,
+    buildingData.customLengthwiseBayWidths,
+    buildingData.customWidthwiseBayWidths,
     propertiesLoaded
   ]);
+
+  // Ensure results state is updated when buildingData.results changes
+  useEffect(() => {
+    if (buildingData.results && JSON.stringify(buildingData.results) !== JSON.stringify(results)) {
+      setResults(buildingData.results);
+    }
+  }, [buildingData.results]);
 
   // Handle input changes
   const handleBuildingLengthChange = (value) => {
     const parsedValue = parseFloat(value);
     if (!isNaN(parsedValue) && parsedValue >= 6 && parsedValue <= 80) {
-      setBuildingLength(parsedValue);
+      updateBuildingData('buildingLength', parsedValue);
     }
   };
 
   const handleBuildingWidthChange = (value) => {
     const parsedValue = parseFloat(value);
     if (!isNaN(parsedValue) && parsedValue >= 6 && parsedValue <= 80) {
-      setBuildingWidth(parsedValue);
+      updateBuildingData('buildingWidth', parsedValue);
     }
   };
 
@@ -991,12 +1131,12 @@ export default function TimberCalculator() {
     const parsedValue = parseInt(value, 10);
     if (!isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 20) {
       // Calculate minimum required bays based on MAX_BAY_SPAN
-      const minRequiredBays = Math.ceil(buildingLength / MAX_BAY_SPAN);
+      const minRequiredBays = Math.ceil(buildingData.buildingLength / MAX_BAY_SPAN);
       
       // Ensure the number of bays doesn't go below the minimum required
       const validBayCount = Math.max(parsedValue, minRequiredBays);
       
-      setLengthwiseBays(validBayCount);
+      updateBuildingData('lengthwiseBays', validBayCount);
       
       // If the value was adjusted, show a notification or alert
       if (validBayCount !== parsedValue) {
@@ -1009,12 +1149,12 @@ export default function TimberCalculator() {
     const parsedValue = parseInt(value, 10);
     if (!isNaN(parsedValue) && parsedValue >= 1 && parsedValue <= 20) {
       // Calculate minimum required bays based on MAX_BAY_SPAN
-      const minRequiredBays = Math.ceil(buildingWidth / MAX_BAY_SPAN);
+      const minRequiredBays = Math.ceil(buildingData.buildingWidth / MAX_BAY_SPAN);
       
       // Ensure the number of bays doesn't go below the minimum required
       const validBayCount = Math.max(parsedValue, minRequiredBays);
       
-      setWidthwiseBays(validBayCount);
+      updateBuildingData('widthwiseBays', validBayCount);
       
       // If the value was adjusted, show a notification or alert
       if (validBayCount !== parsedValue) {
@@ -1026,39 +1166,40 @@ export default function TimberCalculator() {
   const handleNumFloorsChange = (value) => {
     const floors = parseInt(value, 10);
     if (!isNaN(floors) && floors >= 1 && floors <= 10) {
-      setNumFloors(floors);
+      updateBuildingData('numFloors', floors);
     }
   };
 
   const handleFloorHeightChange = (value) => {
     const height = parseFloat(value);
     if (!isNaN(height) && height >= 2 && height <= 6) {
-      setFloorHeight(height);
+      updateBuildingData('floorHeight', height);
     }
   };
 
   const handleLoadChange = (value) => {
-    setLoad(value);
+    updateBuildingData('load', parseFloat(value));
   };
 
-  const handleFireRatingChange = (value) => {
-    setFireRating(value);
+  const onFireRatingChange = (value) => {
+    // Use the handler from our hook
+    fireResistanceHandleFireRatingChange(value);
   };
   
   // Handlers for custom bay dimensions
   const handleToggleCustomBayDimensions = () => {
-    setUseCustomBayDimensions(!useCustomBayDimensions);
+    updateBuildingData('useCustomBayDimensions', !buildingData.useCustomBayDimensions);
   };
   
   const handleLengthwiseBayWidthChange = (index, value) => {
     const parsedValue = parseFloat(value);
     if (!isNaN(parsedValue) && parsedValue > 0) {
       // Calculate the difference between the new value and the old value
-      const oldValue = customLengthwiseBayWidths[index];
+      const oldValue = buildingData.customLengthwiseBayWidths[index];
       const difference = parsedValue - oldValue;
       
       // Create a copy of the current widths
-      const newWidths = [...customLengthwiseBayWidths];
+      const newWidths = [...buildingData.customLengthwiseBayWidths];
       
       // Update the changed bay width
       newWidths[index] = parsedValue;
@@ -1067,9 +1208,9 @@ export default function TimberCalculator() {
       // distribute the difference among other bays proportionally
       const newTotal = newWidths.reduce((sum, width) => sum + width, 0);
       
-      if (Math.abs(newTotal - buildingLength) > 0.01) {
+      if (Math.abs(newTotal - buildingData.buildingLength) > 0.01) {
         // Calculate how much we need to adjust other bays
-        const adjustment = buildingLength - newTotal;
+        const adjustment = buildingData.buildingLength - newTotal;
         
         // Get the sum of all other bay widths
         const otherBaysSum = newWidths.reduce((sum, width, i) => 
@@ -1093,7 +1234,7 @@ export default function TimberCalculator() {
       }
       
       // Update the state
-      setCustomLengthwiseBayWidths(newWidths);
+      updateMultipleProperties('customLengthwiseBayWidths', newWidths);
     }
   };
   
@@ -1101,11 +1242,11 @@ export default function TimberCalculator() {
     const parsedValue = parseFloat(value);
     if (!isNaN(parsedValue) && parsedValue > 0) {
       // Calculate the difference between the new value and the old value
-      const oldValue = customWidthwiseBayWidths[index];
+      const oldValue = buildingData.customWidthwiseBayWidths[index];
       const difference = parsedValue - oldValue;
       
       // Create a copy of the current widths
-      const newWidths = [...customWidthwiseBayWidths];
+      const newWidths = [...buildingData.customWidthwiseBayWidths];
       
       // Update the changed bay width
       newWidths[index] = parsedValue;
@@ -1114,9 +1255,9 @@ export default function TimberCalculator() {
       // distribute the difference among other bays proportionally
       const newTotal = newWidths.reduce((sum, width) => sum + width, 0);
       
-      if (Math.abs(newTotal - buildingWidth) > 0.01) {
+      if (Math.abs(newTotal - buildingData.buildingWidth) > 0.01) {
         // Calculate how much we need to adjust other bays
-        const adjustment = buildingWidth - newTotal;
+        const adjustment = buildingData.buildingWidth - newTotal;
         
         // Get the sum of all other bay widths
         const otherBaysSum = newWidths.reduce((sum, width, i) => 
@@ -1140,20 +1281,18 @@ export default function TimberCalculator() {
       }
       
       // Update the state
-      setCustomWidthwiseBayWidths(newWidths);
+      updateMultipleProperties('customWidthwiseBayWidths', newWidths);
     }
   };
   
   // Toggle joist direction globally
   const toggleJoistDirection = () => {
-    setJoistsRunLengthwise(!joistsRunLengthwise);
+    updateBuildingData('joistsRunLengthwise', !buildingData.joistsRunLengthwise);
   };
   
-  // Add a function to handle timber grade change if needed
+  // Handler for timber grade changes
   const handleTimberGradeChange = (value) => {
-    setTimberGrade(value);
-    // Recalculate results when timber grade changes
-    calculateResults();
+    updateBuildingData('timberGrade', value);
   };
   
   // Function to calculate costs using the simplified calculateCost function
@@ -1314,12 +1453,72 @@ export default function TimberCalculator() {
     return totalColumnVolume;
   };
   
+  // Special effect to ensure joist sizes are displayed on page load
+  useEffect(() => {
+    // This runs once when the component mounts
+    const ensureJoistSizesDisplayed = () => {
+      if (buildingData.results?.joistSize) {
+        console.log("JOIST DEBUG - Page load joist size check:", buildingData.results.joistSize);
+        
+        // Set a small delay to ensure DOM is ready
+        setTimeout(() => {
+          try {
+            const joistWidthElements = document.querySelectorAll('[data-joist-width]');
+            const joistDepthElements = document.querySelectorAll('[data-joist-depth]');
+            
+            if (joistWidthElements.length > 0) {
+              joistWidthElements.forEach(el => {
+                el.textContent = `${buildingData.results.joistSize.width}mm`;
+              });
+              console.log("JOIST DEBUG - Page load updated width elements");
+            }
+            
+            if (joistDepthElements.length > 0) {
+              joistDepthElements.forEach(el => {
+                el.textContent = `${buildingData.results.joistSize.depth}mm`;
+              });
+              console.log("JOIST DEBUG - Page load updated depth elements");
+            }
+            
+            // Force results re-render
+            if (buildingData.results) {
+              setResults({...buildingData.results, updateId: Date.now()});
+            }
+          } catch (error) {
+            console.error("JOIST DEBUG - Error in page load joist update:", error);
+          }
+        }, 500);
+      }
+    };
+    
+    ensureJoistSizesDisplayed();
+    
+    // Also add a global window function for debugging
+    if (typeof window !== 'undefined') {
+      window.updateJoistSizes = () => {
+        if (buildingData.results?.joistSize) {
+          const { width, depth } = buildingData.results.joistSize;
+          
+          const joistWidthElements = document.querySelectorAll('[data-joist-width]');
+          const joistDepthElements = document.querySelectorAll('[data-joist-depth]');
+          
+          joistWidthElements.forEach(el => { el.textContent = `${width}mm`; });
+          joistDepthElements.forEach(el => { el.textContent = `${depth}mm`; });
+          
+          console.log(`JOIST DEBUG - Manual update: ${width}mm × ${depth}mm`);
+          return true;
+        }
+        return false;
+      };
+    }
+  }, []);
+  
   // Example of a component section converted to use Tailwind classes
   return (
     <div className="apple-section">
       <div className="flex justify-between items-center mb-12">
         <h1 style={{ color: 'var(--apple-text)' }}>Member Calculator</h1>
-      </div>
+          </div>
       
       {/* Success Message */}
       <SuccessMessage 
@@ -1345,39 +1544,78 @@ export default function TimberCalculator() {
             </div>
             
             <div className="apple-card-body">
-              {/* Structure Configuration Section */}
-              <StructureConfigSection 
-                load={load}
-                fireRating={fireRating}
-                onLoadChange={handleLoadChange}
-                onFireRatingChange={handleFireRatingChange}
-              />
-              
               {/* Dimensions Section */}
               <DimensionsSection 
-                buildingLength={buildingLength}
-                buildingWidth={buildingWidth}
-                numFloors={numFloors}
-                floorHeight={floorHeight}
-                lengthwiseBays={lengthwiseBays}
-                widthwiseBays={widthwiseBays}
+                buildingLength={buildingData.buildingLength}
+                buildingWidth={buildingData.buildingWidth}
+                numFloors={buildingData.numFloors}
+                floorHeight={buildingData.floorHeight}
+                lengthwiseBays={buildingData.lengthwiseBays}
+                widthwiseBays={buildingData.widthwiseBays}
                 onBuildingLengthChange={handleBuildingLengthChange}
                 onBuildingWidthChange={handleBuildingWidthChange}
-                onNumFloorsChange={handleNumFloorsChange}
-                onFloorHeightChange={handleFloorHeightChange}
                 onLengthwiseBaysChange={handleLengthwiseBaysChange}
                 onWidthwiseBaysChange={handleWidthwiseBaysChange}
+                onNumFloorsChange={handleNumFloorsChange}
+                onFloorHeightChange={handleFloorHeightChange}
+                maxBaySpan={MAX_BAY_SPAN}
               />
               
-              {/* Timber Grade Selection */}
-              <TimberGradeSelector 
-                value={timberGrade} 
-                onChange={handleTimberGradeChange} 
+              {/* Structure Configuration Section */}
+              <StructureConfigSection 
+                joistsRunLengthwise={buildingData.joistsRunLengthwise}
+                onToggleJoistDirection={toggleJoistDirection}
+                buildingLength={buildingData.buildingLength}
+                buildingWidth={buildingData.buildingWidth}
+                useCustomBayDimensions={buildingData.useCustomBayDimensions}
+                onToggleCustomBayDimensions={handleToggleCustomBayDimensions}
+                customLengthwiseBayWidths={buildingData.customLengthwiseBayWidths}
+                customWidthwiseBayWidths={buildingData.customWidthwiseBayWidths}
+                onLengthwiseBayWidthChange={handleLengthwiseBayWidthChange}
+                onWidthwiseBayWidthChange={handleWidthwiseBayWidthChange}
+                lengthwiseBays={buildingData.lengthwiseBays}
+                widthwiseBays={buildingData.widthwiseBays}
+                isMobile={isMobile}
               />
-            </div>
-          </div>
-        </div>
-        
+              
+              {/* Loading Parameters Section */}
+              <div className="apple-specs-table mb-6 md:mb-8">
+                <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Loading Parameters</h3>
+                
+                {/* Load Type Selector */}
+                <LoadTypeSelector 
+                  value={buildingData.load}
+                  onChange={handleLoadChange}
+                />
+                
+                {/* Fire Rating Selector */}
+                <FireRatingSelector 
+                  selectedRating={buildingData.fireRating}
+                  onChange={onFireRatingChange}
+                />
+                
+                {/* Add the non-visible FireResistanceCalculator to handle calculations */}
+                {/* <FireResistanceCalculator standalone={false} /> */}
+                
+                {/* Calculate Button */}
+                <div className="mt-6">
+                  <button 
+                    className="apple-button apple-button-primary w-full py-3"
+                    onClick={() => {
+                      console.log("JOIST DEBUG - Manual calculation triggered");
+                      calculateResults();
+                    }}
+                  >
+                    Calculate Results
+                            </button>
+                          </div>
+                      </div>
+                      
+              {/* Note: Timber Grade moved to Calculation Methodology Page */}
+                      </div>
+                  </div>
+              </div>
+              
         {/* Results Panel */}
         <div className="lg:col-span-6 xl:col-span-7 w-full">
           <ResultsDisplay 

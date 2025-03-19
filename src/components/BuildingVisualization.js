@@ -5,6 +5,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera, useTexture, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { getBuildingData } from '../utils/buildingDataStore';
+import { useBuildingData } from '../contexts/BuildingDataContext';
 
 // Mock data for development - will be replaced with real data
 const mockData = {
@@ -1086,7 +1087,7 @@ const GrassPlane = ({ buildingLength, buildingWidth }) => {
 };
 
 export default function BuildingVisualization() {
-  const [buildingData, setBuildingData] = useState(null);
+  const { buildingData } = useBuildingData();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [joistPosition, setJoistPosition] = useState('ontop'); // 'ontop', 'halfnotch', or 'inline'
@@ -1094,58 +1095,14 @@ export default function BuildingVisualization() {
   const [showDebugTree, setShowDebugTree] = useState(false); // Debug mode for tree scaling
 
   useEffect(() => {
-    // Fetch data from localStorage
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Get data from localStorage
-        const data = getBuildingData();
-        
-        if (data) {
-          console.log('Loaded building data from localStorage:', data);
-          
-          // Normalize the data to handle both beamSize and interiorBeamSize properties
-          const normalizedData = { ...data };
-          
-          // If interiorBeamSize is missing but beamSize exists, create interiorBeamSize from beamSize
-          if (!normalizedData.interiorBeamSize && normalizedData.beamSize) {
-            normalizedData.interiorBeamSize = normalizedData.beamSize;
-            console.log('Using beamSize as interiorBeamSize for compatibility');
-          }
-          
-          // If beamSize is missing but interiorBeamSize exists, create beamSize from interiorBeamSize
-          if (!normalizedData.beamSize && normalizedData.interiorBeamSize) {
-            normalizedData.beamSize = normalizedData.interiorBeamSize;
-            console.log('Using interiorBeamSize as beamSize for compatibility');
-          }
-          
-          // Ensure all required properties are present with defaults
-          normalizedData.joistSize = normalizedData.joistSize || { width: 120, depth: 200 };
-          normalizedData.interiorBeamSize = normalizedData.interiorBeamSize || { width: 165, depth: 330 };
-          normalizedData.edgeBeamSize = normalizedData.edgeBeamSize || { width: 165, depth: 330 };
-          normalizedData.columnSize = normalizedData.columnSize || { width: 250, depth: 250, height: 3.2 };
-          
-          setBuildingData(normalizedData);
-        } else {
-          console.log('No data in localStorage, using mock data');
-          // Use mock data as fallback
-          setBuildingData(mockData);
-        }
-        
-        setLoading(false);
-      } catch (err) {
-        console.error('Error loading building data:', err);
-        setError('Failed to load building data. Please try again.');
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+    // Simply check if data exists and set loading state
+    if (buildingData) {
+      setLoading(false);
+    } else {
+      setError('No building data available');
+      setLoading(false);
+    }
+  }, [buildingData]);
 
   if (loading) {
     return (

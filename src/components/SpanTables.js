@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { calculateBeamSize } from '../utils/timberEngineering';
+import { calculateBeamSize, TIMBER_PROPERTIES, getFixedWidthForFireRating } from '../utils/timberEngineering';
 
 // Default values for the span table
 const DEFAULT_LOAD = 3.0; // kPa
@@ -41,13 +41,14 @@ export default function SpanTables() {
   const [maxUtilization, setMaxUtilization] = useState(80); // Default 80%
   const [maxDeflection, setMaxDeflection] = useState(null); // Default to span/300 (calculated dynamically)
   
-  // Calculate concrete slab thickness based on FRL
+  // Implement the getConcreteThickness function directly in this component
   const getConcreteThickness = (frl) => {
     switch (frl) {
       case 'none':
+        return 100; // Min. concrete thickness for no FRL
       case '30/30/30':
       case '60/60/60':
-        return 100; // 100mm for FRL 0/0/0, 30/30/30, 60/60/60
+        return 100; // 100mm for FRL 30/30/30 and 60/60/60
       case '90/90/90':
         return 110; // 110mm for FRL 90/90/90
       case '120/120/120':
@@ -57,27 +58,11 @@ export default function SpanTables() {
     }
   };
   
-  // Implement the getFixedWidthForFireRating function directly in this component
-  // using the same values as in timberEngineering.js
-  const getFixedWidthForFireRating = (fireRating) => {
-    switch (fireRating) {
-      case 'none':
-        return 120; // Available in CSV
-      case '30/30/30':
-      case '60/60/60':
-        return 165; // Available in CSV
-      case '90/90/90':
-        return 205; // Available in CSV (closest to 200)
-      case '120/120/120':
-        return 250; // Available in CSV
-      default:
-        return 120; // Default to 120mm if unknown rating
-    }
-  };
+  // NOTE: No longer implementing getFixedWidthForFireRating locally - importing from timberEngineering.js instead
   
   // Calculate masses and loads
   const calculations = useMemo(() => {
-    // Use our local implementation of getFixedWidthForFireRating
+    // Use the imported getFixedWidthForFireRating function
     const joistWidth = getFixedWidthForFireRating(fireRating);
     const concreteThickness = getConcreteThickness(fireRating);
     

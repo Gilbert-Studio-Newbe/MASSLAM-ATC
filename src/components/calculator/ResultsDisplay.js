@@ -1,6 +1,8 @@
 "use client";
 
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { formatCurrency } from '../../utils/costEstimator';
 
 /**
  * ResultsDisplay component for showing calculation results
@@ -10,6 +12,53 @@ const ResultsDisplay = ({
   onSaveClick,
   isMobile
 }) => {
+  // Add client-side state to avoid hydration mismatch
+  const [isClient, setIsClient] = useState(false);
+  // Track results changes with local state
+  const [localJoistSize, setLocalJoistSize] = useState(null);
+  // Create refs to directly update DOM elements
+  const joistWidthRef = useRef(null);
+  const joistDepthRef = useRef(null);
+  const resultsRef = useRef(null);
+  
+  // Use a force update counter
+  const [updateCounter, setUpdateCounter] = useState(0);
+  
+  // Set isClient to true once component mounts on client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+  
+  // Direct DOM update for joist sizes to bypass hydration issues
+  useEffect(() => {
+    if (isClient && results?.joistSize && joistWidthRef.current && joistDepthRef.current) {
+      console.log("JOIST DEBUG - Directly updating DOM with joist sizes:", {
+        width: results.joistSize.width, 
+        depth: results.joistSize.depth
+      });
+      
+      // Update DOM directly
+      joistWidthRef.current.textContent = `${results.joistSize.width}mm`;
+      joistDepthRef.current.textContent = `${results.joistSize.depth}mm`;
+      
+      // Force a re-render after a short delay
+      setTimeout(() => {
+        setUpdateCounter(prev => prev + 1);
+      }, 50);
+    }
+  }, [isClient, results, updateCounter]);
+  
+  // During server-side rendering or before client hydration
+  if (!isClient) {
+    return (
+      <div className="apple-card p-6 text-center">
+        <h2 className="text-xl font-semibold mb-4">Results</h2>
+        <p style={{ color: 'var(--apple-text-secondary)' }}>Loading calculation results...</p>
+      </div>
+    );
+  }
+  
+  // If no results are available
   if (!results) {
     return (
       <div className="apple-card p-6 text-center">
@@ -19,8 +68,14 @@ const ResultsDisplay = ({
     );
   }
   
+  // Add console log to debug results structure (client-side only)
+  console.log("ResultsDisplay - results object:", results, "Update counter:", updateCounter);
+  
+  // Generate a key for the component to force re-render when values change
+  const resultsKey = `joists-${updateCounter}-beams-${results.interiorBeamSize?.width || 'NA'}-${results.interiorBeamSize?.depth || 'NA'}`;
+  
   return (
-    <div className="apple-results">
+    <div className="apple-results" key={resultsKey} ref={resultsRef}>
       <div className="apple-card-header flex justify-between items-center">
         <h2 className="text-lg md:text-xl font-semibold m-0">Results</h2>
         
@@ -52,21 +107,21 @@ const ResultsDisplay = ({
               <div>
                 <h4 className="text-sm font-medium mb-2">Joists</h4>
                 <div className="text-sm">
-                  <p><span className="text-gray-500">Width:</span> {results.joistSize.width}mm</p>
-                  <p><span className="text-gray-500">Depth:</span> {results.joistSize.depth}mm</p>
+                  <p><span className="text-gray-500">Width:</span> <span ref={joistWidthRef} data-joist-width>{results.joistSize?.width || 'N/A'}mm</span></p>
+                  <p><span className="text-gray-500">Depth:</span> <span ref={joistDepthRef} data-joist-depth>{results.joistSize?.depth || 'N/A'}mm</span></p>
                 </div>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-2">Beams</h4>
                 <div className="text-sm">
-                  <p><span className="text-gray-500">Interior Beams:</span> {results.interiorBeamSize.width}mm × {results.interiorBeamSize.depth}mm</p>
-                  <p><span className="text-gray-500">Edge Beams:</span> {results.edgeBeamSize.width}mm × {results.edgeBeamSize.depth}mm</p>
+                  <p><span className="text-gray-500">Interior Beams:</span> {results.interiorBeamSize?.width || 'N/A'}mm × {results.interiorBeamSize?.depth || 'N/A'}mm</p>
+                  <p><span className="text-gray-500">Edge Beams:</span> {results.edgeBeamSize?.width || 'N/A'}mm × {results.edgeBeamSize?.depth || 'N/A'}mm</p>
                 </div>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-2">Columns</h4>
                 <div className="text-sm">
-                  <p><span className="text-gray-500">Size:</span> {results.columnSize.width}mm × {results.columnSize.depth}mm</p>
+                  <p><span className="text-gray-500">Size:</span> {results.columnSize?.width || 'N/A'}mm × {results.columnSize?.depth || 'N/A'}mm</p>
                 </div>
               </div>
             </div>
@@ -83,16 +138,16 @@ const ResultsDisplay = ({
               <div>
                 <h4 className="text-sm font-medium mb-2">Materials</h4>
                 <div className="text-sm">
-                  <p><span className="text-gray-500">Beams:</span> {results.cost.beamCost}</p>
-                  <p><span className="text-gray-500">Columns:</span> {results.cost.columnCost}</p>
-                  <p><span className="text-gray-500">Joists:</span> {results.cost.joistCost}</p>
+                  <p><span className="text-gray-500">Beams:</span> {results.costs?.elements?.beams?.cost ? formatCurrency(results.costs.elements.beams.cost) : 'N/A'}</p>
+                  <p><span className="text-gray-500">Columns:</span> {results.costs?.elements?.columns?.cost ? formatCurrency(results.costs.elements.columns.cost) : 'N/A'}</p>
+                  <p><span className="text-gray-500">Joists:</span> {results.costs?.elements?.joists?.cost ? formatCurrency(results.costs.elements.joists.cost) : 'N/A'}</p>
                 </div>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-2">Total</h4>
                 <div className="text-sm">
-                  <p><span className="text-gray-500">Materials:</span> {results.cost.totalCost}</p>
-                  <p><span className="text-gray-500">Carbon Saved:</span> {results.carbonSavings} kg CO₂</p>
+                  <p><span className="text-gray-500">Materials:</span> {results.costs?.total ? formatCurrency(results.costs.total) : 'N/A'}</p>
+                  <p><span className="text-gray-500">Carbon Saved:</span> {results.carbonSavings ? `${results.carbonSavings.toFixed(2)} kg CO₂` : 'N/A'}</p>
                 </div>
               </div>
             </div>

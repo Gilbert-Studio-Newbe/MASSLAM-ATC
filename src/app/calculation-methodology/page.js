@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { TIMBER_PROPERTIES, loadTimberProperties } from '@/utils/timberEngineering';
 import { getML38Properties } from '@/utils/masslamProperties';
+import TimberGradeSelector from '@/components/calculator/TimberGradeSelector';
 
 export default function CalculationMethodologyPage() {
   // Default values for calculation parameters
@@ -13,10 +14,18 @@ export default function CalculationMethodologyPage() {
   const [deadLoad, setDeadLoad] = useState(0.5); // kPa
   const [liveLoad, setLiveLoad] = useState(2); // kPa (residential)
   const [maxSpan, setMaxSpan] = useState(9.0); // meters
+  const [timberGrade, setTimberGrade] = useState('ML38'); // Default timber grade
   
   // State for mechanical properties
   const [mechanicalProperties, setMechanicalProperties] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Handle timber grade change
+  const handleTimberGradeChange = (grade) => {
+    setTimberGrade(grade);
+    // Update calculations with the new grade
+    // In a real implementation, this would trigger recalculations
+  };
   
   // Load mechanical properties on component mount
   useEffect(() => {
@@ -39,8 +48,8 @@ export default function CalculationMethodologyPage() {
   
   // Calculate example span based on current parameters
   const calculateExampleSpan = () => {
-    // Get timber properties for ML38
-    const timberProps = TIMBER_PROPERTIES.ML38;
+    // Get timber properties for current grade
+    const timberProps = TIMBER_PROPERTIES[timberGrade] || TIMBER_PROPERTIES.ML38;
     
     // Example joist: 90mm x 240mm
     const width = 90; // mm
@@ -84,12 +93,41 @@ export default function CalculationMethodologyPage() {
   const exampleResults = calculateExampleSpan();
   
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Member Calculation Methodology</h1>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
         <Link href="/" className="text-blue-600 hover:text-blue-800 flex items-center">
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
           &larr; Back to Member Calculator
         </Link>
+      </div>
+      
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Member Calculation Methodology</h1>
+      </div>
+      
+      {/* Timber Grade Selection */}
+      <div className="bg-white p-6 rounded-lg shadow mb-8">
+        <h2 className="text-xl font-semibold mb-4">Timber Grade Selection</h2>
+        <p className="mb-4">
+          Select the timber grade to use for calculations. Different grades have different strength and stiffness properties.
+        </p>
+        
+        <div className="max-w-md">
+          <TimberGradeSelector 
+            value={timberGrade} 
+            onChange={handleTimberGradeChange} 
+          />
+        </div>
+        
+        <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
+          <h3 className="text-md font-medium text-blue-800 mb-2">Impact on Calculations</h3>
+          <p className="text-sm text-blue-700">
+            Changing the timber grade affects the strength and stiffness used in member size calculations. 
+            Higher grades allow for greater spans or smaller member sizes for the same load conditions.
+          </p>
+        </div>
       </div>
       
       {/* ML38 Mechanical Properties Section */}
