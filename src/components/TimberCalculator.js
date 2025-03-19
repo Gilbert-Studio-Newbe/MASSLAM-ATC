@@ -918,11 +918,8 @@ export default function TimberCalculator() {
       // Calculate timber volume and weight using the existing function
         const timberResult = calculateTimberWeight(
           joistSize, 
-        interiorBeamSize,
+          interiorBeamSize,
           columnSize, 
-          buildingData.buildingLength, 
-          buildingData.buildingWidth, 
-          buildingData.numFloors,
           buildingData.buildingLength, 
           buildingData.buildingWidth, 
           buildingData.numFloors,
@@ -931,6 +928,52 @@ export default function TimberCalculator() {
           buildingData.joistsRunLengthwise,
           timberGrade
         );
+        
+        // Log the timber volume calculation results
+        console.log("VOLUME DEBUG - Timber volume calculation results:", {
+          totalVolume: timberResult.totalVolume,
+          weight: timberResult.weight,
+          joistVolume: timberResult.elements.joists.volume,
+          beamVolume: timberResult.elements.beams.volume,
+          columnVolume: timberResult.elements.columns.volume,
+          joistCount: timberResult.elements.joists.count,
+          beamCount: timberResult.elements.beams.count,
+          columnCount: timberResult.elements.columns.count
+        });
+        
+        // Calculate volumes manually as a cross-check
+        const manualBeamVolume = calculateBeamVolume(
+          interiorBeamSize, 
+          edgeBeamSize, 
+          buildingData.buildingLength, 
+          buildingData.buildingWidth, 
+          buildingData.lengthwiseBays, 
+          buildingData.widthwiseBays
+        );
+        
+        const manualColumnVolume = calculateColumnVolume(
+          columnSize, 
+          buildingData.floorHeight, 
+          buildingData.numFloors, 
+          buildingData.lengthwiseBays, 
+          buildingData.widthwiseBays
+        );
+        
+        // Log comparison between calculated volumes
+        console.log("VOLUME DEBUG - Volume calculation comparison:", {
+          automatic: {
+            beamVolume: timberResult.elements.beams.volume,
+            columnVolume: timberResult.elements.columns.volume
+          },
+          manual: {
+            beamVolume: manualBeamVolume,
+            columnVolume: manualColumnVolume
+          },
+          difference: {
+            beamVolume: timberResult.elements.beams.volume - manualBeamVolume,
+            columnVolume: timberResult.elements.columns.volume - manualColumnVolume
+          }
+        });
         
       // Calculate carbon benefits
       const carbonResults = calculateCarbonSavings(timberResult);
@@ -975,6 +1018,8 @@ export default function TimberCalculator() {
           lengthwiseBayWidths,
           concreteData: concreteLoadData,
           totalLoad: totalLoad,
+          timberVolume: timberResult.totalVolume,
+          timberWeight: timberResult.weight,
           embodiedCarbon: carbonResults.embodiedCarbon,
           carbonSavings: carbonResults.carbonSavings,
           costs,
@@ -984,8 +1029,8 @@ export default function TimberCalculator() {
             columns: timberResult.elements.columns.count
           },
           elementVolumes: {
-            // Use floor area calculation for joists (m²) - this is what the cost calculation expects
-            joists: buildingData.buildingLength * buildingData.buildingWidth * buildingData.numFloors,
+            // Use the volume calculation from timberResult
+            joists: timberResult.elements.joists.volume,
             beams: timberResult.elements.beams.volume,
             columns: timberResult.elements.columns.volume
           },

@@ -129,7 +129,7 @@ const ResultsDisplay = ({
         </div>
         
         {/* Cost Summary Section */}
-        <div className="apple-card">
+        <div className="apple-card mb-8">
           <div className="apple-card-header">
             <h3 className="text-md font-semibold">Cost Summary</h3>
           </div>
@@ -149,6 +149,48 @@ const ResultsDisplay = ({
                   <p><span className="text-gray-500">Materials:</span> {results.costs?.total ? formatCurrency(results.costs.total) : 'N/A'}</p>
                   <p><span className="text-gray-500">Carbon Saved:</span> {results.carbonSavings ? `${results.carbonSavings.toFixed(2)} kg CO₂` : 'N/A'}</p>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Material Summary Section */}
+        <div className="apple-card">
+          <div className="apple-card-header">
+            <h3 className="text-md font-semibold">Material Summary</h3>
+          </div>
+          <div className="apple-card-body">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <h4 className="text-sm font-medium mb-2">Joists</h4>
+                <div className="text-sm">
+                  <p><span className="text-gray-500">Volume:</span> {results.elementVolumes?.joists ? `${results.elementVolumes.joists.toFixed(2)} m³` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Quantity:</span> {results.elementCounts?.joists ? `${results.elementCounts.joists} pieces` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Size:</span> {results.joistSize ? `${results.joistSize.width}×${results.joistSize.depth}mm` : 'N/A'}</p>
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium mb-2">Beams</h4>
+                <div className="text-sm">
+                  <p><span className="text-gray-500">Volume:</span> {results.elementVolumes?.beams ? `${results.elementVolumes.beams.toFixed(2)} m³` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Quantity:</span> {results.elementCounts?.beams ? `${results.elementCounts.beams} pieces` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Interior:</span> {results.interiorBeamSize ? `${results.interiorBeamSize.width}×${results.interiorBeamSize.depth}mm` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Edge:</span> {results.edgeBeamSize ? `${results.edgeBeamSize.width}×${results.edgeBeamSize.depth}mm` : 'N/A'}</p>
+                </div>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium mb-2">Columns</h4>
+                <div className="text-sm">
+                  <p><span className="text-gray-500">Volume:</span> {results.elementVolumes?.columns ? `${results.elementVolumes.columns.toFixed(2)} m³` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Quantity:</span> {results.elementCounts?.columns ? `${results.elementCounts.columns} pieces` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Size:</span> {results.columnSize ? `${results.columnSize.width}×${results.columnSize.depth}mm` : 'N/A'}</p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="text-sm font-medium">
+                <p><span className="text-gray-700">Total Timber Volume:</span> {results.timberVolume ? `${results.timberVolume.toFixed(2)} m³` : 'N/A'}</p>
+                <p><span className="text-gray-700">Total Mass:</span> {results.timberWeight ? `${(results.timberWeight / 1000).toFixed(2)} tonnes` : 'N/A'}</p>
               </div>
             </div>
           </div>
