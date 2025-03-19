@@ -34,7 +34,8 @@ import {
   calculateCost, 
   formatCurrency, 
   loadRates,
-  STORAGE_KEYS 
+  STORAGE_KEYS,
+  saveRates
 } from '../utils/costEstimator';
 import { saveBuildingData, prepareVisualizationData } from '../utils/buildingDataStore';
 import {
@@ -458,6 +459,24 @@ export default function TimberCalculator() {
     };
     
     loadProperties();
+  }, []);
+  
+  // Initialize cost rates in localStorage if they don't exist
+  useEffect(() => {
+    // Set default rates if they don't exist
+    if (!localStorage.getItem(STORAGE_KEYS.BEAM_RATE)) {
+      localStorage.setItem(STORAGE_KEYS.BEAM_RATE, '3200');
+    }
+    
+    if (!localStorage.getItem(STORAGE_KEYS.COLUMN_RATE)) {
+      localStorage.setItem(STORAGE_KEYS.COLUMN_RATE, '3200');
+    }
+    
+    if (!localStorage.getItem('joistRate')) {
+      localStorage.setItem('joistRate', '390');
+    }
+    
+    console.log('Cost rates initialized in localStorage');
   }, []);
   
   // Save the current project
@@ -979,24 +998,18 @@ export default function TimberCalculator() {
       const carbonResults = calculateCarbonSavings(timberResult);
         
       // Calculate costs
-      const costs = calculateCost(
-        joistSize,
-        interiorBeamSize,
-        edgeBeamSize,
-        columnSize,
-        buildingData.buildingLength,
-        buildingData.buildingWidth,
-        buildingData.lengthwiseBays,
-        buildingData.widthwiseBays,
-        buildingData.numFloors,
-        joistSpacing,
-        buildingData.joistsRunLengthwise
-      );
+      const volumes = {
+        beamVolume: timberResult.elements.beams.volume,
+        columnVolume: timberResult.elements.columns.volume,
+        joistArea: buildingData.buildingLength * buildingData.buildingWidth * buildingData.numFloors
+      };
+      
+      const costs = calculateCost(volumes);
       
       // Detailed cost tracing to find the issue
       console.log("RESULTS DEBUG - Costs object from calculateCosts:", JSON.stringify(costs, null, 2));
-      console.log("RESULTS DEBUG - Beam cost value:", costs.elements.beams.cost);
-      console.log("RESULTS DEBUG - Calculation check:", costs.elements.beams.volume * costs.elements.beams.rate);
+      console.log("RESULTS DEBUG - Beam cost value:", costs.elements?.beams?.cost);
+      console.log("RESULTS DEBUG - Calculation check:", costs.elements?.beams?.volume * costs.elements?.beams?.rate);
         
       // Validate the structure - simplified call with correct parameters
       const validationResult = validateStructure(joistSize, interiorBeamSize, columnSize);
