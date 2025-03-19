@@ -1682,6 +1682,18 @@ export default function TimberCalculator() {
             results={results}
             onSaveClick={() => setShowSaveModal(true)}
             isMobile={isMobile}
+            buildingLength={buildingData.buildingLength}
+            buildingWidth={buildingData.buildingWidth}
+            lengthwiseBays={buildingData.lengthwiseBays}
+            widthwiseBays={buildingData.widthwiseBays}
+            joistsRunLengthwise={buildingData.joistsRunLengthwise}
+            onToggleJoistDirection={toggleJoistDirection}
+            useCustomBayDimensions={buildingData.useCustomBayDimensions}
+            customLengthwiseBayWidths={buildingData.customLengthwiseBayWidths}
+            customWidthwiseBayWidths={buildingData.customWidthwiseBayWidths}
+            onToggleCustomBayDimensions={handleToggleCustomBayDimensions}
+            onLengthwiseBayWidthChange={handleLengthwiseBayWidthChange}
+            onWidthwiseBayWidthChange={handleWidthwiseBayWidthChange}
           />
         </div>
       </div>

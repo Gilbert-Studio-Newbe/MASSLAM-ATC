@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { formatCurrency } from '../../utils/costEstimator';
+import BayLayoutVisualizer from './BayLayoutVisualizer';
 
 /**
  * ResultsDisplay component for showing calculation results
@@ -10,7 +11,19 @@ import { formatCurrency } from '../../utils/costEstimator';
 const ResultsDisplay = ({ 
   results, 
   onSaveClick,
-  isMobile
+  isMobile,
+  buildingLength,
+  buildingWidth,
+  lengthwiseBays,
+  widthwiseBays,
+  joistsRunLengthwise,
+  onToggleJoistDirection,
+  useCustomBayDimensions = false,
+  customLengthwiseBayWidths = [],
+  customWidthwiseBayWidths = [],
+  onToggleCustomBayDimensions = () => {},
+  onLengthwiseBayWidthChange = () => {},
+  onWidthwiseBayWidthChange = () => {}
 }) => {
   // Add client-side state to avoid hydration mismatch
   const [isClient, setIsClient] = useState(false);
@@ -97,6 +110,31 @@ const ResultsDisplay = ({
       </div>
       
       <div className="apple-results-body">
+        {/* Bay Layout Visualizer Section */}
+        <div className="apple-card mb-8">
+          <div className="apple-card-header">
+            <h3 className="text-md font-semibold">Bay Layout Visualization</h3>
+          </div>
+          <div className="apple-card-body">
+            <BayLayoutVisualizer
+              results={results}
+              buildingLength={buildingLength}
+              buildingWidth={buildingWidth}
+              lengthwiseBays={lengthwiseBays}
+              widthwiseBays={widthwiseBays}
+              joistsRunLengthwise={joistsRunLengthwise}
+              onToggleJoistDirection={onToggleJoistDirection}
+              useCustomBayDimensions={useCustomBayDimensions}
+              customLengthwiseBayWidths={customLengthwiseBayWidths}
+              customWidthwiseBayWidths={customWidthwiseBayWidths}
+              onToggleCustomBayDimensions={onToggleCustomBayDimensions}
+              onLengthwiseBayWidthChange={onLengthwiseBayWidthChange}
+              onWidthwiseBayWidthChange={onWidthwiseBayWidthChange}
+              isMobile={isMobile}
+            />
+          </div>
+        </div>
+
         {/* Total Cost Estimate Section */}
         <div className="apple-card mb-8">
           <div className="apple-card-body">
