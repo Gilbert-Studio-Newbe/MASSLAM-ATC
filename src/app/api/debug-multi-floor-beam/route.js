@@ -27,7 +27,7 @@ const calculateFireResistanceAllowance = (fireRating) => {
 };
 
 // Copy of calculateMultiFloorBeamSize from TimberCalculator.js
-const calculateMultiFloorBeamSize = (span, load, joistSpacing, numFloors, fireRating = 'none', joistsRunLengthwise = true, avgBayWidth = 0, avgBayLength = 0) => {
+const calculateMultiFloorBeamSize = (span, load, joistSpacing, numFloors, fireRating = 'none', joistsRunLengthwise = true, avgBayWidth = 0, avgBayLength = 0, isEdgeBeam = false) => {
   // Calculate tributary width for the beam (in meters)
   // For a more realistic calculation, use half the perpendicular dimension to the beam span
   // If beam spans lengthwise (joists run widthwise), tributary width is half the bay width
@@ -36,13 +36,20 @@ const calculateMultiFloorBeamSize = (span, load, joistSpacing, numFloors, fireRa
   
   if (avgBayWidth > 0 && avgBayLength > 0) {
     // If we have bay dimensions, use them for a more realistic tributary width
-    tributaryWidth = joistsRunLengthwise ? avgBayWidth / 2 : avgBayLength / 2;
+    if (isEdgeBeam) {
+      // Edge beams support half of one bay
+      tributaryWidth = joistsRunLengthwise ? avgBayWidth / 2 : avgBayLength / 2;
+    } else {
+      // Interior beams support half of the bay on each side
+      // For uniform bay sizes, this is approximately the full bay width
+      tributaryWidth = joistsRunLengthwise ? avgBayWidth : avgBayLength;
+    }
   } else {
     // Fallback to the old calculation if bay dimensions aren't provided
-    tributaryWidth = joistSpacing;
+    tributaryWidth = isEdgeBeam ? joistSpacing / 2 : joistSpacing;
   }
   
-  console.log(`Beam tributary width: ${tributaryWidth.toFixed(2)} m`);
+  console.log(`Beam tributary width (${isEdgeBeam ? 'edge' : 'interior'}): ${tributaryWidth.toFixed(2)} m`);
   
   // Calculate load per meter of beam (kN/m)
   // load is in kPa (kN/m²), so multiply by tributary width to get kN/m
@@ -125,16 +132,32 @@ export async function GET(request) {
     // Test different scenarios
     const tests = [
       {
-        name: 'Old method (joist spacing)',
+        name: 'Interior Beam - Old method (joist spacing)',
         avgBayWidth: 0,
         avgBayLength: 0,
-        description: 'Using joist spacing as tributary width (old method)'
+        isEdgeBeam: false,
+        description: 'Interior beam using joist spacing as tributary width (old method)'
       },
       {
-        name: 'New method (realistic tributary width)',
+        name: 'Edge Beam - Old method (joist spacing)',
+        avgBayWidth: 0,
+        avgBayLength: 0,
+        isEdgeBeam: true,
+        description: 'Edge beam using joist spacing as tributary width (old method)'
+      },
+      {
+        name: 'Interior Beam - New method (realistic tributary width)',
         avgBayWidth: 7.0,
         avgBayLength: 7.0,
-        description: 'Using half the perpendicular bay dimension (new method)'
+        isEdgeBeam: false,
+        description: 'Interior beam using full perpendicular bay dimension (new method)'
+      },
+      {
+        name: 'Edge Beam - New method (realistic tributary width)',
+        avgBayWidth: 7.0,
+        avgBayLength: 7.0,
+        isEdgeBeam: true,
+        description: 'Edge beam using half the perpendicular bay dimension (new method)'
       }
     ];
     
@@ -151,7 +174,8 @@ export async function GET(request) {
         fireRating,
         joistsRunLengthwise,
         test.avgBayWidth,
-        test.avgBayLength
+        test.avgBayLength,
+        test.isEdgeBeam
       );
       
       results.push({

@@ -30,11 +30,12 @@ export function calculateMultiFloorBeamSize(span, load, joistSpacing, numFloors,
   if (avgBayWidth > 0 && avgBayLength > 0) {
     // If we have bay dimensions, use them for a more realistic tributary width
     if (isEdgeBeam) {
-      // Edge beams only support load from one side (half the tributary width of interior beams)
-      tributaryWidth = joistsRunLengthwise ? avgBayWidth / 4 : avgBayLength / 4;
-    } else {
-      // Interior beams support load from both sides
+      // Edge beams support half of one bay
       tributaryWidth = joistsRunLengthwise ? avgBayWidth / 2 : avgBayLength / 2;
+    } else {
+      // Interior beams support half of the bay on each side
+      // For uniform bay sizes, this is approximately the full bay width
+      tributaryWidth = joistsRunLengthwise ? avgBayWidth : avgBayLength;
     }
   } else {
     // Fallback to the old calculation if bay dimensions aren't provided
