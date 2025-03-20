@@ -692,3 +692,16 @@ export function debugMasslamSizesLoading() {
     count: _masslamSizes.length
   };
 }
+
+/**
+ * Reset the MASSLAM sizes module state
+ * @returns {boolean} True if reset was successful
+ */
+export function resetMasslamSizes() {
+  console.log('Resetting MASSLAM sizes module state');
+  _masslamSizes = [];
+  _isInitialized = false;
+  _isLoading = false;
+  _loadPromise = null;
+  return true;
+}

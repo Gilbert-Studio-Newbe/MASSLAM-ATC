@@ -1,6 +1,7 @@
 "use client";
 
 import { BuildingDataProvider } from "../contexts/BuildingDataContext";
+import { FireResistanceProvider } from "../contexts/FireResistanceContext";
 import DataLoader from "./DataLoader";
 
 /**
@@ -9,9 +10,11 @@ import DataLoader from "./DataLoader";
 export default function AppProviders({ children }) {
   return (
     <BuildingDataProvider>
-      <DataLoader>
-        {children}
-      </DataLoader>
+      <FireResistanceProvider>
+        <DataLoader>
+          {children}
+        </DataLoader>
+      </FireResistanceProvider>
     </BuildingDataProvider>
   );
 } 
