@@ -234,6 +234,7 @@ export function getFixedWidthForFireRating(fireRating) {
  */
 export function calculateJoistSize(span, spacing, load, timberGrade, fireRating = 'none') {
   console.log(`Calculating joist size for span=${span}m, spacing=${spacing}mm, load=${load}kPa, grade=${timberGrade}, fire=${fireRating}`);
+  console.log(`JOIST SPACING DEBUG - Received spacing value: ${spacing}, type: ${typeof spacing}`);
   
   try {
     // Get timber properties based on grade

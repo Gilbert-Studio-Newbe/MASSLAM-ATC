@@ -149,16 +149,9 @@ export default function TimberCalculator() {
                 buildingData={buildingData}
                 onInputChange={handleInputChange}
                 onToggleJoistDirection={toggleJoistDirection}
-                buildingLength={buildingData.buildingLength}
-                buildingWidth={buildingData.buildingWidth}
-                useCustomBayDimensions={buildingData.useCustomBayDimensions}
                 onToggleCustomBayDimensions={handleToggleCustomBayDimensions}
-                customLengthwiseBayWidths={buildingData.customLengthwiseBayWidths}
-                customWidthwiseBayWidths={buildingData.customWidthwiseBayWidths}
                 onLengthwiseBayWidthChange={handleLengthwiseBayWidthChange}
                 onWidthwiseBayWidthChange={handleWidthwiseBayWidthChange}
-                lengthwiseBays={buildingData.lengthwiseBays}
-                widthwiseBays={buildingData.widthwiseBays}
                 maxBaySpan={buildingData.maxBaySpan}
                 isMobile={isMobile}
               />

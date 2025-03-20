@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import Apple-inspired styles */
+@import url('../../styles/apple-inspired.css'); 

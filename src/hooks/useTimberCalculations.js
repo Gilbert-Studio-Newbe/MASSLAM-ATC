@@ -223,8 +223,12 @@ export function useTimberCalculations() {
    * Calculates joist size (resolving the duplicate function issue)
    */
   const calculateJoistSize = useCallback((span, spacing, load, timberGrade, fireRating) => {
+    // Convert spacing from meters to mm for timberEngineering.js if needed
+    console.log(`TIMBER CALC HOOK - Received spacing: ${spacing}m, converting to mm for engineering calculation`);
+    const spacingMm = spacing * 1000; // Convert to mm
+    
     // This now directly uses the imported function from timberEngineering.js
-    return calculateJoistSizeEngineering(span, spacing, load, timberGrade, fireRating);
+    return calculateJoistSizeEngineering(span, spacingMm, load, timberGrade, fireRating);
   }, []);
 
   return {

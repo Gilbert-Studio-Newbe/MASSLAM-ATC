@@ -163,6 +163,8 @@ export function useFormState() {
   // Calculate results
   const calculateResults = useCallback(() => {
     console.log("JOIST DEBUG - Starting calculations");
+    console.log("JOIST DEBUG - BuildingData:", buildingData);
+    console.log(`JOIST DEBUG - Using joistSpacing: ${buildingData.joistSpacing}m (${buildingData.joistSpacing * 1000}mm)`);
     setError(null);
     
     try {
@@ -197,6 +199,7 @@ export function useFormState() {
       }
       
       // Calculate joist size
+      console.log(`JOIST DEBUG - Calling calculateJoistSize with span=${joistSpan}m, spacing=${joistSpacing}m (${joistSpacing * 1000}mm), load=${buildingData.load}kPa, timberGrade=${buildingData.timberGrade}, fireRating=${buildingData.fireRating}`);
       const joistSize = calculateJoistSize(
         joistSpan, 
         joistSpacing, 
