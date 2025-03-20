@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useBuildingData } from '../contexts/BuildingDataContext';
 import { useFireResistance, calculateFireParams } from './FireResistanceCalculator';
 import { 
-  calculateJoistSize, 
+  calculateJoistSize as calculateJoistSizeEngineering, 
   calculateBeamSize, 
   calculateColumnSize,
   calculateTimberWeight,
@@ -15,7 +15,7 @@ import {
   loadTimberProperties,
   calculateMasslamBeamSize,
   getFixedWidthForFireRating
-} from '@/utils/timberEngineering';
+} from '../utils/timberEngineering';
 import { 
   loadMasslamSizes,
   findNearestWidth,
@@ -27,8 +27,8 @@ import {
   verifyLoadedSizes,
   filterToStandardSizes,
   resetMasslamSizes
-} from '@/utils/timberSizes';
-import { calculateFireResistanceAllowance, getMasslamSL33Properties } from '@/utils/masslamProperties';
+} from '../utils/timberSizes';
+import { calculateFireResistanceAllowance, getMasslamSL33Properties } from '../utils/masslamProperties';
 import TimberSizesTable from './TimberSizesTable';
 import { 
   calculateCost, 
@@ -773,153 +773,181 @@ export default function TimberCalculator() {
   
   // Function to calculate joist size based on span, spacing, load, and fire rating
   function calculateJoistSize(span, spacing, load, timberGrade, fireRating) {
-    console.log(`JOIST DEBUG - Starting calculation with: span=${span}m, spacing=${spacing}mm, load=${load}kPa, timber=${timberGrade}, fireRating=${fireRating}`);
+    // Call the timberEngineering function to calculate the size
+    console.log("JOIST DEBUG - Calculating joist size with parameters:", { span, spacing, load, timberGrade, fireRating });
     
-    if (span <= 0 || spacing <= 0 || load <= 0) {
-      console.error("JOIST DEBUG - Invalid input parameters:", { span, spacing, load });
-      throw new Error("Invalid input parameters");
-    }
-    
-    // Get the joist width based on fire rating from fireParams instead of the fixed width function
-    const joistWidth = buildingData.fireParams?.joistWidth || 120;
-    console.log(`JOIST DEBUG - Using joist width: ${joistWidth}mm from fireParams for fire rating: ${fireRating}`);
-    
-    // Calculate required depth based on engineering formulas
-    // Using a simplified formula: depth ≈ span * 30 (mm) for typical glulam floor joists
-    const basicDepth = Math.round(span * 30);
-    
-    // Round to nearest standard depth
-    const standardDepths = [200, 240, 280, 320, 360, 400, 450, 500, 550, 600, 650, 700];
-    let depth = standardDepths.find(d => d >= basicDepth) || standardDepths[standardDepths.length - 1];
-    
-    // Adjust for load - simplified approach
-    if (load > 3) {
-      // Go up one size for heavy loads
-      const currentIndex = standardDepths.indexOf(depth);
-      if (currentIndex < standardDepths.length - 1) {
-        depth = standardDepths[currentIndex + 1];
+    try {
+      // Get the mechanical properties for the timber grade
+      const properties = TIMBER_PROPERTIES[timberGrade] || TIMBER_PROPERTIES.ML38;
+      
+      if (!properties) {
+        console.error("JOIST DEBUG - Timber grade properties not found:", timberGrade);
+        throw new Error(`Timber grade properties not found for ${timberGrade}`);
       }
+      
+      // Initialize parameters for logging
+      let calculationParams = {
+        span,
+        spacing, 
+        load,
+        timberGrade,
+        fireRating,
+        properties
+      };
+      
+      // ALWAYS include deflection calculation regardless of span
+      console.log("JOIST DEBUG - Including deflection check for all spans");
+      calculationParams.checkDeflection = true;
+
+      // Get the joist size from the engineering module
+      const result = calculateJoistSizeEngineering(
+        span, 
+        spacing, 
+        load, 
+        timberGrade, 
+        fireRating
+      );
+      
+      console.log("JOIST DEBUG - Calculation result:", result);
+      
+      // Return the calculated size
+      return result;
+    } catch (error) {
+      console.error("JOIST DEBUG - Error in joist calculation:", error);
+      throw error;
     }
-    
-    console.log(`JOIST DEBUG - Joist size calculation: ${joistWidth}mm × ${depth}mm`);
-    
-    return {
-      width: joistWidth,
-      depth,
-      span,
-      spacing,
-      load,
-      grade: timberGrade,
-      fireRating
-    };
   }
   
-  // Define calculateResults outside of useEffect so it can be called from anywhere
-    const calculateResults = () => {
-      setError(null);
+  // Calculate results based on inputs
+  useEffect(() => {
+    // Only run calculations if we have the basic required data
+    if (buildingData.buildingLength && buildingData.buildingWidth && 
+        buildingData.load && buildingData.fireRating) {
+      console.log("JOIST DEBUG - Auto calculation triggered by input change");
+      const debounceCalculation = setTimeout(() => {
+        calculateResults();
+      }, 500); // Debounce to prevent excessive calculations during rapid input changes
       
-      try {
-        // Get bay dimensions
-        const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
-        
-        // Find the maximum bay span (for joists)
-        let maxLengthwiseSpan = Math.max(...lengthwiseBayWidths);
-        let maxWidthwiseSpan = Math.max(...widthwiseBayWidths);
-        
-        // Determine joist span based on global direction setting
-        // instead of automatically using the shorter distance
-        const joistSpan = buildingData.joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
-        
-        // Calculate concrete thickness based on fire rating
-        const getConcreteThickness = (frl) => {
-          switch (frl) {
-            case 'none':
-            case '30/30/30':
-            case '60/60/60':
-              return 100; // 100mm for FRL 0/0/0, 30/30/30, 60/60/60
-            case '90/90/90':
-              return 110; // 110mm for FRL 90/90/90
-            case '120/120/120':
-              return 120; // 120mm for FRL 120/120/120
-            default:
-              return 100; // Default to 100mm
-          }
-        };
-        
-        // Calculate concrete load based on thickness
-        const calculateConcreteLoad = (thickness) => {
-          const CONCRETE_DENSITY = 2400; // kg/m³
-          
-          // Calculate concrete volume per m²
-          const concreteVolumePerM2 = thickness / 1000; // m³/m² (thickness in m)
-          
-          // Calculate concrete mass per m²
-          const concreteMassPerM2 = concreteVolumePerM2 * CONCRETE_DENSITY; // kg/m²
-          
-          // Convert to kPa (1 kg/m² = 0.00981 kPa)
-          const concreteLoadKpa = concreteMassPerM2 * 0.00981;
-          
-          return {
-            thickness,
-            massPerM2: concreteMassPerM2.toFixed(1),
-            loadKpa: concreteLoadKpa.toFixed(2)
-          };
-        };
-        
-        // Get concrete thickness and load based on current fire rating
-        const concreteThickness = getConcreteThickness(buildingData.fireRating);
-        const concreteLoadData = calculateConcreteLoad(concreteThickness);
-        
-        // Calculate total load including concrete load
-        const totalLoad = parseFloat(load) + parseFloat(concreteLoadData.loadKpa);
-        console.log('Total load calculation:', { 
-          imposed: parseFloat(load), 
-          concrete: parseFloat(concreteLoadData.loadKpa), 
-          total: totalLoad 
-        });
-        
-        // Calculate joist size based on span and load
-        let joistSize;
-        try {
-          joistSize = calculateJoistSize(joistSpan, 800, totalLoad, timberGrade, buildingData.fireRating);
-          console.log("JOIST DEBUG - Standard calculation successful:", joistSize);
-          
-          // Verify joist size is valid
-          if (!joistSize || !joistSize.width || !joistSize.depth) {
-            throw new Error("Invalid joist dimensions returned from calculation");
-          }
-        } catch (error) {
-          console.error("JOIST DEBUG - Error in joist calculation:", error);
-          // Instead of using a fallback calculation, set an error
-          setError(`Joist calculation failed: ${error.message}. Please adjust your inputs and try again.`);
-          return; // Exit the function early since we can't proceed without valid joist dimensions
+      return () => clearTimeout(debounceCalculation);
+    }
+  }, [
+    buildingData.buildingLength,
+    buildingData.buildingWidth,
+    buildingData.load,
+    buildingData.fireRating,
+    buildingData.joistsRunLengthwise,
+    buildingData.lengthwiseBays,
+    buildingData.widthwiseBays,
+    buildingData.useCustomBayDimensions,
+    buildingData.customLengthwiseBayWidths,
+    buildingData.customWidthwiseBayWidths
+  ]);
+
+  // Define calculateResults function
+  const calculateResults = () => {
+    setError(null);
+    
+    try {
+      // Get bay dimensions
+      const { lengthwiseBayWidths, widthwiseBayWidths } = calculateBayDimensions();
+      
+      // Find the maximum bay span (for joists)
+      let maxLengthwiseSpan = Math.max(...lengthwiseBayWidths);
+      let maxWidthwiseSpan = Math.max(...widthwiseBayWidths);
+      
+      // Determine joist span based on global direction setting
+      // instead of automatically using the shorter distance
+      const joistSpan = buildingData.joistsRunLengthwise ? maxLengthwiseSpan : maxWidthwiseSpan;
+      
+      // Calculate concrete thickness based on fire rating
+      const getConcreteThickness = (frl) => {
+        switch (frl) {
+          case 'none':
+          case '30/30/30':
+          case '60/60/60':
+            return 100; // 100mm for FRL 0/0/0, 30/30/30, 60/60/60
+          case '90/90/90':
+            return 110; // 110mm for FRL 90/90/90
+          case '120/120/120':
+            return 120; // 120mm for FRL 120/120/120
+          default:
+            return 100; // Default to 100mm
         }
+      };
+      
+      // Calculate concrete load based on thickness
+      const calculateConcreteLoad = (thickness) => {
+        const CONCRETE_DENSITY = 2400; // kg/m³
         
-        // Debug joist calculation
-        console.log("JOIST DEBUG - Calculated joist size:", {
-          span: joistSpan,
-          spacing: 800,
-          totalLoad,
-          timberGrade,
-          fireRating: buildingData.fireRating,
-          result: joistSize
-        });
+        // Calculate concrete volume per m²
+        const concreteVolumePerM2 = thickness / 1000; // m³/m² (thickness in m)
         
-        // Calculate beam span (beams span perpendicular to joists)
-        const beamSpan = buildingData.joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+        // Calculate concrete mass per m²
+        const concreteMassPerM2 = concreteVolumePerM2 * CONCRETE_DENSITY; // kg/m²
         
-        // Define joist spacing (in meters)
-        const joistSpacing = 0.8; // 800mm spacing
+        // Convert to kPa (1 kg/m² = 0.00981 kPa)
+        const concreteLoadKpa = concreteMassPerM2 * 0.00981;
         
-        // Calculate average bay dimensions for tributary area calculation
-        const avgBayLength = buildingData.buildingLength / buildingData.lengthwiseBays;
-        const avgBayWidth = buildingData.buildingWidth / buildingData.widthwiseBays;
+        return {
+          thickness,
+          massPerM2: concreteMassPerM2.toFixed(1),
+          loadKpa: concreteLoadKpa.toFixed(2)
+        };
+      };
+      
+      // Get concrete thickness and load based on current fire rating
+      const concreteThickness = getConcreteThickness(buildingData.fireRating);
+      const concreteLoadData = calculateConcreteLoad(concreteThickness);
+      
+      // Calculate total load including concrete load
+      const totalLoad = parseFloat(load) + parseFloat(concreteLoadData.loadKpa);
+      console.log('Total load calculation:', { 
+        imposed: parseFloat(load), 
+        concrete: parseFloat(concreteLoadData.loadKpa), 
+        total: totalLoad 
+      });
+      
+      // Calculate joist size based on span and load
+      let joistSize;
+      try {
+        joistSize = calculateJoistSize(joistSpan, 800, totalLoad, timberGrade, buildingData.fireRating);
+        console.log("JOIST DEBUG - Standard calculation successful:", joistSize);
         
+        // Verify joist size is valid
+        if (!joistSize || !joistSize.width || !joistSize.depth) {
+          throw new Error("Invalid joist dimensions returned from calculation");
+        }
+      } catch (error) {
+        console.error("JOIST DEBUG - Error in joist calculation:", error);
+        // Instead of using a fallback calculation, set an error
+        setError(`Joist calculation failed: ${error.message}. Please adjust your inputs and try again.`);
+        return; // Exit the function early since we can't proceed without valid joist dimensions
+      }
+      
+      // Debug joist calculation
+      console.log("JOIST DEBUG - Calculated joist size:", {
+        span: joistSpan,
+        spacing: 800,
+        totalLoad,
+        timberGrade,
+        fireRating: buildingData.fireRating,
+        result: joistSize
+      });
+      
+      // Calculate beam span (beams span perpendicular to joists)
+      const beamSpan = buildingData.joistsRunLengthwise ? maxWidthwiseSpan : maxLengthwiseSpan;
+      
+      // Define joist spacing (in meters)
+      const joistSpacing = 0.8; // 800mm spacing
+      
+      // Calculate average bay dimensions for tributary area calculation
+      const avgBayLength = buildingData.buildingLength / buildingData.lengthwiseBays;
+      const avgBayWidth = buildingData.buildingWidth / buildingData.widthwiseBays;
+      
       // Calculate interior beam size (beams that support load from both sides)
-      // These beams have a tributary width of half the perpendicular bay dimension
       const interiorBeamSize = calculateMultiFloorBeamSize(
         beamSpan, 
-        totalLoad, // Use combined load 
+        totalLoad, 
         joistSpacing, 
         buildingData.numFloors, 
         buildingData.fireRating, 
@@ -930,10 +958,9 @@ export default function TimberCalculator() {
       );
       
       // Calculate edge beam size (beams that support load from one side only)
-      // These beams have a tributary width of half the perpendicular bay dimension
       const edgeBeamSize = calculateMultiFloorBeamSize(
         beamSpan, 
-        totalLoad, // Use combined load
+        totalLoad,
         joistSpacing, 
         buildingData.numFloors, 
         buildingData.fireRating,
@@ -944,8 +971,6 @@ export default function TimberCalculator() {
       );
       
       // Calculate column size
-      // Columns support the load from the beams
-      // Tributary area is the bay area (length x width)
       const columnSize = calculateMultiFloorColumnSize(
         interiorBeamSize.width, // Match column width to beam width
         totalLoad, // Use the same total load including concrete
@@ -956,69 +981,41 @@ export default function TimberCalculator() {
         avgBayWidth
       );
       
-      // Calculate timber volume and weight using the existing function
-        const timberResult = calculateTimberWeight(
-          joistSize, 
-          interiorBeamSize,
-          columnSize, 
-          buildingData.buildingLength, 
-          buildingData.buildingWidth, 
-          buildingData.numFloors,
-          buildingData.lengthwiseBays,
-          buildingData.widthwiseBays,
-          buildingData.joistsRunLengthwise,
-          timberGrade
-        );
-        
-        // Log the timber volume calculation results
-        console.log("VOLUME DEBUG - Timber volume calculation results:", {
-          totalVolume: timberResult.totalVolume,
-          weight: timberResult.weight,
-          joistVolume: timberResult.elements.joists.volume,
-          beamVolume: timberResult.elements.beams.volume,
-          columnVolume: timberResult.elements.columns.volume,
-          joistCount: timberResult.elements.joists.count,
-          beamCount: timberResult.elements.beams.count,
-          columnCount: timberResult.elements.columns.count
-        });
-        
-        // Calculate volumes manually as a cross-check
-        const manualBeamVolume = calculateBeamVolume(
-          interiorBeamSize, 
-          edgeBeamSize, 
-          buildingData.buildingLength, 
-          buildingData.buildingWidth, 
-          buildingData.lengthwiseBays, 
-          buildingData.widthwiseBays
-        );
-        
-        const manualColumnVolume = calculateColumnVolume(
-          columnSize, 
-          buildingData.floorHeight, 
-          buildingData.numFloors, 
-          buildingData.lengthwiseBays, 
-          buildingData.widthwiseBays
-        );
-        
-        // Log comparison between calculated volumes
-        console.log("VOLUME DEBUG - Volume calculation comparison:", {
-          automatic: {
-            beamVolume: timberResult.elements.beams.volume,
-            columnVolume: timberResult.elements.columns.volume
-          },
-          manual: {
-            beamVolume: manualBeamVolume,
-            columnVolume: manualColumnVolume
-          },
-          difference: {
-            beamVolume: timberResult.elements.beams.volume - manualBeamVolume,
-            columnVolume: timberResult.elements.columns.volume - manualColumnVolume
-          }
-        });
-        
+      // Calculate timber volume and weight
+      const timberResult = calculateTimberWeight(
+        joistSize, 
+        interiorBeamSize,
+        columnSize, 
+        buildingData.buildingLength, 
+        buildingData.buildingWidth, 
+        buildingData.numFloors,
+        buildingData.lengthwiseBays,
+        buildingData.widthwiseBays,
+        buildingData.joistsRunLengthwise,
+        timberGrade
+      );
+      
+      // Calculate manually as a cross-check
+      const manualBeamVolume = calculateBeamVolume(
+        interiorBeamSize, 
+        edgeBeamSize, 
+        buildingData.buildingLength, 
+        buildingData.buildingWidth, 
+        buildingData.lengthwiseBays, 
+        buildingData.widthwiseBays
+      );
+      
+      const manualColumnVolume = calculateColumnVolume(
+        columnSize, 
+        buildingData.floorHeight, 
+        buildingData.numFloors, 
+        buildingData.lengthwiseBays, 
+        buildingData.widthwiseBays
+      );
+      
       // Calculate carbon benefits
       const carbonResults = calculateCarbonSavings(timberResult);
-        
+      
       // Calculate costs
       const costs = calculateCost(
         joistSize,
@@ -1034,116 +1031,61 @@ export default function TimberCalculator() {
         buildingData.joistsRunLengthwise
       );
       
-      // Detailed cost tracing to find the issue
-      console.log("RESULTS DEBUG - Costs object from calculateCosts:", JSON.stringify(costs, null, 2));
-      console.log("RESULTS DEBUG - Beam cost value:", costs.elements.beams.cost);
-      console.log("RESULTS DEBUG - Calculation check:", costs.elements.beams.volume * costs.elements.beams.rate);
-        
-      // Validate the structure - simplified call with correct parameters
+      // Validate the structure
       const validationResult = validateStructure(joistSize, interiorBeamSize, columnSize);
-        
-        // Create a structure to hold detailed results
-        const finalResults = {
-          joistSize,
-          interiorBeamSize,
-          edgeBeamSize,
-          columnSize,
-          joistSpan,
-          beamSpan: beamSpan,
-          joistsRunLengthwise: buildingData.joistsRunLengthwise,
-          buildingLength: buildingData.buildingLength,
-          buildingWidth: buildingData.buildingWidth,
-          lengthwiseBays: buildingData.lengthwiseBays,
-          widthwiseBays: buildingData.widthwiseBays,
-          widthwiseBayWidths,
-          lengthwiseBayWidths,
-          concreteData: concreteLoadData,
-          totalLoad: totalLoad,
-          timberVolume: timberResult.totalVolume,
-          timberWeight: timberResult.weight,
-          embodiedCarbon: carbonResults.embodiedCarbon,
-          carbonSavings: carbonResults.carbonSavings,
-          costs,
-          elementCounts: {
-            joists: timberResult.elements.joists.count,
-            beams: timberResult.elements.beams.count,
-            columns: timberResult.elements.columns.count
-          },
-          elementVolumes: {
-            // Use the volume calculation from timberResult
-            joists: timberResult.elements.joists.volume,
-            beams: timberResult.elements.beams.volume,
-            columns: timberResult.elements.columns.volume
-          },
-          // Add debugging information to results
-          debug: {
-            timberResult: JSON.parse(JSON.stringify(timberResult)),
-            mockTimberResult: {
-              beams: {
-                volume: calculateBeamVolume(interiorBeamSize, edgeBeamSize, buildingData.buildingLength, buildingData.buildingWidth, buildingData.lengthwiseBays, buildingData.widthwiseBays)
-              },
-              columns: {
-                volume: calculateColumnVolume(columnSize, buildingData.floorHeight, buildingData.numFloors, buildingData.lengthwiseBays, buildingData.widthwiseBays)
-              }
-            },
-            rawCosts: JSON.parse(JSON.stringify(costs))
-          },
-          buildingLength: buildingData.buildingLength,
-          buildingWidth: buildingData.buildingWidth,
-          lengthwiseBays: buildingData.lengthwiseBays,
-          widthwiseBays: buildingData.widthwiseBays,
-          validationResult
-        };
       
-      // Log results right before updating state
-      console.log("JOIST DEBUG - Final joist size in results:", {
-        width: finalResults.joistSize?.width,
-        depth: finalResults.joistSize?.depth
-      });
+      // Create a structure to hold detailed results
+      const finalResults = {
+        joistSize,
+        interiorBeamSize,
+        edgeBeamSize,
+        columnSize,
+        joistSpan,
+        beamSpan: beamSpan,
+        joistsRunLengthwise: buildingData.joistsRunLengthwise,
+        buildingLength: buildingData.buildingLength,
+        buildingWidth: buildingData.buildingWidth,
+        lengthwiseBays: buildingData.lengthwiseBays,
+        widthwiseBays: buildingData.widthwiseBays,
+        widthwiseBayWidths,
+        lengthwiseBayWidths,
+        concreteData: concreteLoadData,
+        totalLoad: totalLoad,
+        timberVolume: timberResult.totalVolume,
+        timberWeight: timberResult.weight,
+        embodiedCarbon: carbonResults.embodiedCarbon,
+        carbonSavings: carbonResults.carbonSavings,
+        costs,
+        elementCounts: {
+          joists: timberResult.elements.joists.count,
+          beams: timberResult.elements.beams.count,
+          columns: timberResult.elements.columns.count
+        },
+        elementVolumes: {
+          joists: timberResult.elements.joists.volume,
+          beams: timberResult.elements.beams.volume,
+          columns: timberResult.elements.columns.volume
+        },
+        debug: {
+          timberResult: JSON.parse(JSON.stringify(timberResult)),
+          mockTimberResult: {
+            beams: {
+              volume: manualBeamVolume
+            },
+            columns: {
+              volume: manualColumnVolume
+            }
+          },
+          rawCosts: JSON.parse(JSON.stringify(costs))
+        },
+        validationResult
+      };
       
       // Update the results state
       setResults(finalResults);
       
-      // Use the new specialized function for updating results in context
+      // Use the specialized function for updating results in context
       updateCalculationResults(finalResults);
-      
-      // Direct DOM update as a fallback for hydration issues
-      setTimeout(() => {
-        try {
-          // Try to directly update DOM elements with the joist sizes
-          const joistWidthElements = document.querySelectorAll('[data-joist-width]');
-          const joistDepthElements = document.querySelectorAll('[data-joist-depth]');
-          
-          if (joistWidthElements.length > 0) {
-            joistWidthElements.forEach(el => {
-              el.textContent = `${finalResults.joistSize.width}mm`;
-            });
-            console.log("JOIST DEBUG - Directly updated joist width elements:", joistWidthElements.length);
-          }
-          
-          if (joistDepthElements.length > 0) {
-            joistDepthElements.forEach(el => {
-              el.textContent = `${finalResults.joistSize.depth}mm`;
-            });
-            console.log("JOIST DEBUG - Directly updated joist depth elements:", joistDepthElements.length);
-          }
-        } catch (error) {
-          console.error("JOIST DEBUG - Error updating DOM directly:", error);
-        }
-      }, 100);
-      
-      // Force a re-render after updating results
-      setTimeout(() => {
-        // This will trigger a re-render after the state updates have been processed
-        console.log("JOIST DEBUG - Triggering re-render check");
-        setResults(prevResults => {
-          console.log("JOIST DEBUG - Current joist size in re-render:", 
-            prevResults?.joistSize?.width, 
-            prevResults?.joistSize?.depth
-          );
-          return { ...prevResults, updateId: Date.now() };
-        });
-      }, 200);
       
       // Prepare and save data for 3D visualization
       const visualizationData = prepareVisualizationData({
@@ -1167,29 +1109,6 @@ export default function TimberCalculator() {
       setError('Error calculating results: ' + error.message);
     }
   };
-  
-  // Calculate results based on inputs
-  useEffect(() => {
-    // Only calculate if properties are loaded
-    if (propertiesLoaded) {
-      calculateResults();
-    }
-  }, [
-    buildingData.buildingLength,
-    buildingData.buildingWidth,
-    buildingData.lengthwiseBays,
-    buildingData.widthwiseBays,
-    buildingData.numFloors,
-    buildingData.floorHeight,
-    load,
-    buildingData.fireRating,
-    buildingData.joistsRunLengthwise,
-    timberGrade,
-    buildingData.useCustomBayDimensions,
-    buildingData.customLengthwiseBayWidths,
-    buildingData.customWidthwiseBayWidths,
-    propertiesLoaded
-  ]);
 
   // Ensure results state is updated when buildingData.results changes
   useEffect(() => {
@@ -1449,224 +1368,6 @@ export default function TimberCalculator() {
     updateBuildingData('timberGrade', value);
   };
   
-  // Function to calculate costs using the simplified calculateCost function
-  const calculateCosts = (joistSize, interiorBeamSize, edgeBeamSize, columnSize, buildingLength, buildingWidth, joistSpacing, lengthwiseBays, widthwiseBays, floorHeight, numFloors) => {
-    console.log('Calculating costs with the following inputs:', {
-      joistSize, 
-      interiorBeamSize, 
-      edgeBeamSize,
-      columnSize,
-      buildingLength,
-      buildingWidth,
-      joistSpacing,
-      lengthwiseBays,
-      widthwiseBays,
-      floorHeight,
-      numFloors
-    });
-    
-    // Calculate beam and column volumes
-    const beamVolume = calculateBeamVolume(interiorBeamSize, edgeBeamSize, buildingLength, buildingWidth, lengthwiseBays, widthwiseBays);
-    const columnVolume = calculateColumnVolume(columnSize, floorHeight, numFloors, lengthwiseBays, widthwiseBays);
-    
-    // Calculate the floor area (for joist cost)
-    const floorArea = buildingLength * buildingWidth * numFloors;
-    console.log(`Floor area for joists: ${floorArea.toFixed(2)} m²`);
-    
-    // Create a simple volumes object for the cost calculator
-    const volumes = {
-      beamVolume: beamVolume,
-      columnVolume: columnVolume,
-      joistArea: floorArea
-    };
-    
-    console.log('Passing volumes to cost calculator:', volumes);
-    
-    // Calculate costs using the simplified function
-    return calculateCost(volumes);
-  };
-  
-  // Helper function to calculate joist volume
-  const calculateJoistVolume = (joistSize, buildingLength, buildingWidth, joistSpacing) => {
-    const joistWidth = joistSize.width / 1000; // Convert mm to m
-    const joistDepth = joistSize.depth / 1000; // Convert mm to m
-    const joistCount = Math.ceil((buildingLength / joistSpacing) * buildingWidth);
-    const avgJoistLength = buildingWidth; // Simplified calculation
-    
-    return joistWidth * joistDepth * avgJoistLength * joistCount;
-  };
-  
-  // Helper function to calculate beam volume
-  const calculateBeamVolume = (interiorBeamSize, edgeBeamSize, buildingLength, buildingWidth, lengthwiseBays, widthwiseBays) => {
-    console.log("VOLUME DEBUG - calculateBeamVolume inputs:", {
-      interiorBeamSize,
-      edgeBeamSize,
-      buildingLength,
-      buildingWidth,
-      lengthwiseBays,
-      widthwiseBays
-    });
-    
-    const interiorBeamWidth = interiorBeamSize.width / 1000; // Convert mm to m
-    const interiorBeamDepth = interiorBeamSize.depth / 1000; // Convert mm to m
-    const edgeBeamWidth = edgeBeamSize.width / 1000; // Convert mm to m
-    const edgeBeamDepth = edgeBeamSize.depth / 1000; // Convert mm to m
-    
-    // Calculate bay dimensions
-    const bayLengthWidth = buildingLength / lengthwiseBays; // Length of each bay
-    const bayWidthWidth = buildingWidth / widthwiseBays;   // Width of each bay
-    
-    // For this calculation, we'll separate by direction to be more accurate
-    // Lengthwise beams (run along length of building)
-    const lengthwiseInteriorBeamCount = (widthwiseBays - 1);
-    const lengthwiseInteriorBeamLength = buildingLength;
-    const lengthwiseInteriorBeamVolume = interiorBeamWidth * interiorBeamDepth * lengthwiseInteriorBeamLength * lengthwiseInteriorBeamCount;
-    
-    const lengthwiseEdgeBeamCount = 2; // Two edge beams along length
-    const lengthwiseEdgeBeamLength = buildingLength;
-    const lengthwiseEdgeBeamVolume = edgeBeamWidth * edgeBeamDepth * lengthwiseEdgeBeamLength * lengthwiseEdgeBeamCount;
-    
-    // Widthwise beams (run along width of building)
-    const widthwiseInteriorBeamCount = (lengthwiseBays - 1) * (widthwiseBays + 1);
-    const widthwiseInteriorBeamLength = bayWidthWidth;
-    const widthwiseInteriorBeamVolume = interiorBeamWidth * interiorBeamDepth * widthwiseInteriorBeamLength * widthwiseInteriorBeamCount;
-    
-    const widthwiseEdgeBeamCount = 2 * lengthwiseBays; // Two edge beams for each bay along width
-    const widthwiseEdgeBeamLength = bayWidthWidth;
-    const widthwiseEdgeBeamVolume = edgeBeamWidth * edgeBeamDepth * widthwiseEdgeBeamLength * widthwiseEdgeBeamCount;
-    
-    const totalBeamVolume = 
-      lengthwiseInteriorBeamVolume + 
-      lengthwiseEdgeBeamVolume + 
-      widthwiseInteriorBeamVolume + 
-      widthwiseEdgeBeamVolume;
-    
-    console.log('VOLUME DEBUG - Detailed beam volume calculation:', {
-      lengthwiseInteriorBeams: { 
-        count: lengthwiseInteriorBeamCount, 
-        length: lengthwiseInteriorBeamLength, 
-        width: interiorBeamWidth,
-        depth: interiorBeamDepth,
-        volume: lengthwiseInteriorBeamVolume 
-      },
-      lengthwiseEdgeBeams: { 
-        count: lengthwiseEdgeBeamCount, 
-        length: lengthwiseEdgeBeamLength, 
-        width: edgeBeamWidth,
-        depth: edgeBeamDepth,
-        volume: lengthwiseEdgeBeamVolume 
-      },
-      widthwiseInteriorBeams: { 
-        count: widthwiseInteriorBeamCount, 
-        length: widthwiseInteriorBeamLength, 
-        width: interiorBeamWidth,
-        depth: interiorBeamDepth,
-        volume: widthwiseInteriorBeamVolume 
-      },
-      widthwiseEdgeBeams: { 
-        count: widthwiseEdgeBeamCount, 
-        length: widthwiseEdgeBeamLength, 
-        width: edgeBeamWidth,
-        depth: edgeBeamDepth,
-        volume: widthwiseEdgeBeamVolume 
-      },
-      totalBeamVolume
-    });
-    
-    console.log(`VOLUME DEBUG - Final beam volume: ${totalBeamVolume}`);
-    
-    return totalBeamVolume;
-  };
-  
-  // Helper function to calculate column volume
-  const calculateColumnVolume = (columnSize, floorHeight, numFloors, lengthwiseBays, widthwiseBays) => {
-    const columnWidth = columnSize.width / 1000; // Convert mm to m
-    const columnDepth = columnSize.depth / 1000; // Convert mm to m
-    const columnHeight = floorHeight; // Height per floor in meters
-    
-    // Total number of columns in the building grid
-    const columnCount = (lengthwiseBays + 1) * (widthwiseBays + 1);
-    
-    // Total height of all columns is column height × number of floors
-    const totalColumnHeight = columnHeight * numFloors;
-    
-    // Calculate total volume of all columns
-    const totalColumnVolume = columnWidth * columnDepth * totalColumnHeight * columnCount;
-    
-    console.log('Column volume calculation:', {
-      columnSize,
-      convertedWidth: columnWidth,
-      convertedDepth: columnDepth,
-      columnCount,
-      heightPerFloor: columnHeight,
-      numFloors,
-      totalHeight: totalColumnHeight,
-      totalVolume: totalColumnVolume
-    });
-    
-    return totalColumnVolume;
-  };
-  
-  // Special effect to ensure joist sizes are displayed on page load
-  useEffect(() => {
-    // This runs once when the component mounts
-    const ensureJoistSizesDisplayed = () => {
-      if (buildingData.results?.joistSize) {
-        console.log("JOIST DEBUG - Page load joist size check:", buildingData.results.joistSize);
-        
-        // Set a small delay to ensure DOM is ready
-        setTimeout(() => {
-          try {
-            const joistWidthElements = document.querySelectorAll('[data-joist-width]');
-            const joistDepthElements = document.querySelectorAll('[data-joist-depth]');
-            
-            if (joistWidthElements.length > 0) {
-              joistWidthElements.forEach(el => {
-                el.textContent = `${buildingData.results.joistSize.width}mm`;
-              });
-              console.log("JOIST DEBUG - Page load updated width elements");
-            }
-            
-            if (joistDepthElements.length > 0) {
-              joistDepthElements.forEach(el => {
-                el.textContent = `${buildingData.results.joistSize.depth}mm`;
-              });
-              console.log("JOIST DEBUG - Page load updated depth elements");
-            }
-            
-            // Force results re-render
-            if (buildingData.results) {
-              setResults({...buildingData.results, updateId: Date.now()});
-            }
-          } catch (error) {
-            console.error("JOIST DEBUG - Error in page load joist update:", error);
-          }
-        }, 500);
-      }
-    };
-    
-    ensureJoistSizesDisplayed();
-    
-    // Also add a global window function for debugging
-    if (typeof window !== 'undefined') {
-      window.updateJoistSizes = () => {
-        if (buildingData.results?.joistSize) {
-          const { width, depth } = buildingData.results.joistSize;
-          
-          const joistWidthElements = document.querySelectorAll('[data-joist-width]');
-          const joistDepthElements = document.querySelectorAll('[data-joist-depth]');
-          
-          joistWidthElements.forEach(el => { el.textContent = `${width}mm`; });
-          joistDepthElements.forEach(el => { el.textContent = `${depth}mm`; });
-          
-          console.log(`JOIST DEBUG - Manual update: ${width}mm × ${depth}mm`);
-          return true;
-        }
-        return false;
-      };
-    }
-  }, []);
-  
   // Example of a component section converted to use Tailwind classes
   return (
     <div className="apple-section">
@@ -1752,24 +1453,15 @@ export default function TimberCalculator() {
                 {/* Add the non-visible FireResistanceCalculator to handle calculations */}
                 {/* <FireResistanceCalculator standalone={false} /> */}
                 
-                {/* Calculate Button */}
-                <div className="mt-6">
-                  <button 
-                    className="apple-button apple-button-primary w-full py-3"
-                    onClick={() => {
-                      console.log("JOIST DEBUG - Manual calculation triggered");
-                      calculateResults();
-                    }}
-                  >
-                    Calculate Results
-                            </button>
-                          </div>
-                      </div>
+                {/* Calculate Button - REMOVED for automatic calculation */}
+                {/* Auto-calculation happens whenever inputs change */}
+                
+              </div>
                       
               {/* Note: Timber Grade moved to Calculation Methodology Page */}
-                      </div>
-                  </div>
-              </div>
+            </div>
+          </div>
+        </div>
               
         {/* Results Panel */}
         <div className="lg:col-span-6 xl:col-span-7 w-full">
@@ -1804,26 +1496,6 @@ export default function TimberCalculator() {
               <br />
               <span className="mt-2 block text-sm">
                 This may affect the accuracy of calculations. Please ensure the CSV files are correctly formatted and accessible.
-              </span>
-            </span>
-          </div>
-        </div>
-      )}
-      
-      {/* Display fallback warnings for beam and column sizes only, not joists */}
-      {(results?.beamSize?.usingFallback || 
-        results?.columnSize?.usingFallback) && (
-        <div className="apple-section mt-4">
-          <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded relative" role="alert">
-            <strong className="font-bold">Using Approximate Sizes: </strong>
-            <span className="block sm:inline">
-              The exact timber dimensions required for your project could not be found in the available data.
-              <ul className="list-disc ml-5 mt-1">
-                {results?.beamSize?.usingFallback && <li>Beam sizes are approximate and may not match standard MASSLAM products.</li>}
-                {results?.columnSize?.usingFallback && <li>Column sizes are approximate and may not match standard MASSLAM products.</li>}
-              </ul>
-              <span className="block mt-2 text-sm">
-                These calculations use engineering rules of thumb and should be verified by a qualified engineer.
               </span>
             </span>
           </div>
