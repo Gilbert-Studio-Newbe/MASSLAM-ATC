@@ -189,9 +189,14 @@ function calculateFallbackBeamDepth(span) {
 }
 
 /**
- * Helper function to find the nearest value in an array
+ * Find the nearest value in an array of values
+ * @param {number} target - Target value
+ * @param {Array<number>} values - Array of values to search
+ * @returns {number} Nearest value
  */
-function findNearestValue(target, values) {
+export function findNearestValue(target, values) {
+  if (!values || values.length === 0) return target;
+  
   return values.reduce((prev, curr) => {
     return Math.abs(curr - target) < Math.abs(prev - target) ? curr : prev;
   });
@@ -232,7 +237,7 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   
   try {
     // Get timber properties based on grade
-    const timberProps = getTimberProperties(timberGrade);
+    const timberProps = TIMBER_PROPERTIES[timberGrade] || TIMBER_PROPERTIES.ML38;
     
     if (!timberProps) {
       console.error(`Timber properties not found for grade: ${timberGrade}`);
@@ -275,7 +280,7 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
     // Solve for depth: depth = √(6Z / width)
     const requiredDepth = Math.sqrt((6 * requiredSectionModulus) / initialWidth);
     
-    // Step 7: ALWAYS check deflection and adjust depth if necessary - regardless of span
+    // Step 7: ALWAYS check deflection and adjust depth if necessary
     // Maximum allowable deflection (mm)
     let deflectionLimit = 300; // Default L/300
 
@@ -319,7 +324,7 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
       console.log(`Bending strength governs design (deflection is within limits)`);
     }
 
-    // Enhanced deflection handling for long spans - STILL APPLY THIS FOR ALL SPANS
+    // Enhanced deflection handling for all spans
     // For all spans, calculate deflection-based depth directly
     // This is more accurate than the incremental approach above
     const directDeflectionDepth = Math.pow(
@@ -336,20 +341,20 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
       console.log(`Using direct deflection calculation: ${adjustedDepth.toFixed(1)}mm`);
     }
     
-    // Step 9: Calculate fire resistance allowance if needed
+    // Calculate fire resistance allowance if needed
     let fireAllowance = 0;
     if (fireRating && fireRating !== 'none') {
       fireAllowance = calculateFireResistanceAllowance(fireRating);
     }
     
-    // Step 10: Add fire resistance allowance to dimensions
+    // Add fire resistance allowance to dimensions
     const fireAdjustedDepth = Math.max(140, Math.ceil(adjustedDepth)) + fireAllowance;
     
-    // Step 11: Round to nearest standard depth
+    // Round to nearest standard depth
     const standardDepths = [200, 270, 335, 410, 480, 550, 620];
     const depth = findNearestValue(fireAdjustedDepth, standardDepths);
     
-    // Step 12: Final deflection check with the selected size
+    // Final deflection check with the selected size
     const finalMomentOfInertia = (initialWidth * Math.pow(depth, 3)) / 12;
     const finalDeflection = (5 * loadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * finalMomentOfInertia);
     

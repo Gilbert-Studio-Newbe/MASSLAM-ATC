@@ -777,29 +777,7 @@ export default function TimberCalculator() {
     console.log("JOIST DEBUG - Calculating joist size with parameters:", { span, spacing, load, timberGrade, fireRating });
     
     try {
-      // Get the mechanical properties for the timber grade
-      const properties = TIMBER_PROPERTIES[timberGrade] || TIMBER_PROPERTIES.ML38;
-      
-      if (!properties) {
-        console.error("JOIST DEBUG - Timber grade properties not found:", timberGrade);
-        throw new Error(`Timber grade properties not found for ${timberGrade}`);
-      }
-      
-      // Initialize parameters for logging
-      let calculationParams = {
-        span,
-        spacing, 
-        load,
-        timberGrade,
-        fireRating,
-        properties
-      };
-      
-      // ALWAYS include deflection calculation regardless of span
-      console.log("JOIST DEBUG - Including deflection check for all spans");
-      calculationParams.checkDeflection = true;
-
-      // Get the joist size from the engineering module
+      // Get joist size directly from the engineering module
       const result = calculateJoistSizeEngineering(
         span, 
         spacing, 
@@ -1316,6 +1294,7 @@ export default function TimberCalculator() {
     updateBuildingData('customLengthwiseBayWidths', newWidths);
   };
   
+  // Handler for widthwise bay width changes
   const handleWidthwiseBayWidthChange = (index, value) => {
     console.log(`Changing widthwise bay ${index} width to ${value}`);
     if (value === '' || isNaN(value) || value <= 0) {
