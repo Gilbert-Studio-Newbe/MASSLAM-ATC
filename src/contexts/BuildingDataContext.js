@@ -26,6 +26,9 @@ const defaultBuildingData = {
   joistSpacing: 0.8, // 800mm
   joistsRunLengthwise: true,
   
+  // Maximum bay span
+  maxBaySpan: 9.0,
+  
   // Calculation results
   results: null,
   error: null,
@@ -133,12 +136,16 @@ export function BuildingDataProvider({ children }) {
   useEffect(() => {
     // Only update custom bay dimensions if not already using custom dimensions
     if (!buildingData.useCustomBayDimensions) {
-      const equalLengthwiseBayWidth = buildingData.buildingLength / buildingData.lengthwiseBays;
-      const equalWidthwiseBayWidth = buildingData.buildingWidth / buildingData.widthwiseBays;
+      // Ensure the bay counts are positive integers to avoid array length errors
+      const safeTypedLengthwiseBays = Math.max(1, Math.floor(buildingData.lengthwiseBays) || 1);
+      const safeTypedWidthwiseBays = Math.max(1, Math.floor(buildingData.widthwiseBays) || 1);
+      
+      const equalLengthwiseBayWidth = buildingData.buildingLength / safeTypedLengthwiseBays;
+      const equalWidthwiseBayWidth = buildingData.buildingWidth / safeTypedWidthwiseBays;
       
       // Create arrays with equal distribution
-      const newLengthwiseBayWidths = Array(buildingData.lengthwiseBays).fill(equalLengthwiseBayWidth);
-      const newWidthwiseBayWidths = Array(buildingData.widthwiseBays).fill(equalWidthwiseBayWidth);
+      const newLengthwiseBayWidths = Array(safeTypedLengthwiseBays).fill(equalLengthwiseBayWidth);
+      const newWidthwiseBayWidths = Array(safeTypedWidthwiseBays).fill(equalWidthwiseBayWidth);
       
       setBuildingData(prevData => ({
         ...prevData,

@@ -277,110 +277,153 @@ export function getMasslamProductProperties(productCode) {
   return MASSLAM_PRODUCTS[productCode] || null;
 }
 
-/**
- * Load all mechanical properties from the ML38_Mechanical_Properties.csv file
- * @returns {Promise<Object>} The mechanical properties
- */
-export async function loadML38MechanicalProperties() {
-  try {
-    // Fetch the CSV file
-    console.log('Fetching mechanical properties from CSV...');
-    
-    // Handle different environments (client vs server)
-    let csvText;
-    
-    if (typeof window !== 'undefined') {
-      // Client-side: Use window.location.origin
-      const url = new URL('/data/ML38_Mechanical_Properties.csv', window.location.origin).toString();
-      console.log('Client-side: Fetching CSV from:', url);
-      
-      const response = await fetch(url);
-      if (!response.ok) {
-        console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
-        return null; // Return null if fetch fails
-      }
-      
-      csvText = await response.text();
-    } else {
-      // Server-side: Use Node.js file system API
-      console.log('Server-side: Reading CSV file directly');
-      
-      try {
-        // Try to use the fs module if available (only works in Node.js environment)
-        const fs = require('fs');
-        const path = require('path');
-        
-        // Attempt to read the CSV file from the public directory
-        const csvPath = path.join(process.cwd(), 'public', 'data', 'ML38_Mechanical_Properties.csv');
-        console.log('Attempting to read CSV from server path:', csvPath);
-        
-        if (fs.existsSync(csvPath)) {
-          csvText = fs.readFileSync(csvPath, 'utf8');
-          console.log('Successfully read mechanical properties CSV file, length:', csvText.length);
-        } else {
-          console.warn('Mechanical properties CSV file not found at path:', csvPath);
-          return null;
-        }
-      } catch (fsError) {
-        console.warn('Failed to load mechanical properties CSV on server side:', fsError.message);
-        return null;
-      }
-    }
-    
-    if (!csvText || csvText.trim().length === 0) {
-      console.error('Mechanical properties CSV file is empty');
-      return null;
-    }
-    
-    const lines = csvText.trim().split('\n');
-    
-    // Skip the header line and process each property line
-    const properties = {};
-    
-    // Process each line after the header
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue; // Skip empty lines
-      
-      const values = line.split(',');
-      if (values.length < 3) continue; // Skip invalid lines
-      
-      const propertyName = values[0].trim();
-      const propertyValue = values[1].trim();
-      const propertyUnit = values[2].trim();
-      
-      // Skip if property name or value is empty
-      if (!propertyName || !propertyValue) continue;
-      
-      // Convert numeric values
-      const numericValue = propertyValue === 'N/A' ? null : parseFloat(propertyValue);
-      
-      // Store the property
-      properties[propertyName] = {
-        value: isNaN(numericValue) ? propertyValue : numericValue,
-        unit: propertyUnit
-      };
-    }
-    
-    console.log('Loaded ML38 mechanical properties:', properties);
-    return properties;
-  } catch (error) {
-    console.error('Error loading ML38 mechanical properties:', error);
-    return null; // Return null if an error occurs
-  }
-}
-
 // Create a singleton to store the loaded properties
 let ML38_PROPERTIES = null;
+let _isLoading = false;
+let _loadPromise = null;
 
 /**
- * Get the ML38 mechanical properties
- * Loads the properties if they haven't been loaded yet
- * @returns {Promise<Object>} The mechanical properties
+ * Get the ML38 properties
+ * @returns {Object} The ML38 properties
  */
-export async function getML38Properties() {
-  if (ML38_PROPERTIES === null) {
-    ML38_PROPERTIES = await loadML38MechanicalProperties();
-  }
+export function getML38Properties() {
   return ML38_PROPERTIES;
+}
+
+/**
+ * Load ML38 mechanical properties from CSV file
+ * @returns {Promise<Object>} Promise that resolves to the mechanical properties
+ */
+export async function loadML38MechanicalProperties() {
+  // If properties are already loaded, return them
+  if (ML38_PROPERTIES !== null) {
+    console.log('ML38 properties already loaded, returning existing data');
+    return ML38_PROPERTIES;
+  }
+  
+  // Return existing promise if already loading
+  if (_isLoading && _loadPromise) {
+    console.log('ML38 properties already loading, returning existing promise');
+    return _loadPromise;
+  }
+  
+  // Set flags to prevent multiple loads
+  _isLoading = true;
+  _loadPromise = new Promise(async (resolve, reject) => {
+    try {
+      // Fetch the CSV file
+      console.log('Fetching mechanical properties from CSV...');
+      
+      // Handle different environments (client vs server)
+      let csvText;
+      
+      if (typeof window !== 'undefined') {
+        // Client-side: Use window.location.origin
+        const url = new URL('/data/ML38_Mechanical_Properties.csv', window.location.origin).toString();
+        console.log('Client-side: Fetching CSV from:', url);
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+          console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
+          resolve(null);
+          return;
+        }
+        
+        csvText = await response.text();
+      } else {
+        // Server-side: Use Node.js file system API
+        console.log('Server-side: Reading CSV file directly');
+        
+        try {
+          // Try to use the fs module if available (only works in Node.js environment)
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Attempt to read the CSV file from the public directory
+          const csvPath = path.join(process.cwd(), 'public', 'data', 'ML38_Mechanical_Properties.csv');
+          console.log('Attempting to read CSV from server path:', csvPath);
+          
+          if (fs.existsSync(csvPath)) {
+            csvText = fs.readFileSync(csvPath, 'utf8');
+            console.log('Successfully read mechanical properties CSV file, length:', csvText.length);
+          } else {
+            console.warn('Mechanical properties CSV file not found at path:', csvPath);
+            resolve(null);
+            return;
+          }
+        } catch (fsError) {
+          console.warn('Failed to load mechanical properties CSV on server side:', fsError.message);
+          resolve(null);
+          return;
+        }
+      }
+      
+      if (!csvText || csvText.trim().length === 0) {
+        console.error('Mechanical properties CSV file is empty');
+        resolve(null);
+        return;
+      }
+      
+      const lines = csvText.trim().split('\n');
+      
+      // Process each line after the header
+      const properties = {};
+      
+      // Process each line after the header
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue; // Skip empty lines
+        
+        // Parse CSV properly handling quoted values
+        let parts = [];
+        let inQuotes = false;
+        let currentPart = '';
+        
+        for (let j = 0; j < line.length; j++) {
+          const char = line[j];
+          
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            parts.push(currentPart);
+            currentPart = '';
+          } else {
+            currentPart += char;
+          }
+        }
+        
+        // Add the last part
+        parts.push(currentPart);
+        
+        if (parts.length < 3) continue; // Skip invalid lines
+        
+        const propertyName = parts[0].replace(/^"|"$/g, '').trim();
+        const propertyValue = parts[1].trim();
+        const propertyUnit = parts[2].trim();
+        
+        // Skip if property name or value is empty
+        if (!propertyName || !propertyValue) continue;
+        
+        // Convert numeric values
+        const numericValue = propertyValue === 'N/A' ? null : parseFloat(propertyValue);
+        
+        // Store the property
+        properties[propertyName] = {
+          value: isNaN(numericValue) ? propertyValue : numericValue,
+          unit: propertyUnit
+        };
+      }
+      
+      console.log('Loaded ML38 mechanical properties:', properties);
+      ML38_PROPERTIES = properties;
+      resolve(properties);
+    } catch (error) {
+      console.error('Error loading ML38 mechanical properties:', error);
+      resolve(null); // Return null if an error occurs
+    } finally {
+      _isLoading = false;
+    }
+  });
+  
+  return _loadPromise;
 }

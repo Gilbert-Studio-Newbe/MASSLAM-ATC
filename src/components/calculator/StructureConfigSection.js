@@ -20,8 +20,12 @@ const StructureConfigSection = ({
   onWidthwiseBayWidthChange,
   lengthwiseBays,
   widthwiseBays,
+  maxBaySpan,
   isMobile
 }) => {
+  // Round max bay span to 1 decimal place for display
+  const displayMaxBaySpan = Math.round(maxBaySpan * 10) / 10;
+  
   return (
     <div className="apple-specs-table mb-6 md:mb-8">
       <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Structure Configuration</h3>
@@ -63,21 +67,24 @@ const StructureConfigSection = ({
       {/* Custom Bay Dimensions */}
       <div className="mb-4">
         <div className="flex items-center justify-between">
-          <label className="block text-sm font-medium text-gray-700">Custom Bay Dimensions</label>
-          <div className="relative inline-block w-10 mr-2 align-middle select-none">
+          <label className="block text-sm font-medium text-gray-700">
+            Use Custom Bay Dimensions
+          </label>
+          <label className="inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
-              name="toggle"
-              id="customBayToggle"
               checked={useCustomBayDimensions}
               onChange={() => onToggleCustomBayDimensions(!useCustomBayDimensions)}
-              className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+              className="sr-only peer"
             />
-            <label
-              htmlFor="customBayToggle"
-              className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"
-            ></label>
-          </div>
+            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
+        </div>
+        
+        {/* Max Bay Span Info */}
+        <div className="mt-2 mb-3 text-sm text-gray-600 bg-blue-50 p-2 rounded">
+          <p>Maximum bay span: <span className="font-semibold">{displayMaxBaySpan}m</span></p>
+          <p className="text-xs mt-1">This limit ensures structural integrity. You can adjust this in the Calculation Methodology page.</p>
         </div>
         
         {useCustomBayDimensions && (

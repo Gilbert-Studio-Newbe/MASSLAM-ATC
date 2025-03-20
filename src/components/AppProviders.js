@@ -1,6 +1,7 @@
 "use client";
 
 import { BuildingDataProvider } from "../contexts/BuildingDataContext";
+import DataLoader from "./DataLoader";
 
 /**
  * Provides all context providers to the application
@@ -8,7 +9,9 @@ import { BuildingDataProvider } from "../contexts/BuildingDataContext";
 export default function AppProviders({ children }) {
   return (
     <BuildingDataProvider>
-      {children}
+      <DataLoader>
+        {children}
+      </DataLoader>
     </BuildingDataProvider>
   );
 } 

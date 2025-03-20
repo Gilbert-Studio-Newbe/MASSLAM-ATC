@@ -9,7 +9,7 @@ Bearing Strength Parallel (f'j),45,MPa
 Bearing Strength Perpendicular (f'j90),10,MPa
 Modulus of Elasticity (E_mean),14500,MPa
 Modulus of Elasticity 5th Percentile (E_05),10875,MPa
-Modulus of Elasticity Perpendicular Mean (E₉₀,mean),960,MPa
+"Modulus of Elasticity Perpendicular Mean (E₉₀,mean)",960,MPa
 Modulus of Rigidity (G),960,MPa
 Density (ρ_mean),600,kg/m³
 Joint Group,JD4,-

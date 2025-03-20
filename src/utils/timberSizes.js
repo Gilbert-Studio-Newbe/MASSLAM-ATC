@@ -8,11 +8,18 @@ import Papa from 'papaparse';
 // that can only be modified through specific functions
 let _masslamSizes = [];
 let _isInitialized = false;
+let _isLoading = false;
+let _loadPromise = null;
 
 /**
  * Initialize the module and clear any existing data
  */
 export function initializeMasslamSizes() {
+  if (_isInitialized) {
+    console.log('MASSLAM sizes module already initialized, skipping');
+    return true;
+  }
+  
   console.log('Initializing MASSLAM sizes module');
   _masslamSizes = [];
   _isInitialized = true;
@@ -40,73 +47,92 @@ function _setMasslamSizes(sizes) {
  * @returns {Promise} Promise that resolves when data is loaded
  */
 export async function loadMasslamSizes() {
-  console.log('Loading MASSLAM sizes from CSV...');
-  
   // Initialize the module if not already initialized
   if (!_isInitialized) {
     initializeMasslamSizes();
-  } else {
-    // Clear any existing data
-    _masslamSizes = [];
   }
   
-  try {
-    // Fetch the CSV file
-    let url;
-    if (typeof window !== 'undefined') {
-      // Client-side: Use window.location.origin
-      url = new URL('/data/masslam_sizes.csv', window.location.origin).toString();
-      console.log('Fetching CSV from:', url);
-    } else {
-      // Server-side: Use Node.js file system API instead of fetch
-      console.log('Server-side CSV loading detected');
+  // Return existing promise if already loading
+  if (_isLoading && _loadPromise) {
+    console.log('MASSLAM sizes already loading, returning existing promise');
+    return _loadPromise;
+  }
+  
+  // If sizes are already loaded, return them
+  if (_masslamSizes.length > 0) {
+    console.log('MASSLAM sizes already loaded, returning existing data');
+    return _masslamSizes;
+  }
+  
+  console.log('Loading MASSLAM sizes from CSV...');
+  
+  _isLoading = true;
+  _loadPromise = new Promise(async (resolve, reject) => {
+    try {
+      // Fetch the CSV file
+      let csvText;
       
-      try {
-        // Try to use the fs module if available (only works in Node.js environment)
-        const fs = require('fs');
-        const path = require('path');
+      if (typeof window !== 'undefined') {
+        // Client-side: Use window.location.origin
+        const url = new URL('/data/masslam_sizes.csv', window.location.origin).toString();
+        console.log('Fetching CSV from:', url);
         
-        // Attempt to read the CSV file from the public directory
-        const csvPath = path.join(process.cwd(), 'public', 'data', 'masslam_sizes.csv');
-        console.log('Attempting to read CSV from server path:', csvPath);
-        
-        if (fs.existsSync(csvPath)) {
-          const csvText = fs.readFileSync(csvPath, 'utf8');
-          console.log('Successfully read CSV file on server side, length:', csvText.length);
-          
-          // Process the CSV data (reuse the same parsing logic below)
-          return processCSVText(csvText);
-        } else {
-          console.warn('CSV file not found at path:', csvPath);
+        const response = await fetch(url);
+        if (!response.ok) {
+          console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
+          resolve([]);
+          return;
         }
-      } catch (fsError) {
-        console.warn('Failed to load CSV on server side:', fsError.message);
+        
+        csvText = await response.text();
+      } else {
+        // Server-side: Use Node.js file system API instead of fetch
+        console.log('Server-side CSV loading detected');
+        
+        try {
+          // Try to use the fs module if available (only works in Node.js environment)
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Attempt to read the CSV file from the public directory
+          const csvPath = path.join(process.cwd(), 'public', 'data', 'masslam_sizes.csv');
+          console.log('Attempting to read CSV from server path:', csvPath);
+          
+          if (fs.existsSync(csvPath)) {
+            csvText = fs.readFileSync(csvPath, 'utf8');
+            console.log('Successfully read CSV file on server side, length:', csvText.length);
+          } else {
+            console.warn('CSV file not found at path:', csvPath);
+            resolve([]);
+            return;
+          }
+        } catch (fsError) {
+          console.warn('Failed to load CSV on server side:', fsError.message);
+          resolve([]);
+          return;
+        }
       }
       
-      console.log('Server-side CSV loading not implemented, using hardcoded values');
-      return [];
+      if (!csvText || csvText.trim().length === 0) {
+        console.error('CSV file is empty');
+        resolve([]);
+        return;
+      }
+      
+      console.log('Raw CSV content length:', csvText.length);
+      console.log('CSV lines:', csvText.trim().split('\n').length);
+      
+      const sizes = processCSVText(csvText);
+      resolve(sizes);
+    } catch (error) {
+      console.error('Error loading MASSLAM sizes:', error);
+      resolve([]);
+    } finally {
+      _isLoading = false;
     }
-    
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
-      return [];
-    }
-    
-    const csvText = await response.text();
-    if (!csvText || csvText.trim().length === 0) {
-      console.error('CSV file is empty');
-      return [];
-    }
-    
-    console.log('Raw CSV content length:', csvText.length);
-    console.log('CSV lines:', csvText.trim().split('\n').length);
-    
-    return processCSVText(csvText);
-  } catch (error) {
-    console.error('Error loading MASSLAM sizes:', error);
-    return [];
-  }
+  });
+  
+  return _loadPromise;
 }
 
 // Helper function to process CSV text
@@ -285,6 +311,13 @@ export function findNearestDepth(width, targetDepth, type = 'joist') {
   // Find the smallest depth that is >= targetDepth
   const roundedUpDepth = availableDepths.find(d => d >= targetDepth) || availableDepths[availableDepths.length - 1];
   console.log(`Rounding depth ${targetDepth}mm up to ${roundedUpDepth}mm for width ${widthToUse}mm and type ${type}`);
+  
+  // Add more detailed logging about the selection process
+  console.log(`findNearestDepth selection summary:`);
+  console.log(`- Requested: width=${width}mm, targetDepth=${targetDepth}mm, type=${type}`);
+  console.log(`- Using width: ${widthToUse}mm (${width === widthToUse ? 'exact match' : 'nearest available'})`);
+  console.log(`- Available depths: ${availableDepths.join(', ')}mm`);
+  console.log(`- Selected depth: ${roundedUpDepth}mm (${roundedUpDepth >= targetDepth ? 'meets or exceeds target' : 'BELOW TARGET - warning'})`);
   
   return roundedUpDepth;
 }

@@ -5,15 +5,28 @@ import Link from 'next/link';
 import { TIMBER_PROPERTIES, loadTimberProperties } from '@/utils/timberEngineering';
 import { getML38Properties } from '@/utils/masslamProperties';
 import TimberGradeSelector from '@/components/calculator/TimberGradeSelector';
+import { useBuildingData } from '@/contexts/BuildingDataContext';
 
 export default function CalculationMethodologyPage() {
+  const { buildingData, updateBuildingData } = useBuildingData();
+  
   // Default values for calculation parameters
   const [allowableDeflection, setAllowableDeflection] = useState(300); // L/300 is typical
   const [safetyFactor, setSafetyFactor] = useState(2.0); // Typical safety factor
   const [loadDurationFactor, setLoadDurationFactor] = useState(0.8); // Medium-term loading
   const [deadLoad, setDeadLoad] = useState(0.5); // kPa
   const [liveLoad, setLiveLoad] = useState(2); // kPa (residential)
-  const [maxSpan, setMaxSpan] = useState(9.0); // meters
+  
+  // Initialize maxSpan from buildingData context
+  const [maxSpan, setMaxSpan] = useState(buildingData.maxBaySpan); // meters
+  
+  // Sync maxSpan with buildingData
+  useEffect(() => {
+    if (maxSpan !== buildingData.maxBaySpan) {
+      updateBuildingData('maxBaySpan', maxSpan);
+    }
+  }, [maxSpan, buildingData.maxBaySpan, updateBuildingData]);
+  
   const [timberGrade, setTimberGrade] = useState('ML38'); // Default timber grade
   
   // State for mechanical properties
@@ -782,7 +795,14 @@ A = cross-sectional area (mm²)`}
                   max="12.0"
                   step="0.1"
                   value={maxSpan}
-                  onChange={(e) => setMaxSpan(parseFloat(e.target.value))}
+                  onChange={(e) => {
+                    // Parse the input value and round to 1 decimal place
+                    const parsedValue = parseFloat(e.target.value);
+                    if (!isNaN(parsedValue)) {
+                      const roundedValue = Math.round(parsedValue * 10) / 10;
+                      setMaxSpan(roundedValue);
+                    }
+                  }}
                 />
               </div>
             </div>
