@@ -136,16 +136,40 @@ export function BuildingDataProvider({ children }) {
   useEffect(() => {
     // Only update custom bay dimensions if not already using custom dimensions
     if (!buildingData.useCustomBayDimensions) {
+      // Helper function to round to nearest 0.05
+      const roundToNearest = (value, nearest = 0.05) => {
+        return Math.round(value / nearest) * nearest;
+      };
+      
       // Ensure the bay counts are positive integers to avoid array length errors
       const safeTypedLengthwiseBays = Math.max(1, Math.floor(buildingData.lengthwiseBays) || 1);
       const safeTypedWidthwiseBays = Math.max(1, Math.floor(buildingData.widthwiseBays) || 1);
       
-      const equalLengthwiseBayWidth = buildingData.buildingLength / safeTypedLengthwiseBays;
-      const equalWidthwiseBayWidth = buildingData.buildingWidth / safeTypedWidthwiseBays;
+      // Calculate bay widths and round to nearest 0.05m
+      const equalLengthwiseBayWidth = roundToNearest(buildingData.buildingLength / safeTypedLengthwiseBays);
+      const equalWidthwiseBayWidth = roundToNearest(buildingData.buildingWidth / safeTypedWidthwiseBays);
       
       // Create arrays with equal distribution
       const newLengthwiseBayWidths = Array(safeTypedLengthwiseBays).fill(equalLengthwiseBayWidth);
       const newWidthwiseBayWidths = Array(safeTypedWidthwiseBays).fill(equalWidthwiseBayWidth);
+      
+      // Adjust the last bay to ensure total equals building dimensions
+      const totalLengthwise = newLengthwiseBayWidths.reduce((sum, width) => sum + width, 0);
+      const totalWidthwise = newWidthwiseBayWidths.reduce((sum, width) => sum + width, 0);
+      
+      if (Math.abs(totalLengthwise - buildingData.buildingLength) > 0.01) {
+        const lastLengthIndex = safeTypedLengthwiseBays - 1;
+        newLengthwiseBayWidths[lastLengthIndex] = roundToNearest(
+          newLengthwiseBayWidths[lastLengthIndex] + (buildingData.buildingLength - totalLengthwise)
+        );
+      }
+      
+      if (Math.abs(totalWidthwise - buildingData.buildingWidth) > 0.01) {
+        const lastWidthIndex = safeTypedWidthwiseBays - 1;
+        newWidthwiseBayWidths[lastWidthIndex] = roundToNearest(
+          newWidthwiseBayWidths[lastWidthIndex] + (buildingData.buildingWidth - totalWidthwise)
+        );
+      }
       
       setBuildingData(prevData => ({
         ...prevData,

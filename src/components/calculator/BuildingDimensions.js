@@ -144,7 +144,7 @@ const BuildingDimensions = ({
         <div className="mt-3 text-sm text-gray-500">
           <p>
             Default bay size: 
-            {` ${(buildingData.buildingLength / buildingData.lengthwiseBays).toFixed(1)}m × ${(buildingData.buildingWidth / buildingData.widthwiseBays).toFixed(1)}m`}
+            {` ${(Math.round((buildingData.buildingLength / buildingData.lengthwiseBays) / 0.05) * 0.05).toFixed(2)}m × ${(Math.round((buildingData.buildingWidth / buildingData.widthwiseBays) / 0.05) * 0.05).toFixed(2)}m`}
           </p>
         </div>
       )}
