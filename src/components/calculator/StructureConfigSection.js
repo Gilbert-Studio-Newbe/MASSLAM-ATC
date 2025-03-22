@@ -88,47 +88,76 @@ const StructureConfigSection = ({
           <p className="text-xs mt-1">This limit ensures structural integrity. You can adjust this in the Calculation Methodology page.</p>
         </div>
         
+        {/* Display bay width inputs if custom dimensions are enabled */}
         {buildingData.useCustomBayDimensions && (
-          <div className={`mt-3 ${isMobile ? '' : 'grid grid-cols-2 gap-4'}`}>
+          <div className="mt-4 space-y-4">
             {/* Lengthwise Bay Widths */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Lengthwise Bay Widths (m)</label>
-              <div className="space-y-2">
-                {Array.from({ length: buildingData.lengthwiseBays }).map((_, index) => (
-                  <div key={`lengthwise-bay-${index}`} className="flex items-center">
-                    <span className="text-sm text-gray-500 mr-2 w-6">L{index + 1}:</span>
+            <div>
+              <h4 className="font-medium text-gray-700 mb-2">Lengthwise Bay Widths (m)</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {buildingData.customLengthwiseBayWidths.map((width, index) => (
+                  <div key={`L${index+1}`} className="flex items-center space-x-2">
+                    <span className="w-8 text-sm font-medium text-gray-600">L{index+1}:</span>
                     <input
                       type="number"
                       min="0.5"
-                      max="10"
-                      step="0.1"
-                      value={buildingData.customLengthwiseBayWidths[index]}
-                      onChange={(e) => onLengthwiseBayWidthChange(index, parseFloat(e.target.value))}
-                      className="block w-full py-1 px-2 border border-gray-300 rounded-md shadow-sm text-sm"
+                      max={buildingData.maxBaySpan}
+                      step="0.05"
+                      value={typeof width === 'number' ? width.toFixed(2) : '0.00'}
+                      onChange={(e) => onLengthwiseBayWidthChange(index, e.target.value)}
+                      className="block w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 ))}
               </div>
+
+              {/* Bay Width Summary for Lengthwise */}
+              <div className="mt-2 text-xs bg-gray-50 p-2 rounded">
+                <div className="flex justify-between mb-1">
+                  <span>Total:</span>
+                  <span className={Math.abs(buildingData.customLengthwiseBayWidths.reduce((sum, width) => sum + (typeof width === 'number' ? width : 0), 0) - buildingData.buildingLength) > 0.01 ? 'text-red-500' : ''}>
+                    {buildingData.customLengthwiseBayWidths.reduce((sum, width) => sum + (typeof width === 'number' ? width : 0), 0).toFixed(2)}m
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Target:</span>
+                  <span>{typeof buildingData.buildingLength === 'number' ? buildingData.buildingLength.toFixed(2) : '0.00'}m</span>
+                </div>
+              </div>
             </div>
             
             {/* Widthwise Bay Widths */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Widthwise Bay Widths (m)</label>
-              <div className="space-y-2">
-                {Array.from({ length: buildingData.widthwiseBays }).map((_, index) => (
-                  <div key={`widthwise-bay-${index}`} className="flex items-center">
-                    <span className="text-sm text-gray-500 mr-2 w-6">W{index + 1}:</span>
+            <div>
+              <h4 className="font-medium text-gray-700 mb-2">Widthwise Bay Widths (m)</h4>
+              <div className="grid grid-cols-2 gap-2">
+                {buildingData.customWidthwiseBayWidths.map((width, index) => (
+                  <div key={`W${index+1}`} className="flex items-center space-x-2">
+                    <span className="w-8 text-sm font-medium text-gray-600">W{index+1}:</span>
                     <input
                       type="number"
                       min="0.5"
-                      max="10"
-                      step="0.1"
-                      value={buildingData.customWidthwiseBayWidths[index]}
-                      onChange={(e) => onWidthwiseBayWidthChange(index, parseFloat(e.target.value))}
-                      className="block w-full py-1 px-2 border border-gray-300 rounded-md shadow-sm text-sm"
+                      max={buildingData.maxBaySpan}
+                      step="0.05"
+                      value={typeof width === 'number' ? width.toFixed(2) : '0.00'}
+                      onChange={(e) => onWidthwiseBayWidthChange(index, e.target.value)}
+                      className="block w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 ))}
+              </div>
+
+              {/* Bay Width Summary for Widthwise */}
+              <div className="mt-2 text-xs bg-gray-50 p-2 rounded">
+                <div className="flex justify-between mb-1">
+                  <span>Total:</span>
+                  <span className={Math.abs(buildingData.customWidthwiseBayWidths.reduce((sum, width) => sum + (typeof width === 'number' ? width : 0), 0) - buildingData.buildingWidth) > 0.01 ? 'text-red-500' : ''}>
+                    {buildingData.customWidthwiseBayWidths.reduce((sum, width) => sum + (typeof width === 'number' ? width : 0), 0).toFixed(2)}m
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Target:</span>
+                  <span>{typeof buildingData.buildingWidth === 'number' ? buildingData.buildingWidth.toFixed(2) : '0.00'}m</span>
+                </div>
               </div>
             </div>
           </div>

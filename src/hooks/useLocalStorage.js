@@ -68,4 +68,16 @@ function useLocalStorage(key, initialValue) {
   return [storedValue, setValue];
 }
 
+// Utility function to clear all localStorage data
+export function clearLocalStorage() {
+  try {
+    localStorage.clear();
+    console.log('LocalStorage cleared successfully');
+    return true;
+  } catch (error) {
+    console.error('Error clearing localStorage:', error);
+    return false;
+  }
+}
+
 export default useLocalStorage; 

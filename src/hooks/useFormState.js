@@ -69,6 +69,63 @@ export function useFormState() {
     };
   }, []);
 
+  // Effect to check and update bay counts when building dimensions change
+  useEffect(() => {
+    // Check if bay counts need adjustment based on building dimensions and maxBaySpan
+    const minLengthwiseBays = Math.ceil(buildingData.buildingLength / buildingData.maxBaySpan);
+    const minWidthwiseBays = Math.ceil(buildingData.buildingWidth / buildingData.maxBaySpan);
+    
+    // Get current bay counts
+    const currentLengthwiseBays = buildingData.lengthwiseBays;
+    const currentWidthwiseBays = buildingData.widthwiseBays;
+    
+    // Initialize an update object for changes
+    const updates = {};
+    let needToUpdate = false;
+    
+    // Check if lengthwise bays need adjustment
+    if (currentLengthwiseBays < minLengthwiseBays) {
+      console.log(`Adjusting lengthwiseBays from ${currentLengthwiseBays} to ${minLengthwiseBays} after dimension change`);
+      updates.lengthwiseBays = minLengthwiseBays;
+      needToUpdate = true;
+    }
+    
+    // Check if widthwise bays need adjustment
+    if (currentWidthwiseBays < minWidthwiseBays) {
+      console.log(`Adjusting widthwiseBays from ${currentWidthwiseBays} to ${minWidthwiseBays} after dimension change`);
+      updates.widthwiseBays = minWidthwiseBays;
+      needToUpdate = true;
+    }
+    
+    // Apply updates if needed
+    if (needToUpdate) {
+      // Update the building data first
+      updateMultipleProperties(updates);
+      
+      // Show a notification about the adjustment
+      // Note: We're not using the notification system here because
+      // this component doesn't have access to it. The notification
+      // will be shown by a higher-level component.
+      
+      // Send a special event that can be caught by the parent component
+      if (typeof window !== 'undefined') {
+        const event = new CustomEvent('bay-adjustment', { 
+          detail: {
+            message: `The number of bays has been increased to maintain a maximum span of ${buildingData.maxBaySpan}m.`
+          }
+        });
+        window.dispatchEvent(event);
+      }
+    }
+  }, [
+    buildingData.buildingLength, 
+    buildingData.buildingWidth, 
+    buildingData.maxBaySpan,
+    buildingData.lengthwiseBays,
+    buildingData.widthwiseBays,
+    updateMultipleProperties
+  ]);
+
   // -------- Form handlers ---------
 
   // Handle form field changes
@@ -83,9 +140,41 @@ export function useFormState() {
       value = parseFloat(value) || 0;
     }
     
+    // Special handling for bay count changes to enforce maximum span constraint
+    if (field === 'lengthwiseBays' || field === 'widthwiseBays') {
+      // Convert to integer for bay counts
+      value = Math.floor(value);
+      
+      // Get the relevant building dimension for this bay direction
+      const relevantDimension = field === 'lengthwiseBays' 
+        ? buildingData.buildingLength 
+        : buildingData.buildingWidth;
+      
+      // Calculate minimum required bays based on maxBaySpan
+      const minRequiredBays = Math.ceil(relevantDimension / buildingData.maxBaySpan);
+      
+      // Ensure bay count isn't below the minimum required
+      if (value < minRequiredBays) {
+        console.log(`Adjusting ${field} from ${value} to ${minRequiredBays} to maintain max span of ${buildingData.maxBaySpan}m`);
+        
+        // Show notification about the adjustment using the event system
+        if (typeof window !== 'undefined') {
+          const event = new CustomEvent('bay-adjustment', { 
+            detail: {
+              message: `The minimum number of bays required for this dimension is ${minRequiredBays} to maintain a maximum span of ${buildingData.maxBaySpan}m.`
+            }
+          });
+          window.dispatchEvent(event);
+        }
+        
+        // Set the value to the minimum required
+        value = minRequiredBays;
+      }
+    }
+    
     console.log(`Updating ${field} to ${value}`);
     updateBuildingData(field, value);
-  }, [updateBuildingData]);
+  }, [buildingData.buildingLength, buildingData.buildingWidth, buildingData.maxBaySpan, updateBuildingData]);
 
   // Handle load change
   const handleLoadChange = useCallback((value) => {
@@ -99,68 +188,287 @@ export function useFormState() {
     updateBuildingData('fireRating', fireRating);
   }, [updateBuildingData]);
 
-  // Toggle custom bay dimensions
-  const handleToggleCustomBayDimensions = useCallback(() => {
-    const newValue = !buildingData.useCustomBayDimensions;
-    console.log(`Setting useCustomBayDimensions to ${newValue}`);
-    updateBuildingData('useCustomBayDimensions', newValue);
-  }, [buildingData.useCustomBayDimensions, updateBuildingData]);
+  // Toggle Custom Bay Dimensions on/off
+  const handleToggleCustomBayDimensions = useCallback((newValue) => {
+    console.log('Toggling custom bay dimensions:', { 
+      currentValue: buildingData.useCustomBayDimensions,
+      newValue
+    });
+    
+    // When turning off custom dimensions, reset to equal distribution
+    if (!newValue) {
+      // Helper function to round to nearest 0.05
+      const roundToNearest = (value, nearest = 0.05) => {
+        return Math.round(value / nearest) * nearest;
+      };
+      
+      // Calculate evenly distributed bay widths
+      const lengthwiseBays = Math.max(1, buildingData.lengthwiseBays);
+      const widthwiseBays = Math.max(1, buildingData.widthwiseBays);
+      
+      let equalLengthwiseBayWidth = roundToNearest(buildingData.buildingLength / lengthwiseBays);
+      let equalWidthwiseBayWidth = roundToNearest(buildingData.buildingWidth / widthwiseBays);
+      
+      // Ensure minimum bay width (0.5m) and maximum bay width (maxBaySpan)
+      const MIN_BAY_WIDTH = 0.5;
+      const MAX_BAY_WIDTH = buildingData.maxBaySpan;
+      
+      equalLengthwiseBayWidth = Math.max(MIN_BAY_WIDTH, Math.min(MAX_BAY_WIDTH, equalLengthwiseBayWidth));
+      equalWidthwiseBayWidth = Math.max(MIN_BAY_WIDTH, Math.min(MAX_BAY_WIDTH, equalWidthwiseBayWidth));
+      
+      // Create new arrays with equal distribution
+      const newLengthwiseBayWidths = Array(lengthwiseBays).fill(equalLengthwiseBayWidth);
+      const newWidthwiseBayWidths = Array(widthwiseBays).fill(equalWidthwiseBayWidth);
+      
+      // Adjust the last bay to ensure total exactly matches building dimensions
+      const totalLengthwise = equalLengthwiseBayWidth * lengthwiseBays;
+      const totalWidthwise = equalWidthwiseBayWidth * widthwiseBays;
+      
+      if (Math.abs(totalLengthwise - buildingData.buildingLength) > 0.01) {
+        const lastIndex = lengthwiseBays - 1;
+        const difference = buildingData.buildingLength - totalLengthwise;
+        const lastBaySize = equalLengthwiseBayWidth + difference;
+        
+        if (lastBaySize >= MIN_BAY_WIDTH && lastBaySize <= MAX_BAY_WIDTH) {
+          newLengthwiseBayWidths[lastIndex] = roundToNearest(lastBaySize);
+        }
+      }
+      
+      if (Math.abs(totalWidthwise - buildingData.buildingWidth) > 0.01) {
+        const lastIndex = widthwiseBays - 1;
+        const difference = buildingData.buildingWidth - totalWidthwise;
+        const lastBaySize = equalWidthwiseBayWidth + difference;
+        
+        if (lastBaySize >= MIN_BAY_WIDTH && lastBaySize <= MAX_BAY_WIDTH) {
+          newWidthwiseBayWidths[lastIndex] = roundToNearest(lastBaySize);
+        }
+      }
+      
+      console.log('Resetting to default bay dimensions:', {
+        lengthwise: newLengthwiseBayWidths,
+        widthwise: newWidthwiseBayWidths
+      });
+      
+      // Update both arrays and the flag at once to avoid intermediate renders
+      updateMultipleProperties({
+        customLengthwiseBayWidths: newLengthwiseBayWidths,
+        customWidthwiseBayWidths: newWidthwiseBayWidths,
+        useCustomBayDimensions: newValue
+      });
+    } else {
+      // Just update the flag when enabling custom dimensions
+      updateBuildingData('useCustomBayDimensions', newValue);
+    }
+  }, [
+    buildingData.useCustomBayDimensions, 
+    buildingData.buildingLength, 
+    buildingData.buildingWidth,
+    buildingData.lengthwiseBays, 
+    buildingData.widthwiseBays,
+    buildingData.maxBaySpan,
+    updateBuildingData,
+    updateMultipleProperties
+  ]);
 
   // Handle lengthwise bay width change
   const handleLengthwiseBayWidthChange = useCallback((index, value) => {
-    const newWidths = [...buildingData.customLengthwiseBayWidths];
-    newWidths[index] = parseFloat(value) || 0;
+    const parsedValue = parseFloat(value);
     
-    // Ensure total equals building length
-    const totalWidth = newWidths.reduce((sum, width) => sum + width, 0);
-    if (totalWidth !== buildingData.buildingLength) {
-      // Adjust the last bay to make total equal to building length
-      const lastIndex = buildingData.lengthwiseBays - 1;
+    // Validate input value
+    if (isNaN(parsedValue) || parsedValue <= 0) {
+      console.warn(`Invalid bay width value: ${value}`);
+      return;
+    }
+    
+    // Round to nearest 0.05
+    const roundToNearest = (value, nearest = 0.05) => {
+      return Math.round(value / nearest) * nearest;
+    };
+    
+    // Enforce maximum bay span limit
+    const maxAllowedSpan = buildingData.maxBaySpan;
+    const roundedValue = Math.min(maxAllowedSpan, roundToNearest(parsedValue));
+    
+    // If value exceeds max span, log a warning
+    if (parsedValue > maxAllowedSpan) {
+      console.warn(`Bay width ${parsedValue} exceeds maximum allowed span of ${maxAllowedSpan}. Using ${roundedValue} instead.`);
+    }
+    
+    // Get current bay widths
+    const currentWidths = [...buildingData.customLengthwiseBayWidths];
+    
+    // Calculate how much we need to adjust
+    const oldValue = currentWidths[index];
+    const delta = roundedValue - oldValue;
+    
+    // If no change, exit early
+    if (Math.abs(delta) < 0.001) return;
+    
+    // Create a copy for the new widths
+    const newWidths = [...currentWidths];
+    newWidths[index] = roundedValue;
+    
+    // If there's a significant change, adjust other bays proportionally
+    if (Math.abs(delta) > 0.001) {
+      // Calculate sum excluding the changed bay
+      const otherBaysIndices = Array.from({ length: currentWidths.length }, (_, i) => i).filter(i => i !== index);
+      const otherBaysSum = otherBaysIndices.reduce((sum, i) => sum + currentWidths[i], 0);
       
-      // Skip if we're already changing the last bay
-      if (index !== lastIndex) {
-        newWidths[lastIndex] = buildingData.buildingLength - newWidths.slice(0, lastIndex).reduce((sum, width) => sum + width, 0);
-      } else {
-        // If changing the last bay, adjust all other bays proportionally
-        const otherBaysSum = newWidths.slice(0, lastIndex).reduce((sum, width) => sum + width, 0);
-        const proportion = (buildingData.buildingLength - newWidths[lastIndex]) / otherBaysSum;
+      // Only adjust if there are other bays and their sum is greater than zero
+      if (otherBaysIndices.length > 0 && otherBaysSum > 0.001) {
+        // Calculate how much to adjust other bays
+        const adjustmentNeeded = -delta; // Negative of the change
         
-        for (let i = 0; i < lastIndex; i++) {
-          newWidths[i] = newWidths[i] * proportion;
+        // Distribute adjustment proportionally
+        otherBaysIndices.forEach(i => {
+          const proportion = currentWidths[i] / otherBaysSum;
+          let adjusted = currentWidths[i] + (adjustmentNeeded * proportion);
+          
+          // Ensure minimum bay width
+          adjusted = Math.max(0.5, roundToNearest(adjusted));
+          newWidths[i] = adjusted;
+        });
+      }
+    }
+    
+    // Calculate total of new widths
+    const newTotal = newWidths.reduce((sum, width) => sum + width, 0);
+    
+    // Ensure total exactly matches building length by adjusting the last bay that isn't the one being changed
+    const tolerance = 0.01;
+    if (Math.abs(newTotal - buildingData.buildingLength) > tolerance) {
+      const lastBayToAdjust = newWidths.length > 1 
+        ? (index === newWidths.length - 1 ? newWidths.length - 2 : newWidths.length - 1)
+        : 0;
+      
+      // Calculate the adjustment needed
+      const finalAdjustment = buildingData.buildingLength - (newTotal - newWidths[lastBayToAdjust]);
+      
+      // Only apply if it wouldn't make the bay too small or exceed max span
+      if (finalAdjustment >= 0.5 && finalAdjustment <= maxAllowedSpan) {
+        newWidths[lastBayToAdjust] = roundToNearest(finalAdjustment);
+      } else {
+        // If adjustment would create an invalid bay, distribute evenly among all bays
+        const evenWidth = roundToNearest(buildingData.buildingLength / newWidths.length);
+        for (let i = 0; i < newWidths.length; i++) {
+          newWidths[i] = i === index ? roundedValue : evenWidth;
+        }
+        
+        // Adjust the last bay (not the one being changed) to make total exactly match building length
+        const finalBayIndex = index === newWidths.length - 1 ? newWidths.length - 2 : newWidths.length - 1;
+        if (finalBayIndex >= 0 && finalBayIndex < newWidths.length) {
+          const finalTotal = newWidths.reduce((sum, width) => sum + width, 0);
+          const finalBayAdjustment = buildingData.buildingLength - (finalTotal - newWidths[finalBayIndex]);
+          if (finalBayAdjustment >= 0.5 && finalBayAdjustment <= maxAllowedSpan) {
+            newWidths[finalBayIndex] = roundToNearest(finalBayAdjustment);
+          }
         }
       }
     }
     
+    console.log("Updated lengthwise bay widths:", newWidths);
     updateBuildingData('customLengthwiseBayWidths', newWidths);
-  }, [buildingData.customLengthwiseBayWidths, buildingData.lengthwiseBays, buildingData.buildingLength, updateBuildingData]);
+  }, [buildingData.customLengthwiseBayWidths, buildingData.buildingLength, buildingData.maxBaySpan, updateBuildingData]);
 
   // Handle widthwise bay width change
   const handleWidthwiseBayWidthChange = useCallback((index, value) => {
-    const newWidths = [...buildingData.customWidthwiseBayWidths];
-    newWidths[index] = parseFloat(value) || 0;
+    const parsedValue = parseFloat(value);
     
-    // Ensure total equals building width
-    const totalWidth = newWidths.reduce((sum, width) => sum + width, 0);
-    if (totalWidth !== buildingData.buildingWidth) {
-      // Adjust the last bay to make total equal to building width
-      const lastIndex = buildingData.widthwiseBays - 1;
+    // Validate input value
+    if (isNaN(parsedValue) || parsedValue <= 0) {
+      console.warn(`Invalid bay width value: ${value}`);
+      return;
+    }
+    
+    // Round to nearest 0.05
+    const roundToNearest = (value, nearest = 0.05) => {
+      return Math.round(value / nearest) * nearest;
+    };
+    
+    // Enforce maximum bay span limit
+    const maxAllowedSpan = buildingData.maxBaySpan;
+    const roundedValue = Math.min(maxAllowedSpan, roundToNearest(parsedValue));
+    
+    // If value exceeds max span, log a warning
+    if (parsedValue > maxAllowedSpan) {
+      console.warn(`Bay width ${parsedValue} exceeds maximum allowed span of ${maxAllowedSpan}. Using ${roundedValue} instead.`);
+    }
+    
+    // Get current bay widths
+    const currentWidths = [...buildingData.customWidthwiseBayWidths];
+    
+    // Calculate how much we need to adjust
+    const oldValue = currentWidths[index];
+    const delta = roundedValue - oldValue;
+    
+    // If no change, exit early
+    if (Math.abs(delta) < 0.001) return;
+    
+    // Create a copy for the new widths
+    const newWidths = [...currentWidths];
+    newWidths[index] = roundedValue;
+    
+    // If there's a significant change, adjust other bays proportionally
+    if (Math.abs(delta) > 0.001) {
+      // Calculate sum excluding the changed bay
+      const otherBaysIndices = Array.from({ length: currentWidths.length }, (_, i) => i).filter(i => i !== index);
+      const otherBaysSum = otherBaysIndices.reduce((sum, i) => sum + currentWidths[i], 0);
       
-      // Skip if we're already changing the last bay
-      if (index !== lastIndex) {
-        newWidths[lastIndex] = buildingData.buildingWidth - newWidths.slice(0, lastIndex).reduce((sum, width) => sum + width, 0);
-      } else {
-        // If changing the last bay, adjust all other bays proportionally
-        const otherBaysSum = newWidths.slice(0, lastIndex).reduce((sum, width) => sum + width, 0);
-        const proportion = (buildingData.buildingWidth - newWidths[lastIndex]) / otherBaysSum;
+      // Only adjust if there are other bays and their sum is greater than zero
+      if (otherBaysIndices.length > 0 && otherBaysSum > 0.001) {
+        // Calculate how much to adjust other bays
+        const adjustmentNeeded = -delta; // Negative of the change
         
-        for (let i = 0; i < lastIndex; i++) {
-          newWidths[i] = newWidths[i] * proportion;
+        // Distribute adjustment proportionally
+        otherBaysIndices.forEach(i => {
+          const proportion = currentWidths[i] / otherBaysSum;
+          let adjusted = currentWidths[i] + (adjustmentNeeded * proportion);
+          
+          // Ensure minimum bay width
+          adjusted = Math.max(0.5, roundToNearest(adjusted));
+          newWidths[i] = adjusted;
+        });
+      }
+    }
+    
+    // Calculate total of new widths
+    const newTotal = newWidths.reduce((sum, width) => sum + width, 0);
+    
+    // Ensure total exactly matches building width by adjusting the last bay that isn't the one being changed
+    const tolerance = 0.01;
+    if (Math.abs(newTotal - buildingData.buildingWidth) > tolerance) {
+      const lastBayToAdjust = newWidths.length > 1 
+        ? (index === newWidths.length - 1 ? newWidths.length - 2 : newWidths.length - 1)
+        : 0;
+      
+      // Calculate the adjustment needed
+      const finalAdjustment = buildingData.buildingWidth - (newTotal - newWidths[lastBayToAdjust]);
+      
+      // Only apply if it wouldn't make the bay too small or exceed max span
+      if (finalAdjustment >= 0.5 && finalAdjustment <= maxAllowedSpan) {
+        newWidths[lastBayToAdjust] = roundToNearest(finalAdjustment);
+      } else {
+        // If adjustment would create an invalid bay, distribute evenly among all bays
+        const evenWidth = roundToNearest(buildingData.buildingWidth / newWidths.length);
+        for (let i = 0; i < newWidths.length; i++) {
+          newWidths[i] = i === index ? roundedValue : evenWidth;
+        }
+        
+        // Adjust the last bay (not the one being changed) to make total exactly match building width
+        const finalBayIndex = index === newWidths.length - 1 ? newWidths.length - 2 : newWidths.length - 1;
+        if (finalBayIndex >= 0 && finalBayIndex < newWidths.length) {
+          const finalTotal = newWidths.reduce((sum, width) => sum + width, 0);
+          const finalBayAdjustment = buildingData.buildingWidth - (finalTotal - newWidths[finalBayIndex]);
+          if (finalBayAdjustment >= 0.5 && finalBayAdjustment <= maxAllowedSpan) {
+            newWidths[finalBayIndex] = roundToNearest(finalBayAdjustment);
+          }
         }
       }
     }
     
+    console.log("Updated widthwise bay widths:", newWidths);
     updateBuildingData('customWidthwiseBayWidths', newWidths);
-  }, [buildingData.customWidthwiseBayWidths, buildingData.widthwiseBays, buildingData.buildingWidth, updateBuildingData]);
+  }, [buildingData.customWidthwiseBayWidths, buildingData.buildingWidth, buildingData.maxBaySpan, updateBuildingData]);
 
   // Toggle joist direction globally
   const toggleJoistDirection = useCallback(() => {

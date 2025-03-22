@@ -193,11 +193,11 @@ export function FireResistanceCalculator({
         <div className="apple-fire-results-col space-y-3">
           <div className="apple-fire-results-item flex justify-between items-center border-b pb-2">
             <div className="apple-fire-results-label font-medium">Effective Width:</div>
-            <div className="apple-fire-results-value">{results.effectiveWidth.toFixed(1)} mm</div>
+            <div className="apple-fire-results-value">{typeof results.effectiveWidth === 'number' ? results.effectiveWidth.toFixed(1) : 'N/A'} mm</div>
           </div>
           <div className="apple-fire-results-item flex justify-between items-center border-b pb-2">
             <div className="apple-fire-results-label font-medium">Effective Depth:</div>
-            <div className="apple-fire-results-value">{results.effectiveDepth.toFixed(1)} mm</div>
+            <div className="apple-fire-results-value">{typeof results.effectiveDepth === 'number' ? results.effectiveDepth.toFixed(1) : 'N/A'} mm</div>
           </div>
           <div className="apple-fire-results-item flex justify-between items-center border-b pb-2">
             <div className="apple-fire-results-label font-medium">Residual Area:</div>

@@ -7,6 +7,7 @@ import { useFormState } from '../hooks/useFormState';
 import { useProjectManagement } from '../hooks/useProjectManagement';
 import { useSizeData } from '../hooks/useSizeData';
 import { useNavigationHandlers } from '../hooks/useNavigationHandlers';
+import { useNotification } from '../contexts/NotificationContext';
 
 // UI Components
 import SaveProjectModal from './calculator/SaveProjectModal';
@@ -74,8 +75,25 @@ export default function TimberCalculator() {
     isDataReady
   } = useSizeData();
   
+  // Get notification functions
+  const { showAlert } = useNotification();
+  
   // Set up navigation handlers (event listeners are handled inside the hook)
   useNavigationHandlers();
+  
+  // Listen for bay adjustment events from useFormState
+  useEffect(() => {
+    const handleBayAdjustment = (event) => {
+      const { message } = event.detail;
+      showAlert(message, 'warning');
+    };
+    
+    window.addEventListener('bay-adjustment', handleBayAdjustment);
+    
+    return () => {
+      window.removeEventListener('bay-adjustment', handleBayAdjustment);
+    };
+  }, [showAlert]);
 
   // Handle save button click
   const onSaveClick = () => {

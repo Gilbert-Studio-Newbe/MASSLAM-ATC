@@ -2,6 +2,7 @@
 
 import { BuildingDataProvider } from "../contexts/BuildingDataContext";
 import { FireResistanceProvider } from "../contexts/FireResistanceContext";
+import { NotificationProvider } from "../contexts/NotificationContext";
 import DataLoader from "./DataLoader";
 
 /**
@@ -9,12 +10,14 @@ import DataLoader from "./DataLoader";
  */
 export default function AppProviders({ children }) {
   return (
-    <BuildingDataProvider>
-      <FireResistanceProvider>
-        <DataLoader>
-          {children}
-        </DataLoader>
-      </FireResistanceProvider>
-    </BuildingDataProvider>
+    <NotificationProvider>
+      <BuildingDataProvider>
+        <FireResistanceProvider>
+          <DataLoader>
+            {children}
+          </DataLoader>
+        </FireResistanceProvider>
+      </BuildingDataProvider>
+    </NotificationProvider>
   );
 } 

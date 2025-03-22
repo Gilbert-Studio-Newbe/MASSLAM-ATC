@@ -7,11 +7,11 @@ import { calculateFireParams } from '@/components/FireResistanceCalculator';
 // Default building configuration values
 const defaultBuildingData = {
   // Building dimensions
-  buildingLength: 12,
-  buildingWidth: 12,
-  numFloors: 2,
+  buildingLength: 20,
+  buildingWidth: 15,
+  numFloors: 4,
   floorHeight: 3.5,
-  lengthwiseBays: 3,
+  lengthwiseBays: 4,
   widthwiseBays: 3,
   
   // Load and fire parameters
@@ -33,10 +33,10 @@ const defaultBuildingData = {
   results: null,
   error: null,
   
-  // Custom bay dimensions
-  useCustomBayDimensions: false,
-  customLengthwiseBayWidths: [4, 4, 4], // Default equal distribution
-  customWidthwiseBayWidths: [4, 4, 4], // Default equal distribution
+  // Custom bay dimensions - set to true by default
+  useCustomBayDimensions: true,
+  customLengthwiseBayWidths: [5.0, 5.0, 5.0, 5.0], // All bays 5.0m to match building length (20m)
+  customWidthwiseBayWidths: [5.0, 5.0, 5.0], // All bays 5.0m to match building width (15m)
   
   // Add fireParams field with default values
   fireParams: {
@@ -107,7 +107,57 @@ export function BuildingDataProvider({ children }) {
   
   // Function to reset to defaults
   const resetBuildingData = () => {
-    setBuildingData(defaultBuildingData);
+    // Create a fresh copy of defaultBuildingData to ensure we're not using cached values
+    const freshDefaults = {
+      // Building dimensions
+      buildingLength: 20,
+      buildingWidth: 15,
+      numFloors: 4,
+      floorHeight: 3.5,
+      lengthwiseBays: 4,
+      widthwiseBays: 3,
+      
+      // Load and fire parameters
+      load: 2, // 2kPa (residential)
+      loadType: 'Office',
+      fireRating: 'none',
+      
+      // Material parameters
+      timberGrade: 'ML56',
+      
+      // Joist parameters
+      joistSpacing: 0.8, // 800mm
+      joistsRunLengthwise: true,
+      
+      // Maximum bay span
+      maxBaySpan: 9.0,
+      
+      // Calculation results
+      results: null,
+      error: null,
+      
+      // Custom bay dimensions - set to true by default
+      useCustomBayDimensions: true,
+      customLengthwiseBayWidths: [5.0, 5.0, 5.0, 5.0], // All bays 5.0m to match building length (20m)
+      customWidthwiseBayWidths: [5.0, 5.0, 5.0], // All bays 5.0m to match building width (15m)
+      
+      // Add fireParams field with default values
+      fireParams: {
+        joistWidth: 120,
+        concreteThickness: 100,
+        fireAllowance: 0,
+        fireRating: 'none',
+        charringRate: 0.7
+      },
+    };
+    
+    // Clear any cached data
+    localStorage.removeItem('buildingData');
+    
+    // Set the fresh defaults
+    setBuildingData(freshDefaults);
+    
+    console.log('Reset to fresh defaults:', freshDefaults);
   };
   
   // Helper function to determine concrete thickness based on fire rating
@@ -134,50 +184,94 @@ export function BuildingDataProvider({ children }) {
   
   // When lengthwiseBays or widthwiseBays change, update the custom bay arrays
   useEffect(() => {
-    // Only update custom bay dimensions if not already using custom dimensions
-    if (!buildingData.useCustomBayDimensions) {
-      // Helper function to round to nearest 0.05
-      const roundToNearest = (value, nearest = 0.05) => {
-        return Math.round(value / nearest) * nearest;
-      };
-      
-      // Ensure the bay counts are positive integers to avoid array length errors
-      const safeTypedLengthwiseBays = Math.max(1, Math.floor(buildingData.lengthwiseBays) || 1);
-      const safeTypedWidthwiseBays = Math.max(1, Math.floor(buildingData.widthwiseBays) || 1);
-      
-      // Calculate bay widths and round to nearest 0.05m
-      const equalLengthwiseBayWidth = roundToNearest(buildingData.buildingLength / safeTypedLengthwiseBays);
-      const equalWidthwiseBayWidth = roundToNearest(buildingData.buildingWidth / safeTypedWidthwiseBays);
-      
-      // Create arrays with equal distribution
-      const newLengthwiseBayWidths = Array(safeTypedLengthwiseBays).fill(equalLengthwiseBayWidth);
-      const newWidthwiseBayWidths = Array(safeTypedWidthwiseBays).fill(equalWidthwiseBayWidth);
-      
-      // Adjust the last bay to ensure total equals building dimensions
-      const totalLengthwise = newLengthwiseBayWidths.reduce((sum, width) => sum + width, 0);
-      const totalWidthwise = newWidthwiseBayWidths.reduce((sum, width) => sum + width, 0);
-      
-      if (Math.abs(totalLengthwise - buildingData.buildingLength) > 0.01) {
-        const lastLengthIndex = safeTypedLengthwiseBays - 1;
-        newLengthwiseBayWidths[lastLengthIndex] = roundToNearest(
-          newLengthwiseBayWidths[lastLengthIndex] + (buildingData.buildingLength - totalLengthwise)
-        );
-      }
-      
-      if (Math.abs(totalWidthwise - buildingData.buildingWidth) > 0.01) {
-        const lastWidthIndex = safeTypedWidthwiseBays - 1;
-        newWidthwiseBayWidths[lastWidthIndex] = roundToNearest(
-          newWidthwiseBayWidths[lastWidthIndex] + (buildingData.buildingWidth - totalWidthwise)
-        );
-      }
-      
-      setBuildingData(prevData => ({
-        ...prevData,
-        customLengthwiseBayWidths: newLengthwiseBayWidths,
-        customWidthwiseBayWidths: newWidthwiseBayWidths
-      }));
+    // Log the state for debugging
+    console.log('Bay count changed:', {
+      lengthwiseBays: buildingData.lengthwiseBays, 
+      widthwiseBays: buildingData.widthwiseBays,
+      useCustom: buildingData.useCustomBayDimensions
+    });
+    
+    // Helper function to round to nearest 0.05
+    const roundToNearest = (value, nearest = 0.05) => {
+      return Math.round(value / nearest) * nearest;
+    };
+    
+    // Minimum bay width (in meters)
+    const MIN_BAY_WIDTH = 0.5;
+    const MAX_BAY_WIDTH = buildingData.maxBaySpan;
+    
+    // Ensure the bay counts are positive integers to avoid array length errors
+    const safeTypedLengthwiseBays = Math.max(1, Math.floor(buildingData.lengthwiseBays) || 1);
+    const safeTypedWidthwiseBays = Math.max(1, Math.floor(buildingData.widthwiseBays) || 1);
+    
+    // Check if we need to update the bay width arrays
+    const needToUpdateLengthwise = safeTypedLengthwiseBays !== buildingData.customLengthwiseBayWidths.length;
+    const needToUpdateWidthwise = safeTypedWidthwiseBays !== buildingData.customWidthwiseBayWidths.length;
+    
+    // Only update if the number of bays has changed
+    if (!needToUpdateLengthwise && !needToUpdateWidthwise) {
+      return;
     }
-  }, [buildingData.lengthwiseBays, buildingData.widthwiseBays, buildingData.buildingLength, buildingData.buildingWidth, buildingData.useCustomBayDimensions]);
+    
+    // Default bay width value (3.0m to match building dimensions better)
+    const DEFAULT_BAY_WIDTH = 3.0;
+    
+    // Create arrays with equal distribution
+    let newLengthwiseBayWidths = buildingData.customLengthwiseBayWidths;
+    let newWidthwiseBayWidths = buildingData.customWidthwiseBayWidths;
+    
+    // Update lengthwise bays if needed
+    if (needToUpdateLengthwise) {
+      // Create a new array using the default bay width
+      newLengthwiseBayWidths = Array(safeTypedLengthwiseBays).fill(DEFAULT_BAY_WIDTH);
+      
+      // Ensure total matches building length
+      const totalLength = DEFAULT_BAY_WIDTH * safeTypedLengthwiseBays;
+      if (Math.abs(totalLength - buildingData.buildingLength) > 0.1) {
+        // Adjust bay widths proportionally to match building length
+        const adjustmentFactor = buildingData.buildingLength / totalLength;
+        newLengthwiseBayWidths = newLengthwiseBayWidths.map(width => 
+          roundToNearest(Math.max(MIN_BAY_WIDTH, Math.min(MAX_BAY_WIDTH, width * adjustmentFactor)))
+        );
+      }
+    }
+    
+    // Update widthwise bays if needed
+    if (needToUpdateWidthwise) {
+      // Create a new array using the default bay width
+      newWidthwiseBayWidths = Array(safeTypedWidthwiseBays).fill(DEFAULT_BAY_WIDTH);
+      
+      // Ensure total matches building width
+      const totalWidth = DEFAULT_BAY_WIDTH * safeTypedWidthwiseBays;
+      if (Math.abs(totalWidth - buildingData.buildingWidth) > 0.1) {
+        // Adjust bay widths proportionally to match building width
+        const adjustmentFactor = buildingData.buildingWidth / totalWidth;
+        newWidthwiseBayWidths = newWidthwiseBayWidths.map(width => 
+          roundToNearest(Math.max(MIN_BAY_WIDTH, Math.min(MAX_BAY_WIDTH, width * adjustmentFactor)))
+        );
+      }
+    }
+    
+    // Log the bay dimensions for debugging
+    console.log('New bay dimensions:', {
+      lengthwiseBayWidths: newLengthwiseBayWidths,
+      lengthwiseTotal: newLengthwiseBayWidths.reduce((sum, w) => sum + w, 0),
+      targetLength: buildingData.buildingLength,
+      widthwiseBayWidths: newWidthwiseBayWidths, 
+      widthwiseTotal: newWidthwiseBayWidths.reduce((sum, w) => sum + w, 0),
+      targetWidth: buildingData.buildingWidth
+    });
+    
+    // Update only the bay width arrays, preserving the custom mode setting
+    setBuildingData(prevData => ({
+      ...prevData,
+      customLengthwiseBayWidths: newLengthwiseBayWidths,
+      customWidthwiseBayWidths: newWidthwiseBayWidths,
+      // Keep the current useCustomBayDimensions value
+      useCustomBayDimensions: prevData.useCustomBayDimensions
+    }));
+    
+  }, [buildingData.lengthwiseBays, buildingData.widthwiseBays, buildingData.buildingLength, buildingData.buildingWidth, buildingData.maxBaySpan, buildingData.customLengthwiseBayWidths, buildingData.customWidthwiseBayWidths]);
   
   // Provide the context value
   const value = {

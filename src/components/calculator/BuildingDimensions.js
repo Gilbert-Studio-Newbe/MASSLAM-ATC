@@ -144,7 +144,12 @@ const BuildingDimensions = ({
         <div className="mt-3 text-sm text-gray-500">
           <p>
             Default bay size: 
-            {` ${(Math.round((buildingData.buildingLength / buildingData.lengthwiseBays) / 0.05) * 0.05).toFixed(2)}m × ${(Math.round((buildingData.buildingWidth / buildingData.widthwiseBays) / 0.05) * 0.05).toFixed(2)}m`}
+            {` ${typeof buildingData.buildingLength === 'number' && typeof buildingData.lengthwiseBays === 'number' && buildingData.lengthwiseBays > 0 
+              ? (Math.round((buildingData.buildingLength / buildingData.lengthwiseBays) / 0.05) * 0.05).toFixed(2) 
+              : '0.00'}m × ${typeof buildingData.buildingWidth === 'number' && typeof buildingData.widthwiseBays === 'number' && buildingData.widthwiseBays > 0
+              ? (Math.round((buildingData.buildingWidth / buildingData.widthwiseBays) / 0.05) * 0.05).toFixed(2)
+              : '0.00'}m`}
+            <span className="text-xs block mt-1">(Bay sizes are rounded to the nearest 0.05m)</span>
           </p>
         </div>
       )}
