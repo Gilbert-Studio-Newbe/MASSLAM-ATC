@@ -95,6 +95,31 @@ export default function TimberCalculator() {
     };
   }, [showAlert]);
 
+  // Add automatic calculation when key parameters change
+  useEffect(() => {
+    // Don't calculate on first render to avoid duplicate calculations
+    const shouldCalculate = buildingData.results === null || 
+      (buildingData.results && buildingData.results.updatedAt);
+      
+    if (shouldCalculate) {
+      console.log("AUTO CALCULATION: Detecting changes in building configuration, triggering calculation");
+      calculateResults();
+    }
+  }, [
+    buildingData.buildingLength,
+    buildingData.buildingWidth,
+    buildingData.numFloors,
+    buildingData.lengthwiseBays,
+    buildingData.widthwiseBays,
+    buildingData.customLengthwiseBayWidths,
+    buildingData.customWidthwiseBayWidths,
+    buildingData.load,
+    buildingData.fireRating,
+    buildingData.joistsRunLengthwise,
+    buildingData.joistSpacing,
+    calculateResults
+  ]);
+
   // Handle save button click
   const onSaveClick = () => {
     if (!results) {
@@ -254,9 +279,9 @@ export default function TimberCalculator() {
         results?.columnSize?.usingFallback) && (
         <div className="apple-section mt-4">
           <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded relative" role="alert">
-            <strong className="font-bold">Using Approximate Sizes: </strong>
+            <strong className="font-bold">FALLBACK MODE - Using Approximate Sizes: </strong>
             <span className="block sm:inline">
-              The exact timber dimensions required for your project could not be found in the available data.
+              <span className="text-red-700 font-bold">[DEBUG: FALLBACK CALCULATION USED]</span> The exact timber dimensions required for your project could not be found in the available data.
               <ul className="list-disc ml-5 mt-1">
                 {results?.joistSize?.usingFallback && <li>Joist sizes are approximate and may not match standard MASSLAM products.</li>}
                 {results?.beamSize?.usingFallback && <li>Beam sizes are approximate and may not match standard MASSLAM products.</li>}
