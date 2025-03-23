@@ -97,30 +97,8 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   // Standard available depths
   const standardDepths = [200, 270, 335, 410, 480, 550, 620];
   
-  // Apply different depth selection logic based on span length
-  let depth;
-  
-  // Check specifically for long spans (8.5m+)
-  const isLongSpan = span >= 8.5;
-  
-  if (isLongSpan) {
-    console.log(`[JOIST] Long span detected (${span}m) - Enforcing minimum depth requirements`);
-    const longSpanMinDepth = 410;
-    const minIndex = standardDepths.indexOf(longSpanMinDepth);
-    
-    // Find the first depth >= fireAdjustedDepth starting from longSpanMinDepth
-    const validDepths = standardDepths.slice(minIndex);
-    depth = validDepths.find(d => d >= fireAdjustedDepth) || validDepths[validDepths.length - 1];
-  } else {
-    // For normal spans, just find the nearest standard depth
-    depth = findNearestValue(fireAdjustedDepth, standardDepths);
-  }
-  
-  // Extra check specifically for 9m spans
-  if (span >= 9.0 && depth < 410) {
-    console.log(`[JOIST] Critical 9m span detected - Enforcing 410mm minimum depth`);
-    depth = 410;
-  }
+  // Find the nearest standard depth
+  const depth = findNearestValue(fireAdjustedDepth, standardDepths);
   
   // Final deflection check with selected size
   const finalMomentOfInertia = (initialWidth * Math.pow(depth, 3)) / 12;

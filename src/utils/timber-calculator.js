@@ -135,8 +135,12 @@ export function calculateStructure(buildingData) {
     load,
     numFloors,
     tributaryArea,
-    fireRating
+    fireRating,
+    interiorBeamSize.width // Pass the beam width to ensure column width matches
   );
+  
+  // Log the column-beam width relationship
+  console.log(`[STRUCTURE] Column width (${columnSize.width}mm) set to match beam width (${interiorBeamSize.width}mm)`);
   
   // Return all calculated sizes
   return {

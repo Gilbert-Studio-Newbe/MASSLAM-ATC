@@ -17,10 +17,11 @@ import {
  * @param {number} load - Axial load in kN
  * @param {string} timberGrade - Timber grade (e.g., 'ML38')
  * @param {string} fireRating - Fire rating ('none', '30/30/30', etc.)
+ * @param {number} beamWidth - Width of the beam in mm (column width must match beam width)
  * @returns {Object} Column size and calculation details
  */
-export function calculateColumnSize(height, load, timberGrade, fireRating = 'none') {
-  console.log(`[COLUMN] Calculating for height=${height}m, load=${load}kN, grade=${timberGrade}, fire=${fireRating}`);
+export function calculateColumnSize(height, load, timberGrade, fireRating = 'none', beamWidth = null) {
+  console.log(`[COLUMN] Calculating for height=${height}m, load=${load}kN, grade=${timberGrade}, fire=${fireRating}, beamWidth=${beamWidth}mm`);
   
   // Validate inputs
   if (!height || height <= 0 || !load || load <= 0) {
@@ -39,11 +40,17 @@ export function calculateColumnSize(height, load, timberGrade, fireRating = 'non
   // Get timber properties
   const timberProps = TIMBER_PROPERTIES[timberGrade] || TIMBER_PROPERTIES.ML38;
   
-  // Get fixed width based on fire rating
-  const fixedWidth = getFixedWidthForFireRating(fireRating);
-  
-  // For columns, typically we want square sections for stability
-  const fixedDepth = fixedWidth;
+  // Get fixed width based on fire rating or use beam width if provided
+  let width;
+  if (beamWidth) {
+    // CRITICAL: Column width MUST match beam width
+    console.log(`[COLUMN] Using beam width of ${beamWidth}mm for column width`);
+    width = beamWidth;
+  } else {
+    // Fallback to fire rating width if beam width not provided
+    width = getFixedWidthForFireRating(fireRating);
+    console.log(`[COLUMN] No beam width provided, using fire rating width: ${width}mm`);
+  }
   
   // Calculate fire resistance allowance
   let fireAllowance = 0;
@@ -51,15 +58,28 @@ export function calculateColumnSize(height, load, timberGrade, fireRating = 'non
     fireAllowance = calculateFireResistanceAllowance(fireRating);
   }
   
-  // Add fire allowance to all sides (all 4 sides are typically exposed)
-  const fireAdjustedWidth = fixedWidth + (2 * fireAllowance);
-  const fireAdjustedDepth = fixedDepth + (2 * fireAllowance);
+  // Add fire allowance to all sides (all 4 sides are typically exposed for columns)
+  const fireAdjustedWidth = width + (2 * fireAllowance);
   
-  // Find nearest available standard size
-  const width = findNearestWidth(fireAdjustedWidth);
-  const depth = findNearestDepth(width, fireAdjustedDepth, 'column');
+  // For the depth, we need to calculate based on required cross-sectional area
+  // Convert load from kN to N
+  const loadN = load * 1000;
   
-  console.log(`[COLUMN] Final selected size: ${width}×${depth}mm`);
+  // Calculate required area based on compressive strength
+  const compressiveStrength = timberProps.compressiveStrength;
+  const requiredArea = loadN / compressiveStrength;
+  
+  // Calculate required depth based on width and area
+  let requiredDepth = requiredArea / (width - 2 * fireAllowance);
+  
+  // Add fire allowance to depth
+  const fireAdjustedDepth = requiredDepth + (2 * fireAllowance);
+  
+  // For large loads, we may need a deeper column
+  // Find nearest available standard size for depth
+  const depth = findNearestDepth(width, Math.max(width, fireAdjustedDepth), 'column');
+  
+  console.log(`[COLUMN] Final selected size: ${width}×${depth}mm (beam width = ${beamWidth}mm)`);
   
   // Return the calculated column size
   return {
@@ -69,7 +89,8 @@ export function calculateColumnSize(height, load, timberGrade, fireRating = 'non
     load,
     grade: timberGrade,
     fireRating,
-    fireAllowance
+    fireAllowance,
+    beamWidth
   };
 }
 
@@ -81,10 +102,15 @@ export function calculateColumnSize(height, load, timberGrade, fireRating = 'non
  * @param {number} numFloors - Number of floors supported by the column
  * @param {number} tributaryArea - Tributary area in square meters
  * @param {string} fireRating - Required fire rating ('none', '30/30/30', '60/60/60', etc.)
+ * @param {number} beamWidth - Width of the beam in mm (column width must match beam width)
  * @returns {Object} Column dimensions
  */
-export function calculateMultiFloorColumnSize(height, load, numFloors, tributaryArea, fireRating = 'none') {
-  console.log(`[COLUMN] Multi-floor column calculation for height=${height}m, load=${load}kPa, floors=${numFloors}, tributary area=${tributaryArea}m²`);
+export function calculateMultiFloorColumnSize(height, load, numFloors, tributaryArea, fireRating = 'none', beamWidth = null) {
+  console.log(`[COLUMN] Multi-floor column calculation for height=${height}m, load=${load}kPa, floors=${numFloors}, tributary area=${tributaryArea}m², beamWidth=${beamWidth}mm`);
+  
+  if (!beamWidth) {
+    console.warn('[COLUMN] No beam width provided. Column width must match beam width. Using fallback width based on fire rating.');
+  }
   
   // Calculate axial load
   // Convert distributed load (kPa) to point load (kN) using tributary area
@@ -98,8 +124,8 @@ export function calculateMultiFloorColumnSize(height, load, numFloors, tributary
   
   console.log(`[COLUMN] Calculated axial load: ${axialLoad.toFixed(2)}kN (${totalLoad.toFixed(2)}kN load + ${preliminaryColumnWeight.toFixed(2)}kN self-weight)`);
   
-  // Use the base column calculation with the computed axial load
-  return calculateColumnSize(height, axialLoad, 'ML38', fireRating);
+  // Use the base column calculation with the computed axial load, passing the beam width
+  return calculateColumnSize(height, axialLoad, 'ML38', fireRating, beamWidth);
 }
 
 /**
