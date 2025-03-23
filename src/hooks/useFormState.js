@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useBuildingData } from '../contexts/BuildingDataContext';
-import { useTimberCalculations } from './useTimberCalculations';
 import { 
-  calculateJoistSize as calculateJoistSizeEngineering, 
-  calculateBeamSize, 
-  calculateColumnSize,
+  calculateJoistSize, 
+  calculateMultiFloorBeamSize,
+  calculateMultiFloorColumnSize,
+  calculateStructure,
   calculateTimberWeight,
   calculateCarbonSavings
-} from '../utils/timberEngineering';
+} from '../utils/timber-calculator';
 
 export function useFormState() {
   // Use the building data context
@@ -19,13 +19,6 @@ export function useFormState() {
     updateCalculationResults,
     updateMultipleProperties
   } = useBuildingData();
-
-  // Use timber calculations
-  const { 
-    calculateMultiFloorBeamSize,
-    calculateMultiFloorColumnSize,
-    calculateJoistSize
-  } = useTimberCalculations();
 
   // Local state
   const [error, setError] = useState(null);
@@ -124,6 +117,66 @@ export function useFormState() {
     buildingData.lengthwiseBays,
     buildingData.widthwiseBays,
     updateMultipleProperties
+  ]);
+
+  // Define our helper functions first before they're used
+  const roundToNearest = (value, nearest = 0.05) => {
+    return Math.round(value / nearest) * nearest;
+  };
+
+  // Define calculateResults FIRST to avoid circular dependency
+  const calculateResults = useCallback(() => {
+    try {
+      setError(null);
+      
+      // Start debug logs for tracking calculation flow
+      console.log("[FORM] Starting calculations");
+      
+      // Extract values from building data
+      const joistSpacing = buildingData.joistSpacing;
+      
+      // Calculate the results using our new modular calculator
+      const results = calculateStructure(buildingData);
+      
+      // Calculate timber weight 
+      const weightResults = calculateTimberWeight(
+        results.joistSize,
+        results.beamSize,
+        results.edgeBeamSize,
+        results.columnSize,
+        buildingData
+      );
+      
+      // Calculate carbon savings
+      const carbonResults = calculateCarbonSavings(weightResults);
+      
+      // Combine all results
+      const combinedResults = {
+        joistSize: results.joistSize,
+        beamSize: results.beamSize,
+        edgeBeamSize: results.edgeBeamSize,
+        columnSize: results.columnSize,
+        timberWeight: weightResults.weight,
+        timberVolume: weightResults.totalVolume,
+        elementVolumes: weightResults.elements,
+        carbonSavings: carbonResults.carbonSavings,
+        carbonStorage: carbonResults.carbonStorage
+      };
+      
+      // Update results in state
+      setResults(combinedResults);
+      
+      // Update context with calculated results
+      updateCalculationResults(combinedResults);
+      
+      console.log("[FORM] Calculation completed:", combinedResults);
+    } catch (error) {
+      console.error("[FORM] Error in calculations:", error);
+      setError(`Error calculating results: ${error.message}`);
+    }
+  }, [
+    buildingData,
+    updateCalculationResults
   ]);
 
   // -------- Form handlers ---------
@@ -625,223 +678,6 @@ export function useFormState() {
   const toggleJoistDirection = useCallback(() => {
     updateBuildingData('joistsRunLengthwise', !buildingData.joistsRunLengthwise);
   }, [buildingData.joistsRunLengthwise, updateBuildingData]);
-
-  // Calculate results
-  const calculateResults = useCallback(() => {
-    try {
-      setError(null);
-      
-      // Start debug logs for tracking calculation flow
-      console.log("CALCULATION DEBUG - Starting calculations");
-      console.log("CALCULATION DEBUG - Building data:", buildingData);
-      
-      // Extract values from building data
-      const joistSpacing = buildingData.joistSpacing;
-      console.log("CALCULATION DEBUG - Joist spacing in meters:", joistSpacing);
-      console.log("CALCULATION DEBUG - Joist spacing in millimeters:", joistSpacing * 1000);
-      
-      // Determine the span for joists based on joist direction
-      let joistSpan;
-      
-      // Get the average bay dimensions
-      let avgBayWidth = buildingData.buildingWidth / buildingData.widthwiseBays;
-      let avgBayLength = buildingData.buildingLength / buildingData.lengthwiseBays;
-      
-      // Use custom bay dimensions if enabled
-      if (buildingData.useCustomBayDimensions) {
-        avgBayWidth = buildingData.customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0) / buildingData.customWidthwiseBayWidths.length;
-        avgBayLength = buildingData.customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0) / buildingData.customLengthwiseBayWidths.length;
-      }
-      
-      if (buildingData.joistsRunLengthwise) {
-        // Joists run parallel to length, so they span across width
-        joistSpan = avgBayWidth;
-      } else {
-        // Joists run parallel to width, so they span across length
-        joistSpan = avgBayLength;
-      }
-      
-      console.log(`JOIST DEBUG - Joist span: ${joistSpan.toFixed(2)}m, Spacing: ${joistSpacing.toFixed(2)}m`);
-      
-      // Check if span exceeds maximum allowable span
-      if (joistSpan > buildingData.maxBaySpan) {
-        setError(`The joist span (${joistSpan.toFixed(2)}m) exceeds the maximum allowable span (${buildingData.maxBaySpan.toFixed(2)}m). Please adjust your building dimensions or number of bays.`);
-        return;
-      }
-      
-      // Calculate joist size
-      console.log(`JOIST DEBUG - Calling calculateJoistSize with span=${joistSpan}m, spacing=${joistSpacing}m (${joistSpacing * 1000}mm), load=${buildingData.load}kPa, timberGrade=${buildingData.timberGrade}, fireRating=${buildingData.fireRating}`);
-      const joistSize = calculateJoistSize(
-        joistSpan, 
-        joistSpacing, 
-        buildingData.load, 
-        buildingData.timberGrade,
-        buildingData.fireRating
-      );
-      
-      console.log("JOIST DEBUG - Calculated joist size:", joistSize);
-      
-      // Calculate beam span based on bay configuration
-      // Beams span between columns in the perpendicular direction to joists
-      let beamSpan;
-      if (buildingData.joistsRunLengthwise) {
-        // If joists run lengthwise, beams span across length
-        beamSpan = avgBayLength;
-      } else {
-        // If joists run widthwise, beams span across width
-        beamSpan = avgBayWidth;
-      }
-      
-      console.log(`JOIST DEBUG - Beam span: ${beamSpan.toFixed(2)}m`);
-      
-      // Check if beam span exceeds maximum allowable span
-      if (beamSpan > buildingData.maxBaySpan) {
-        setError(`The beam span (${beamSpan.toFixed(2)}m) exceeds the maximum allowable span (${buildingData.maxBaySpan.toFixed(2)}m). Please adjust your building dimensions or number of bays.`);
-        return;
-      }
-      
-      // Calculate beam size for interior beams
-      const beamSize = calculateMultiFloorBeamSize(
-        beamSpan, 
-        buildingData.load, 
-        joistSpacing, 
-        buildingData.numFloors,
-        buildingData.fireRating,
-        buildingData.joistsRunLengthwise,
-        avgBayWidth,
-        avgBayLength,
-        false // isEdgeBeam = false for interior beams
-      );
-      
-      console.log("INTERIOR BEAM DEBUG - Calculated interior beam details:", {
-        width: beamSize.width,
-        depth: beamSize.depth,
-        span: beamSpan,
-        tributaryWidth: beamSize.tributaryWidth,
-        loadPerMeter: beamSize.loadPerMeter,
-        isEdgeBeam: false
-      });
-      
-      // Calculate edge beam size
-      const edgeBeamSize = calculateMultiFloorBeamSize(
-        beamSpan, 
-        buildingData.load, 
-        joistSpacing, 
-        buildingData.numFloors,
-        buildingData.fireRating,
-        buildingData.joistsRunLengthwise,
-        avgBayWidth,
-        avgBayLength,
-        true // isEdgeBeam = true for edge beams
-      );
-      
-      console.log("EDGE BEAM DEBUG - Calculated edge beam details:", {
-        width: edgeBeamSize.width,
-        depth: edgeBeamSize.depth,
-        span: beamSpan,
-        tributaryWidth: edgeBeamSize.tributaryWidth,
-        loadPerMeter: edgeBeamSize.loadPerMeter,
-        isEdgeBeam: true
-      });
-      
-      // Calculate column size
-      const columnSize = calculateMultiFloorColumnSize(
-        beamSize.width, 
-        buildingData.load, 
-        buildingData.floorHeight,
-        buildingData.numFloors,
-        buildingData.fireRating,
-        avgBayLength,
-        avgBayWidth
-      );
-      
-      console.log("JOIST DEBUG - Calculated column size:", columnSize);
-      
-      // Calculate timber weights and volumes
-      const timberResult = calculateTimberWeight(
-        joistSize,
-        beamSize,
-        columnSize,
-        buildingData.buildingLength,
-        buildingData.buildingWidth,
-        buildingData.numFloors,
-        buildingData.lengthwiseBays,
-        buildingData.widthwiseBays,
-        buildingData.joistsRunLengthwise,
-        buildingData.timberGrade
-      );
-      
-      console.log("TIMBER VOLUME DEBUG - Calculated timber weight and volumes:", timberResult);
-      
-      // Calculate carbon savings
-      const carbonResult = calculateCarbonSavings(timberResult);
-      console.log("TIMBER VOLUME DEBUG - Calculated carbon savings:", carbonResult);
-      
-      // Store the calculated results
-      const newResults = {
-        joistSize: {
-          ...joistSize,
-          span: joistSpan,
-          spacing: joistSpacing
-        },
-        beamSize: {
-          ...beamSize,
-          span: beamSpan
-        },
-        interiorBeamSize: {
-          ...beamSize,
-          span: beamSpan
-        },
-        edgeBeamSize: {
-          ...edgeBeamSize,
-          span: beamSpan
-        },
-        columnSize: {
-          ...columnSize
-        },
-        // Add timber weight, volume, and carbon data
-        timberWeight: timberResult.weight,
-        timberVolume: timberResult.totalVolume,
-        carbonSavings: carbonResult.carbonSavings,
-        // Add element volumes and counts
-        elementVolumes: {
-          joists: timberResult.elements.joists.volume,
-          beams: timberResult.elements.beams.volume,
-          columns: timberResult.elements.columns.volume
-        },
-        elementCounts: {
-          joists: timberResult.elements.joists.count,
-          beams: timberResult.elements.beams.count,
-          columns: timberResult.elements.columns.count
-        },
-        floorHeight: buildingData.floorHeight,
-        numFloors: buildingData.numFloors,
-        load: buildingData.load,
-        joistsRunLengthwise: buildingData.joistsRunLengthwise,
-        fireRating: buildingData.fireRating,
-        timberGrade: buildingData.timberGrade,
-        avgBayWidth,
-        avgBayLength,
-        updatedAt: new Date().toISOString()
-      };
-      
-      console.log("JOIST DEBUG - Setting new results:", newResults);
-      
-      // Update results in context and local state
-      setResults(newResults);
-      updateCalculationResults(newResults);
-      
-    } catch (error) {
-      console.error("JOIST DEBUG - Calculation error:", error);
-      setError(`Calculation error: ${error.message}`);
-    }
-  }, [
-    buildingData, 
-    updateCalculationResults, 
-    calculateJoistSize, 
-    calculateMultiFloorBeamSize, 
-    calculateMultiFloorColumnSize
-  ]);
 
   // Add auto-calculation effect for building dimensions and bay width changes
   useEffect(() => {
