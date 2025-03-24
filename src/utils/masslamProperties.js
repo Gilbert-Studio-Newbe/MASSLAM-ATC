@@ -374,32 +374,12 @@ export async function loadML38MechanicalProperties() {
         const line = lines[i].trim();
         if (!line) continue; // Skip empty lines
         
-        // Parse CSV properly handling quoted values
-        let parts = [];
-        let inQuotes = false;
-        let currentPart = '';
+        // Use regex to properly handle commas in property names
+        // This captures: property name (including commas in parentheses), value, and unit
+        const match = line.match(/^(.*?),([^,]*),(.*)$/);
+        if (!match) continue; // Skip invalid lines
         
-        for (let j = 0; j < line.length; j++) {
-          const char = line[j];
-          
-          if (char === '"') {
-            inQuotes = !inQuotes;
-          } else if (char === ',' && !inQuotes) {
-            parts.push(currentPart);
-            currentPart = '';
-          } else {
-            currentPart += char;
-          }
-        }
-        
-        // Add the last part
-        parts.push(currentPart);
-        
-        if (parts.length < 3) continue; // Skip invalid lines
-        
-        const propertyName = parts[0].replace(/^"|"$/g, '').trim();
-        const propertyValue = parts[1].trim();
-        const propertyUnit = parts[2].trim();
+        const [, propertyName, propertyValue, propertyUnit] = match;
         
         // Skip if property name or value is empty
         if (!propertyName || !propertyValue) continue;
@@ -408,9 +388,9 @@ export async function loadML38MechanicalProperties() {
         const numericValue = propertyValue === 'N/A' ? null : parseFloat(propertyValue);
         
         // Store the property
-        properties[propertyName] = {
-          value: isNaN(numericValue) ? propertyValue : numericValue,
-          unit: propertyUnit
+        properties[propertyName.trim()] = {
+          value: isNaN(numericValue) ? propertyValue.trim() : numericValue,
+          unit: propertyUnit.trim()
         };
       }
       

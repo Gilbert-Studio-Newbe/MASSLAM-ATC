@@ -8,6 +8,7 @@ import { useProjectManagement } from '../hooks/useProjectManagement';
 import { useSizeData } from '../hooks/useSizeData';
 import { useNavigationHandlers } from '../hooks/useNavigationHandlers';
 import { useNotification } from '../contexts/NotificationContext';
+import { test9mJoistCalculation, calculateJoistSize } from '../utils/timber-calculator';
 
 // UI Components
 import SaveProjectModal from './calculator/SaveProjectModal';
@@ -51,6 +52,53 @@ export default function TimberCalculator() {
     calculateResults
   } = useFormState();
   
+  // Direct test function for debugging
+  const testJoistCalculation = () => {
+    console.log("========= DIRECT JOIST CALCULATION TEST =========");
+    
+    // Test with various spans
+    const spans = [7, 8, 9];
+    spans.forEach(span => {
+      const result = calculateJoistSize(
+        span,           // span in meters
+        800,            // spacing in mm
+        2.0,            // load in kPa
+        'ML56',         // timber grade
+        'none',         // fire rating
+        300,            // deflection limit (L/300)
+        1.5             // safety factor
+      );
+      
+      console.log(`\nTEST SPAN ${span}m RESULT:`);
+      console.log(`Width: ${result.width}mm`);
+      console.log(`Depth: ${result.depth}mm`);
+      console.log(`Governing: ${result.isDeflectionGoverning ? 'Deflection' : 'Bending'}`);
+      console.log(`Bending depth required: ${result.bendingDepth}mm`);
+      console.log(`Deflection depth required: ${result.deflectionDepth}mm`);
+      console.log(`Fire adjusted depth: ${result.fireAdjustedDepth}mm`);
+    });
+    
+    // Also run the dedicated test function for 9m span
+    console.log("\nRunning built-in test function for 9m span:");
+    test9mJoistCalculation();
+    
+    console.log("========= END OF DIRECT TEST =========");
+  };
+  
+  // Add debugging output for the results received from useFormState
+  console.log("TimberCalculator - results from useFormState:", {
+    hasResults: !!results,
+    joistSize: results?.joistSize ? {
+      width: results.joistSize.width,
+      depth: results.joistSize.depth,
+      span: results.joistSize.span,
+      isDeflectionGoverning: results.joistSize.isDeflectionGoverning,
+      deflectionLimit: results.joistSize.deflectionLimit,
+      safetyFactor: results.joistSize.safetyFactor
+    } : 'No joistSize data',
+    timestamp: results?.updatedAt || 'No timestamp'
+  });
+  
   const {
     // State
     projectDetails,
@@ -80,6 +128,15 @@ export default function TimberCalculator() {
   
   // Set up navigation handlers (event listeners are handled inside the hook)
   useNavigationHandlers();
+  
+  // Run the test calculation when component mounts
+  useEffect(() => {
+    // Wait a bit for other initialization
+    setTimeout(() => {
+      console.log("Running direct joist calculation test...");
+      testJoistCalculation();
+    }, 1000);
+  }, []);
   
   // Listen for bay adjustment events from useFormState
   useEffect(() => {
@@ -221,7 +278,34 @@ export default function TimberCalculator() {
                     className="apple-button apple-button-primary w-full py-3"
                     onClick={() => {
                       console.log("JOIST DEBUG - Manual calculation triggered");
+                      console.log("JOIST DEBUG - Current building dimensions:", {
+                        length: buildingData.buildingLength,
+                        width: buildingData.buildingWidth,
+                        joistSpacing: buildingData.joistSpacing,
+                        joistsRunLengthwise: buildingData.joistsRunLengthwise,
+                        lengthwiseBays: buildingData.lengthwiseBays,
+                        widthwiseBays: buildingData.widthwiseBays,
+                        useCustomBayDimensions: buildingData.useCustomBayDimensions,
+                        customLengthwiseBayWidths: buildingData.customLengthwiseBayWidths,
+                        customWidthwiseBayWidths: buildingData.customWidthwiseBayWidths,
+                      });
+                      
+                      // Force reset any existing results first
+                      updateBuildingData('results', null);
+                      
+                      // Run the calculation
                       calculateResults();
+                      
+                      // Force React to refresh the entire component tree
+                      setTimeout(() => {
+                        // Update the state to trigger a re-render
+                        console.log("JOIST DEBUG - Forcing component refresh");
+                        setIsMobile(prevState => {
+                          // Toggle and toggle back to force update without changing actual value
+                          setTimeout(() => setIsMobile(prevState), 10);
+                          return !prevState;
+                        });
+                      }, 100);
                     }}
                   >
                     Calculate Results

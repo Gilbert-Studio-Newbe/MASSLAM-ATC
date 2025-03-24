@@ -130,13 +130,48 @@ export function useFormState() {
       setError(null);
       
       // Start debug logs for tracking calculation flow
+      console.log("[FORM DEBUG] ========== CALCULATION TRIGGERED ==========");
+      console.log("[FORM DEBUG] Form state when calculation triggered:", {
+        buildingLength: buildingData.buildingLength,
+        buildingWidth: buildingData.buildingWidth,
+        numFloors: buildingData.numFloors,
+        lengthwiseBays: buildingData.lengthwiseBays,
+        widthwiseBays: buildingData.widthwiseBays,
+        joistsRunLengthwise: buildingData.joistsRunLengthwise,
+        joistSpacing: buildingData.joistSpacing,
+        load: buildingData.load,
+        fireRating: buildingData.fireRating,
+        deflectionLimit: buildingData.deflectionLimit,
+        safetyFactor: buildingData.safetyFactor,
+        useCustomBayDimensions: buildingData.useCustomBayDimensions,
+        maxBaySpan: buildingData.maxBaySpan,
+        resultsCached: buildingData.results !== null
+      });
+      
       console.log("[FORM] Starting calculations");
+      console.log("[FORM] Building data:", JSON.stringify({
+        length: buildingData.buildingLength,
+        width: buildingData.buildingWidth,
+        joistSpacing: buildingData.joistSpacing,
+        joistsRunLengthwise: buildingData.joistsRunLengthwise,
+        load: buildingData.load
+      }));
       
       // Extract values from building data
       const joistSpacing = buildingData.joistSpacing;
       
       // Calculate the results using our new modular calculator
+      console.log("[FORM DEBUG] About to call calculateStructure with buildingData");
       const results = calculateStructure(buildingData);
+      
+      console.log("[FORM] Calculation finished. Results:", JSON.stringify({
+        joistWidth: results.joistSize?.width,
+        joistDepth: results.joistSize?.depth,
+        interiorBeamWidth: results.beamSize?.width,
+        interiorBeamDepth: results.beamSize?.depth,
+        columnWidth: results.columnSize?.width,
+        columnDepth: results.columnSize?.depth
+      }));
       
       // Calculate timber weight 
       const weightResults = calculateTimberWeight(
@@ -164,12 +199,15 @@ export function useFormState() {
       };
       
       // Update results in state
+      console.log("[FORM DEBUG] About to update local state with results");
       setResults(combinedResults);
       
       // Update context with calculated results
+      console.log("[FORM DEBUG] About to update context with results");
       updateCalculationResults(combinedResults);
       
       console.log("[FORM] Calculation completed:", combinedResults);
+      console.log("[FORM DEBUG] ========== CALCULATION COMPLETE ==========");
     } catch (error) {
       console.error("[FORM] Error in calculations:", error);
       setError(`Error calculating results: ${error.message}`);

@@ -75,9 +75,18 @@ export function calculateColumnSize(height, load, timberGrade, fireRating = 'non
   // Add fire allowance to depth
   const fireAdjustedDepth = requiredDepth + (2 * fireAllowance);
   
+  // Get available depths for columns from the MASSLAM sizes data
+  const { availableDepths } = checkMasslamSizesLoaded();
+  const columnDepths = availableDepths ? availableDepths.column : [200, 270, 335, 410, 480, 550, 620, 690, 760, 830];
+  
+  // Sort depths to ensure they're in ascending order
+  columnDepths.sort((a, b) => a - b);
+  
+  console.log(`[COLUMN] Available column depths: ${columnDepths.join(', ')}mm`);
+  
   // For large loads, we may need a deeper column
-  // Find nearest available standard size for depth
-  const depth = findNearestDepth(width, Math.max(width, fireAdjustedDepth), 'column');
+  // Find the next available depth that meets or exceeds the required depth
+  const depth = columnDepths.find(d => d >= Math.max(width, fireAdjustedDepth)) || columnDepths[columnDepths.length - 1];
   
   console.log(`[COLUMN] Final selected size: ${width}×${depth}mm (beam width = ${beamWidth}mm)`);
   

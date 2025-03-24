@@ -245,14 +245,14 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
       return calculateFallbackJoistSizeEngineered(span, spacing, load, timberGrade, fireRating);
     }
     
-    // Validate inputs
+  // Validate inputs
     if (!span || span <= 0 || !spacing || spacing <= 0 || !load || load <= 0) {
       console.error("Invalid input parameters:", { span, spacing, load });
       throw new Error("Invalid input parameters");
     }
     
     // Check MASSLAM sizes are loaded
-    const sizesLoaded = checkMasslamSizesLoaded();
+  const sizesLoaded = checkMasslamSizesLoaded();
     console.log(`MASSLAM sizes loaded: ${sizesLoaded ? 'YES' : 'NO'}`);
     
     // For 9m spans, we need to ensure we use at least 410mm depth regardless of calculations
@@ -260,36 +260,36 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
     if (isLongSpan) {
       console.log(`LONG SPAN DETECTED: ${span}m - Enforcing minimum depth of 410mm`);
     }
-    
-    // Convert spacing from mm to m for calculations
-    const spacingM = spacing / 1000;
+  
+  // Convert spacing from mm to m for calculations
+  const spacingM = spacing / 1000;
     
     // Log calculation parameters for debugging
     console.log(`Joist calculation with: span=${span}m, spacing=${spacingM}m, load=${load}kPa, timber properties:`, timberProps);
-    
-    // Step 1: Calculate initial load without self-weight
-    let totalLoad = load;
-    
-    // Step 2: Calculate load per meter (kN/m) based on joist spacing
-    let loadPerMeter = totalLoad * spacingM;
-    
-    // Step 3: Get fixed width based on fire rating
-    const initialWidth = getFixedWidthForFireRating(fireRating);
-    
-    // Step 4: Calculate maximum bending moment (kNm)
-    const maxBendingMoment = (loadPerMeter * Math.pow(span, 2)) / 8;
-    
-    // Convert to Nmm for section modulus calculation
-    const maxBendingMomentNmm = maxBendingMoment * 1000000; // 1 kNm = 1,000,000 Nmm
-    
-    // Step 5: Calculate required section modulus (mm³)
-    const bendingStrength = timberProps.bendingStrength; // MPa (N/mm²)
-    const requiredSectionModulus = maxBendingMomentNmm / bendingStrength;
-    
-    // Step 6: Calculate required depth based on section modulus and width
-    // Z = (width × depth²) / 6
-    // Solve for depth: depth = √(6Z / width)
-    const requiredDepth = Math.sqrt((6 * requiredSectionModulus) / initialWidth);
+  
+  // Step 1: Calculate initial load without self-weight
+  let totalLoad = load;
+  
+  // Step 2: Calculate load per meter (kN/m) based on joist spacing
+  let loadPerMeter = totalLoad * spacingM;
+  
+  // Step 3: Get fixed width based on fire rating
+  const initialWidth = getFixedWidthForFireRating(fireRating);
+  
+  // Step 4: Calculate maximum bending moment (kNm)
+  const maxBendingMoment = (loadPerMeter * Math.pow(span, 2)) / 8;
+  
+  // Convert to Nmm for section modulus calculation
+  const maxBendingMomentNmm = maxBendingMoment * 1000000; // 1 kNm = 1,000,000 Nmm
+  
+  // Step 5: Calculate required section modulus (mm³)
+  const bendingStrength = timberProps.bendingStrength; // MPa (N/mm²)
+  const requiredSectionModulus = maxBendingMomentNmm / bendingStrength;
+  
+  // Step 6: Calculate required depth based on section modulus and width
+  // Z = (width × depth²) / 6
+  // Solve for depth: depth = √(6Z / width)
+  const requiredDepth = Math.sqrt((6 * requiredSectionModulus) / initialWidth);
     
     // Step 7: ALWAYS check deflection and adjust depth if necessary
     // Maximum allowable deflection (mm)
@@ -306,35 +306,35 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
     
     const maxAllowableDeflection = (span * 1000) / deflectionLimit;
     console.log(`Maximum allowable deflection: ${maxAllowableDeflection.toFixed(1)}mm (span/${deflectionLimit})`);
-    
-    // Calculate second moment of area (mm⁴)
-    const momentOfInertia = (initialWidth * Math.pow(requiredDepth, 3)) / 12;
-    
-    // Calculate actual deflection (mm)
-    // δ = (5 × w × L⁴) / (384 × E × I)
-    const modulusOfElasticity = timberProps.modulusOfElasticity; // MPa (N/mm²)
-    const loadPerMm = loadPerMeter; // kN/m is equivalent to N/mm
-    const spanMm = span * 1000; // Convert m to mm
-    
-    const actualDeflection = (5 * loadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * momentOfInertia);
+  
+  // Calculate second moment of area (mm⁴)
+  const momentOfInertia = (initialWidth * Math.pow(requiredDepth, 3)) / 12;
+  
+  // Calculate actual deflection (mm)
+  // δ = (5 × w × L⁴) / (384 × E × I)
+  const modulusOfElasticity = timberProps.modulusOfElasticity; // MPa (N/mm²)
+  const loadPerMm = loadPerMeter; // kN/m is equivalent to N/mm
+  const spanMm = span * 1000; // Convert m to mm
+  
+  const actualDeflection = (5 * loadPerMm * Math.pow(spanMm, 4)) / (384 * modulusOfElasticity * momentOfInertia);
     console.log(`Actual deflection with initial depth: ${actualDeflection.toFixed(1)}mm`);
     
     // Adjust depth for deflection if necessary
-    let adjustedDepth = requiredDepth;
-    let isDeflectionGoverning = false;
-    
-    if (actualDeflection > maxAllowableDeflection) {
-      // Deflection is proportional to 1/I, and I is proportional to depth³
-      // So if we need to reduce deflection by a factor of X, we need to increase depth by ∛X
-      const deflectionRatio = actualDeflection / maxAllowableDeflection;
-      const depthIncreaseFactor = Math.pow(deflectionRatio, 1/3);
-      adjustedDepth = requiredDepth * depthIncreaseFactor;
-      isDeflectionGoverning = true;
-      console.log(`DEFLECTION GOVERNS: Adjusting depth for deflection: ${requiredDepth.toFixed(0)} mm × ${depthIncreaseFactor.toFixed(2)} = ${adjustedDepth.toFixed(0)} mm`);
-    } else {
-      console.log(`Bending strength governs design (deflection is within limits)`);
-    }
-    
+  let adjustedDepth = requiredDepth;
+  let isDeflectionGoverning = false;
+  
+  if (actualDeflection > maxAllowableDeflection) {
+    // Deflection is proportional to 1/I, and I is proportional to depth³
+    // So if we need to reduce deflection by a factor of X, we need to increase depth by ∛X
+    const deflectionRatio = actualDeflection / maxAllowableDeflection;
+    const depthIncreaseFactor = Math.pow(deflectionRatio, 1/3);
+    adjustedDepth = requiredDepth * depthIncreaseFactor;
+    isDeflectionGoverning = true;
+    console.log(`DEFLECTION GOVERNS: Adjusting depth for deflection: ${requiredDepth.toFixed(0)} mm × ${depthIncreaseFactor.toFixed(2)} = ${adjustedDepth.toFixed(0)} mm`);
+  } else {
+    console.log(`Bending strength governs design (deflection is within limits)`);
+  }
+  
     // Enhanced deflection handling for all spans
     // For all spans, calculate deflection-based depth directly
     // This is more accurate than the incremental approach above
@@ -353,9 +353,9 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
     }
     
     // Calculate fire resistance allowance if needed
-    let fireAllowance = 0;
-    if (fireRating && fireRating !== 'none') {
-      fireAllowance = calculateFireResistanceAllowance(fireRating);
+  let fireAllowance = 0;
+  if (fireRating && fireRating !== 'none') {
+    fireAllowance = calculateFireResistanceAllowance(fireRating);
     }
     
     // Add fire resistance allowance to dimensions
@@ -406,17 +406,17 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
         
         if (nextDeflection <= maxAllowableDeflection) {
           console.log(`Using increased size ${initialWidth}×${nextSize}mm to meet deflection requirements`);
-          return {
+  return {
             width: initialWidth,
             depth: nextSize,
-            span,
-            spacing,
-            load,
-            grade: timberGrade,
-            fireRating,
+    span,
+    spacing,
+    load,
+    grade: timberGrade,
+    fireRating,
             isDeflectionGoverning: true,
             deflection: nextDeflection,
-            allowableDeflection: maxAllowableDeflection,
+      allowableDeflection: maxAllowableDeflection,
             bendingDepth: Math.ceil(requiredDepth),
             deflectionDepth: Math.ceil(adjustedDepth),
             fireAdjustedDepth,
@@ -618,7 +618,7 @@ function calculateFallbackJoistSizeEngineered(span, spacing, load, timberGrade, 
     fireRating,
     isDeflectionGoverning,
     deflection: finalDeflection,
-    allowableDeflection: maxAllowableDeflection,
+      allowableDeflection: maxAllowableDeflection,
     bendingDepth: Math.ceil(requiredDepth),
     deflectionDepth: Math.ceil(adjustedDepth),
     fireAdjustedDepth,

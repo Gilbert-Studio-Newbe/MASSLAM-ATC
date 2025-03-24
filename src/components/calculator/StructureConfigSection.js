@@ -37,7 +37,7 @@ const StructureConfigSection = ({
         <div className="flex items-center">
           <button
             type="button"
-            onClick={() => onToggleJoistDirection(true)}
+            onClick={() => onToggleJoistDirection(false)}
             className={`px-4 py-2 text-sm font-medium rounded-l-md ${
               buildingData.joistsRunLengthwise
                 ? 'bg-blue-600 text-white'
@@ -48,7 +48,7 @@ const StructureConfigSection = ({
           </button>
           <button
             type="button"
-            onClick={() => onToggleJoistDirection(false)}
+            onClick={() => onToggleJoistDirection(true)}
             className={`px-4 py-2 text-sm font-medium rounded-r-md ${
               !buildingData.joistsRunLengthwise
                 ? 'bg-blue-600 text-white'
@@ -59,7 +59,7 @@ const StructureConfigSection = ({
           </button>
         </div>
         <p className="mt-1 text-xs text-gray-500">
-          {buildingData.joistsRunLengthwise
+          {!buildingData.joistsRunLengthwise
             ? `Joists span ${buildingData.buildingWidth}m width, supported by beams along length`
             : `Joists span ${buildingData.buildingLength}m length, supported by beams along width`}
         </p>

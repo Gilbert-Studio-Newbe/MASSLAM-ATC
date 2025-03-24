@@ -19,10 +19,12 @@ import {
  * @param {string} timberGrade - Timber grade (e.g., 'ML38')
  * @param {number} tributaryWidth - Tributary width in meters
  * @param {string} fireRating - Fire rating ('none', '30/30/30', etc.)
+ * @param {number} deflectionLimit - User-specified deflection limit (e.g., 300 for L/300)
+ * @param {number} safetyFactor - User-specified safety factor (default: 1.5)
  * @returns {Object} Beam size and calculation details
  */
-export function calculateBeamSize(span, load, timberGrade, tributaryWidth, fireRating = 'none') {
-  console.log(`[BEAM] Calculating for span=${span}m, load=${load}kPa, tributary=${tributaryWidth}m, fire=${fireRating}`);
+export function calculateBeamSize(span, load, timberGrade, tributaryWidth, fireRating = 'none', deflectionLimit = 300, safetyFactor = 1.5) {
+  console.log(`[BEAM] Calculating for span=${span}m, load=${load}kPa, tributary=${tributaryWidth}m, fire=${fireRating}, deflection limit=L/${deflectionLimit}, safety factor=${safetyFactor}`);
   
   // Validate inputs
   if (!span || span <= 0 || !load || load <= 0 || !tributaryWidth || tributaryWidth <= 0) {
@@ -42,8 +44,8 @@ export function calculateBeamSize(span, load, timberGrade, tributaryWidth, fireR
   // Get timber properties
   const timberProps = TIMBER_PROPERTIES[timberGrade] || TIMBER_PROPERTIES.ML38;
   
-  // Calculate load per meter
-  const loadPerMeter = load * tributaryWidth;
+  // Calculate load per meter, including safety factor
+  const loadPerMeter = load * tributaryWidth * safetyFactor;
   
   // Calculate maximum bending moment
   const maxBendingMoment = (loadPerMeter * Math.pow(span, 2)) / 8;
@@ -57,8 +59,8 @@ export function calculateBeamSize(span, load, timberGrade, tributaryWidth, fireR
   const requiredSectionModulus = maxBendingMomentNmm / bendingStrength;
   const requiredDepth = Math.sqrt((6 * requiredSectionModulus) / initialWidth);
   
-  // Check deflection
-  const maxAllowableDeflection = (span * 1000) / 300; // span/300
+  // Check deflection - using user-specified deflection limit
+  const maxAllowableDeflection = (span * 1000) / deflectionLimit;
   const modulusOfElasticity = timberProps.modulusOfElasticity;
   const spanMm = span * 1000;
   
@@ -85,9 +87,21 @@ export function calculateBeamSize(span, load, timberGrade, tributaryWidth, fireR
   const fireAdjustedWidth = initialWidth + (2 * fireAllowance);
   const fireAdjustedDepth = Math.max(240, Math.ceil(adjustedDepth)) + fireAllowance;
   
-  // Find nearest standard sizes
+  // Find nearest standard width
   const width = findNearestWidth(fireAdjustedWidth);
-  const depth = findNearestDepth(width, fireAdjustedDepth, 'beam');
+  
+  // Get available depths for beams instead of using a hardcoded list
+  // This will include all available depths from the MASSLAM sizes data (including 760mm and 830mm)
+  const { availableDepths } = checkMasslamSizesLoaded();
+  const beamDepths = availableDepths ? availableDepths.beam : [240, 270, 335, 410, 480, 550, 620, 690, 760, 830];
+  
+  // Sort depths to ensure they're in ascending order
+  beamDepths.sort((a, b) => a - b);
+  
+  console.log(`[BEAM] Available beam depths: ${beamDepths.join(', ')}mm`);
+  
+  // Find the next available depth that meets or exceeds the required depth
+  const depth = beamDepths.find(d => d >= fireAdjustedDepth) || beamDepths[beamDepths.length - 1];
   
   // Calculate final properties
   const finalSectionModulus = (width * Math.pow(depth, 2)) / 6;
@@ -109,6 +123,9 @@ export function calculateBeamSize(span, load, timberGrade, tributaryWidth, fireR
     grade: timberGrade,
     fireRating,
     fireAllowance,
+    isDeflectionGoverning,
+    deflectionLimit,
+    safetyFactor,
     engineering: {
       bendingMoment: maxBendingMoment,
       requiredSectionModulus,
@@ -131,6 +148,8 @@ export function calculateBeamSize(span, load, timberGrade, tributaryWidth, fireR
  * @param {number} avgBayWidth - Average bay width in meters
  * @param {number} avgBayLength - Average bay length in meters
  * @param {boolean} isEdgeBeam - Whether the beam is an edge beam
+ * @param {number} deflectionLimit - User-specified deflection limit (e.g., 300 for L/300)
+ * @param {number} safetyFactor - User-specified safety factor (default: 1.5)
  * @returns {Object} Beam dimensions and additional calculations
  */
 export function calculateMultiFloorBeamSize(
@@ -142,9 +161,11 @@ export function calculateMultiFloorBeamSize(
   joistsRunLengthwise = true, 
   avgBayWidth = 0, 
   avgBayLength = 0, 
-  isEdgeBeam = false
+  isEdgeBeam = false,
+  deflectionLimit = 300,
+  safetyFactor = 1.5
 ) {
-  console.log(`[BEAM] Multi-floor beam calculation for span=${span}m, load=${load}kPa, floors=${numFloors}`);
+  console.log(`[BEAM] Multi-floor beam calculation for span=${span}m, load=${load}kPa, floors=${numFloors}, deflection limit=L/${deflectionLimit}, safety factor=${safetyFactor}`);
   console.log(`[BEAM] Configuration: ${isEdgeBeam ? 'Edge beam' : 'Interior beam'}, joists run ${joistsRunLengthwise ? 'lengthwise' : 'widthwise'}`);
   
   // Calculate tributary width for the beam (in meters)
@@ -173,8 +194,8 @@ export function calculateMultiFloorBeamSize(
   
   console.log(`[BEAM] Tributary width=${tributaryWidth.toFixed(2)}m, scaled load=${scaledLoad.toFixed(2)}kPa`);
   
-  // Use the base beam calculation with scaled parameters
-  return calculateBeamSize(span, scaledLoad, 'ML38', tributaryWidth, fireRating);
+  // Use the base beam calculation with scaled parameters, passing deflection limit and safety factor
+  return calculateBeamSize(span, scaledLoad, 'ML38', tributaryWidth, fireRating, deflectionLimit, safetyFactor);
 }
 
 /**

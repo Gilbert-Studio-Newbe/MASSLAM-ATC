@@ -86,6 +86,46 @@ const ResultsDisplay = ({ results }) => {
           </ul>
         </div>
       )}
+
+      <div className="apple-results-body">
+        {/* Member Sizes Section */}
+        <div className="apple-card mb-8">
+          <div className="apple-card-header">
+            <h3 className="text-md font-semibold">Member Sizes</h3>
+          </div>
+          <div className="apple-card-body">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <h4 className="text-sm font-medium mb-2">Joists</h4>
+                <div className="text-sm">
+                  <p><span className="text-gray-500">Width:</span> <span ref={joistWidthRef} data-joist-width>{results.joistSize?.width || 'N/A'}mm</span></p>
+                  <p><span className="text-gray-500">Depth:</span> <span ref={joistDepthRef} data-joist-depth>{results.joistSize?.depth || 'N/A'}mm</span></p>
+                  {/* Add a debug section for joists */}
+                  {results.joistSize && (
+                    <div className="mt-2 pt-2 border-t border-gray-200 text-xs">
+                      <details>
+                        <summary className="font-medium text-blue-600 cursor-pointer">Debug Info</summary>
+                        <div className="mt-1 p-2 bg-gray-50 rounded">
+                          <p><span className="font-medium">Span:</span> {results.joistSize.span}m</p>
+                          <p><span className="font-medium">Spacing:</span> {results.joistSize.spacing}mm</p>
+                          <p><span className="font-medium">Load:</span> {results.joistSize.load}kPa</p>
+                          <p><span className="font-medium">Safety Factor:</span> {results.joistSize.safetyFactor || 1.5}</p>
+                          <p><span className="font-medium">Deflection Limit:</span> L/{results.joistSize.deflectionLimit || 300}</p>
+                          <p><span className="font-medium">Governing:</span> {results.joistSize.isDeflectionGoverning ? 'Deflection' : 'Bending'}</p>
+                          <p><span className="font-medium">Required Depth:</span> {results.joistSize.fireAdjustedDepth}mm</p>
+                          <p className="mt-1 text-gray-500">Note: 480mm depth is required when safety factor is 3.0 or load is 4.0kPa</p>
+                        </div>
+                      </details>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Continue with existing code for beams and columns... */}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

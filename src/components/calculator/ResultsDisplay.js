@@ -3,6 +3,89 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { formatCurrency } from '../../utils/costEstimator';
+import { useBuildingData } from '@/contexts/BuildingDataContext';
+
+// Add a debugging component to show bay size calculations
+const BayDebugger = () => {
+  const { buildingData } = useBuildingData();
+  
+  // Calculate the bay dimensions directly (mirroring the logic in timber-calculator.js)
+  const calculateBayDimensions = () => {
+    const {
+      buildingLength,
+      buildingWidth,
+      lengthwiseBays: numLengthwiseBays = 1,
+      widthwiseBays: numWidthwiseBays = 1,
+      useCustomBayDimensions,
+      customLengthwiseBayWidths,
+      customWidthwiseBayWidths,
+      joistsRunLengthwise
+    } = buildingData;
+    
+    // Calculate bay dimensions
+    const lengthwiseBaysArray = customLengthwiseBayWidths || [];
+    const widthwiseBaysArray = customWidthwiseBayWidths || [];
+    
+    // Calculate average bay dimensions
+    let avgBayWidth, avgBayLength;
+    
+    if (useCustomBayDimensions && lengthwiseBaysArray.length > 0 && widthwiseBaysArray.length > 0) {
+      avgBayWidth = widthwiseBaysArray.reduce((sum, width) => sum + width, 0) / widthwiseBaysArray.length;
+      avgBayLength = lengthwiseBaysArray.reduce((sum, width) => sum + width, 0) / lengthwiseBaysArray.length;
+    } else {
+      avgBayWidth = buildingWidth / numWidthwiseBays;
+      avgBayLength = buildingLength / numLengthwiseBays;
+    }
+    
+    // Calculate max bay spans
+    const maxLengthwiseBayWidth = lengthwiseBaysArray.length > 0 
+      ? Math.max(...lengthwiseBaysArray) 
+      : avgBayLength;
+      
+    const maxWidthwiseBayWidth = widthwiseBaysArray.length > 0 
+      ? Math.max(...widthwiseBaysArray) 
+      : avgBayWidth;
+    
+    // Calculate joist spans based on joist direction
+    // When joists run lengthwise, they span across the width of the building
+    // When joists run widthwise, they span across the length of the building
+    const joistSpan = joistsRunLengthwise ? maxWidthwiseBayWidth : maxLengthwiseBayWidth;
+    
+    return {
+      avgBayWidth,
+      avgBayLength,
+      maxLengthwiseBayWidth,
+      maxWidthwiseBayWidth,
+      joistSpan,
+      // Include raw inputs for debugging
+      inputs: {
+        length: buildingLength,
+        width: buildingWidth,
+        lengthwiseBays: numLengthwiseBays,
+        widthwiseBays: numWidthwiseBays,
+        joistsRunLengthwise
+      }
+    };
+  };
+  
+  const bayDimensions = calculateBayDimensions();
+  
+  return (
+    <div className="my-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
+      <h4 className="font-bold mb-1">Bay Dimensions Debugger</h4>
+      <p><span className="font-semibold">Building:</span> {buildingData.buildingLength}m × {buildingData.buildingWidth}m</p>
+      <p><span className="font-semibold">Bays:</span> {buildingData.lengthwiseBays} lengthwise × {buildingData.widthwiseBays} widthwise</p>
+      <p><span className="font-semibold">Joist Direction:</span> {buildingData.joistsRunLengthwise ? 'Lengthwise' : 'Widthwise'}</p>
+      <p><span className="font-semibold">Load:</span> {buildingData.load}kPa</p>
+      <p><span className="font-semibold">Custom Bay Dimensions:</span> {buildingData.useCustomBayDimensions ? 'Yes' : 'No'}</p>
+      <p className="text-sm font-semibold mt-2">Calculated Values:</p>
+      <p><span className="font-semibold">Avg Bay Size:</span> {bayDimensions.avgBayLength.toFixed(2)}m × {bayDimensions.avgBayWidth.toFixed(2)}m</p>
+      <p><span className="font-semibold">Max Lengthwise Bay:</span> {bayDimensions.maxLengthwiseBayWidth.toFixed(2)}m</p>
+      <p><span className="font-semibold">Max Widthwise Bay:</span> {bayDimensions.maxWidthwiseBayWidth.toFixed(2)}m</p>
+      <p className="text-red-600 font-bold">Calculated Joist Span: {bayDimensions.joistSpan.toFixed(2)}m</p>
+    </div>
+  );
+};
 
 /**
  * ResultsDisplay component for showing calculation results
@@ -14,39 +97,42 @@ const ResultsDisplay = ({
 }) => {
   // Add client-side state to avoid hydration mismatch
   const [isClient, setIsClient] = useState(false);
-  // Track results changes with local state
-  const [localJoistSize, setLocalJoistSize] = useState(null);
-  // Create refs to directly update DOM elements
+  // Create refs for backward compatibility
   const joistWidthRef = useRef(null);
   const joistDepthRef = useRef(null);
   const resultsRef = useRef(null);
   
-  // Use a force update counter
+  // Use a force update counter to ensure the component refreshes when results change
   const [updateCounter, setUpdateCounter] = useState(0);
+  const [debugTimestamp, setDebugTimestamp] = useState(new Date().toISOString());
   
   // Set isClient to true once component mounts on client
   useEffect(() => {
     setIsClient(true);
   }, []);
   
-  // Direct DOM update for joist sizes to bypass hydration issues
+  // Force refresh when results change
   useEffect(() => {
-    if (isClient && results?.joistSize && joistWidthRef.current && joistDepthRef.current) {
-      console.log("JOIST DEBUG - Directly updating DOM with joist sizes:", {
+    if (results?.joistSize) {
+      console.log("JOIST DEBUG - Raw results received in ResultsDisplay:", JSON.stringify(results.joistSize, null, 2));
+      console.log("JOIST DEBUG - Results updated:", {
         width: results.joistSize.width, 
-        depth: results.joistSize.depth
+        depth: results.joistSize.depth,
+        span: results.joistSize.span,
+        spacing: results.joistSize.spacing,
+        load: results.joistSize.load,
+        grade: results.joistSize.grade,
+        fireRating: results.joistSize.fireRating,
+        bendingDepth: results.joistSize.bendingDepth,
+        deflectionDepth: results.joistSize.deflectionDepth,
+        timestamp: new Date().toISOString()
       });
       
-      // Update DOM directly
-      joistWidthRef.current.textContent = `${results.joistSize.width}mm`;
-      joistDepthRef.current.textContent = `${results.joistSize.depth}mm`;
-      
-      // Force a re-render after a short delay
-      setTimeout(() => {
-        setUpdateCounter(prev => prev + 1);
-      }, 50);
+      // Force a refresh to ensure UI updates
+      setUpdateCounter(prev => prev + 1);
+      setDebugTimestamp(new Date().toISOString());
     }
-  }, [isClient, results, updateCounter]);
+  }, [results]);
   
   // During server-side rendering or before client hydration
   if (!isClient) {
@@ -80,8 +166,24 @@ const ResultsDisplay = ({
     beamSize: results.beamSize, // Check if this contains interior beam data
   });
   
+  // Add detailed debugging for joist sizes
+  console.log("JOIST SIZES DEBUG:", {
+    joistWidth: results.joistSize?.width, 
+    joistDepth: results.joistSize?.depth,
+    joistSpan: results.joistSize?.span,
+    joistSpacing: results.joistSize?.spacing,
+    joistLoadValue: results.joistSize?.load,
+    joistSafetyFactor: results.joistSize?.safetyFactor,
+    joistDeflectionLimit: results.joistSize?.deflectionLimit,
+    joistFireAdjustedDepth: results.joistSize?.fireAdjustedDepth
+  });
+  
   // Generate a key for the component to force re-render when values change
-  const resultsKey = `joists-${updateCounter}-beams-${results.interiorBeamSize?.width || 'NA'}-${results.interiorBeamSize?.depth || 'NA'}`;
+  const resultsKey = `joists-${updateCounter}-beams-${results.interiorBeamSize?.width || 'NA'}-${results.interiorBeamSize?.depth || 'NA'}-joists-${results.joistSize?.width || 'NA'}-${results.joistSize?.depth || 'NA'}`;
+  
+  // Extract joist dimensions directly from results
+  const joistWidth = results.joistSize?.width || 'N/A';
+  const joistDepth = results.joistSize?.depth || 'N/A';
   
   return (
     <div className="apple-results" key={resultsKey} ref={resultsRef}>
@@ -111,13 +213,68 @@ const ResultsDisplay = ({
           <div className="apple-card-header">
             <h3 className="text-md font-semibold">Member Sizes</h3>
           </div>
+          
+          {/* Add debug information */}
+          <div className="px-4 py-2 bg-yellow-50 text-xs">
+            <p><strong>Debug Info:</strong> (Updated: {debugTimestamp})</p>
+            
+            {/* Add Bay Dimensions Debugger */}
+            <BayDebugger />
+            
+            <pre>{JSON.stringify({
+              hasResults: !!results,
+              joistSize: results?.joistSize || 'No joist size',
+              rawCalculations: results?.joistSize ? {
+                span: results.joistSize.span,
+                spacing: results.joistSize.spacing,
+                load: results.joistSize.load,
+                grade: results.joistSize.grade,
+                fireRating: results.joistSize.fireRating,
+                deflectionLimit: results.joistSize.deflectionLimit,
+                safetyFactor: results.joistSize.safetyFactor,
+                bendingDepth: results.joistSize.bendingDepth,
+                deflectionDepth: results.joistSize.deflectionDepth,
+                isDeflectionGoverning: results.joistSize.isDeflectionGoverning,
+                fireAdjustedDepth: results.joistSize.fireAdjustedDepth
+              } : null,
+              updateCounter,
+              localWidth: joistWidth,
+              localDepth: joistDepth,
+              timestamp: debugTimestamp
+            }, null, 2)}</pre>
+          </div>
+          
           <div className="apple-card-body">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <h4 className="text-sm font-medium mb-2">Joists</h4>
                 <div className="text-sm">
-                  <p><span className="text-gray-500">Width:</span> <span ref={joistWidthRef} data-joist-width>{results.joistSize?.width || 'N/A'}mm</span></p>
-                  <p><span className="text-gray-500">Depth:</span> <span ref={joistDepthRef} data-joist-depth>{results.joistSize?.depth || 'N/A'}mm</span></p>
+                  <p className="text-red-500 font-bold">Calculated Span: {results?.joistSize?.span?.toFixed(2) || 'N/A'}m</p>
+                  <p><span className="text-gray-500">Width:</span> <span ref={joistWidthRef} data-joist-width>{results?.joistSize?.width || 'N/A'}mm</span></p>
+                  <p><span className="text-gray-500">Depth:</span> <span ref={joistDepthRef} data-joist-depth>{results?.joistSize?.depth || 'N/A'}mm</span></p>
+                  <p><span className="text-gray-500">Span:</span> {results?.joistSize?.span?.toFixed(2) || 'N/A'}m</p>
+                  <p><span className="text-gray-500">Governing:</span> {results?.joistSize?.isDeflectionGoverning ? 'Deflection' : 'Bending'}</p>
+                  
+                  {/* Add debug information dropdown */}
+                  {results.joistSize && (
+                    <div className="mt-2 pt-2 border-t border-gray-200 text-xs">
+                      <details open>
+                        <summary className="font-medium text-blue-600 cursor-pointer">Calculation Details</summary>
+                        <div className="mt-1 p-2 bg-gray-50 rounded">
+                          <p><span className="font-medium">Span:</span> {results.joistSize.span?.toFixed(2)}m</p>
+                          <p><span className="font-medium">Spacing:</span> {results.joistSize.spacing}m</p>
+                          <p><span className="font-medium">Load:</span> {results.joistSize.load}kPa</p>
+                          <p><span className="font-medium">Safety Factor:</span> {results.joistSize.safetyFactor || 1.5}</p>
+                          <p><span className="font-medium">Deflection Limit:</span> L/{results.joistSize.deflectionLimit || 300}</p>
+                          <p><span className="font-medium">Governing:</span> {results.joistSize.isDeflectionGoverning ? 'Deflection' : 'Bending'}</p>
+                          <p><span className="font-medium">Bending Depth Required:</span> {results.joistSize.bendingDepth}mm</p>
+                          <p><span className="font-medium">Deflection Depth Required:</span> {results.joistSize.deflectionDepth}mm</p>
+                          <p><span className="font-medium">Fire Adjusted Depth:</span> {results.joistSize.fireAdjustedDepth}mm</p>
+                          <p className="text-red-600 font-bold">Required Depth for {results.joistSize.span?.toFixed(2)}m span: {results.joistSize.fireAdjustedDepth}mm</p>
+                        </div>
+                      </details>
+                    </div>
+                  )}
                 </div>
               </div>
               <div>

@@ -10,6 +10,54 @@ import { useBuildingData } from '@/contexts/BuildingDataContext';
 export default function CalculationMethodologyPage() {
   const { buildingData, updateBuildingData } = useBuildingData();
   
+  // Add a function to test joist calculations with different spans
+  const testJoistCalculations = () => {
+    console.log("TESTING JOIST CALCULATIONS WITH VARIOUS SPANS");
+    
+    import('@/utils/calculations/joist-calculator').then(module => {
+      // Test spans from 3m to 10m
+      const spans = [3, 4, 5, 6, 7, 8, 9, 10];
+      const spacing = 800; // mm
+      const load = 2; // kPa
+      const fireRating = 'none';
+      const deflectionLimit = 300; // L/300
+      const safetyFactor = 1.5;
+      
+      console.log("TEST PARAMETERS:");
+      console.log(`- Spacing: ${spacing}mm`);
+      console.log(`- Load: ${load}kPa`);
+      console.log(`- Deflection limit: L/${deflectionLimit}`);
+      console.log(`- Safety factor: ${safetyFactor}`);
+      
+      console.log("\nRESULTS:");
+      spans.forEach(span => {
+        const result = module.calculateJoistSize(
+          span,
+          spacing,
+          load,
+          'ML38',
+          fireRating,
+          deflectionLimit,
+          safetyFactor
+        );
+        
+        console.log(`Span ${span}m: ${result.width}×${result.depth}mm, governed by ${result.isDeflectionGoverning ? 'deflection' : 'bending'}`);
+        console.log(`  Required depths - Bending: ${result.bendingDepth}mm, Deflection: ${result.deflectionDepth}mm`);
+        
+        // Highlight the 9m span result
+        if (span === 9) {
+          console.log("------------------------------------------");
+          console.log(`⭐ FOCUS ON 9m SPAN: ${result.width}×${result.depth}mm`);
+          console.log(`  Expected depth: 480mm, Actual: ${result.depth}mm`);
+          console.log(`  Fire-adjusted required depth: ${result.fireAdjustedDepth}mm`);
+          console.log("------------------------------------------");
+        }
+      });
+    }).catch(err => {
+      console.error("Failed to import joist calculator:", err);
+    });
+  };
+  
   // Default values for calculation parameters
   const [allowableDeflection, setAllowableDeflection] = useState(300); // L/300 is typical
   const [safetyFactor, setSafetyFactor] = useState(2.0); // Typical safety factor
@@ -126,21 +174,25 @@ export default function CalculationMethodologyPage() {
         <p className="mb-4">
           Select the timber grade to use for calculations. Different grades have different strength and stiffness properties.
         </p>
-        
-        <div className="max-w-md">
-          <TimberGradeSelector 
-            value={timberGrade} 
-            onChange={handleTimberGradeChange} 
-          />
-        </div>
-        
-        <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
-          <h3 className="text-md font-medium text-blue-800 mb-2">Impact on Calculations</h3>
-          <p className="text-sm text-blue-700">
-            Changing the timber grade affects the strength and stiffness used in member size calculations. 
-            Higher grades allow for greater spans or smaller member sizes for the same load conditions.
-          </p>
-        </div>
+        <TimberGradeSelector value={timberGrade} onChange={handleTimberGradeChange} />
+      </div>
+      
+      {/* Joist Calculation Tests */}
+      <div className="bg-white p-6 rounded-lg shadow mb-8">
+        <h2 className="text-xl font-semibold mb-4">Joist Calculation Tests</h2>
+        <p className="mb-4">
+          Test joist calculations with different spans to verify depths:
+        </p>
+        <button 
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" 
+          onClick={testJoistCalculations}
+        >
+          Run Joist Span Tests
+        </button>
+        <p className="mt-4 text-sm text-gray-600">
+          This will test spans from 3m to 10m with 800mm spacing, 2kPa load, and L/300 deflection limit.
+          Check the browser console for results.
+        </p>
       </div>
       
       {/* ML38 Mechanical Properties Section */}
@@ -795,14 +847,7 @@ A = cross-sectional area (mm²)`}
                   max="12.0"
                   step="0.1"
                   value={maxSpan}
-                  onChange={(e) => {
-                    // Parse the input value and round to 1 decimal place
-                    const parsedValue = parseFloat(e.target.value);
-                    if (!isNaN(parsedValue)) {
-                      const roundedValue = Math.round(parsedValue * 10) / 10;
-                      setMaxSpan(roundedValue);
-                    }
-                  }}
+                  onChange={(e) => setMaxSpan(parseFloat(e.target.value))}
                 />
               </div>
             </div>

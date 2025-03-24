@@ -19,10 +19,12 @@ import {
  * @param {number} load - Load in kPa
  * @param {string} timberGrade - Timber grade (e.g., 'ML38')
  * @param {string} fireRating - Fire rating ('none', '30/30/30', etc.)
+ * @param {number} deflectionLimit - User-specified deflection limit (e.g., 300 for L/300)
+ * @param {number} safetyFactor - User-specified safety factor (default: 1.5)
  * @returns {Object} Joist size and calculation details
  */
-export function calculateJoistSize(span, spacing, load, timberGrade, fireRating = 'none') {
-  console.log(`[JOIST] Calculating for span=${span}m, spacing=${spacing}mm, load=${load}kPa, grade=${timberGrade}, fire=${fireRating}`);
+export function calculateJoistSize(span, spacing, load, timberGrade, fireRating = 'none', deflectionLimit = 300, safetyFactor = 1.5) {
+  console.log(`[JOIST] Calculating for span=${span}m, spacing=${spacing}mm, load=${load}kPa, grade=${timberGrade}, fire=${fireRating}, deflection limit=L/${deflectionLimit}, safety factor=${safetyFactor}`);
   
   // Validate inputs more strictly
   if (!span || span <= 0 || !spacing || spacing <= 0 || !load || load <= 0) {
@@ -35,7 +37,16 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
       spacing,
       load,
       grade: timberGrade,
-      fireRating
+      fireRating,
+      // Include default values for these parameters too
+      isDeflectionGoverning: true,
+      deflection: 0,
+      allowableDeflection: 0,
+      bendingDepth: 0,
+      deflectionDepth: 0,
+      fireAdjustedDepth: 0,
+      deflectionLimit,
+      safetyFactor
     };
   }
   
@@ -46,14 +57,19 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   const sizesLoaded = checkMasslamSizesLoaded();
   console.log(`[JOIST] MASSLAM sizes loaded: ${sizesLoaded ? 'YES' : 'NO'}`);
   
+  // Get available depths from the MASSLAM sizes data
+  const { availableDepths } = checkMasslamSizesLoaded();
+  console.log(`[JOIST-DEBUG] Available depths from MASSLAM data:`, availableDepths);
+  
   // Calculate initial fixed width based on fire rating
   const initialWidth = getFixedWidthForFireRating(fireRating);
   
   // Convert spacing from mm to m for calculations
   const spacingM = spacing / 1000;
   
-  // Calculate load per meter
-  const loadPerMeter = load * spacingM;
+  // Calculate load per meter, including safety factor
+  const loadPerMeter = load * spacingM * safetyFactor;
+  console.log(`[JOIST] Load per meter with safety factor: ${loadPerMeter.toFixed(2)} kN/m (load ${load} × spacing ${spacingM} × safety factor ${safetyFactor})`);
   
   // Calculate max bending moment
   const maxBendingMoment = (loadPerMeter * Math.pow(span, 2)) / 8;
@@ -66,8 +82,8 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   // Calculate required depth based on section modulus
   const requiredDepth = Math.sqrt((6 * requiredSectionModulus) / initialWidth);
   
-  // Calculate deflection - more accurate for short and long spans
-  const deflectionLimit = load >= 5.0 ? 400 : (load >= 3.0 ? 360 : 300);
+  // Calculate deflection - using user-specified deflection limit 
+  // Higher deflectionLimit values (like 300) are more restrictive than lower values (like 200)
   const maxAllowableDeflection = (span * 1000) / deflectionLimit;
   const modulusOfElasticity = timberProps.modulusOfElasticity;
   const spanMm = span * 1000;
@@ -94,11 +110,29 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   // Adjusted depth with fire allowance
   const fireAdjustedDepth = Math.max(140, Math.ceil(adjustedDepth)) + fireAllowance;
   
-  // Standard available depths
+  // Get available depths for joists from the MASSLAM sizes data
+  // These are the standard available joist depths
   const standardDepths = [200, 270, 335, 410, 480, 550, 620];
+  const joistDepths = availableDepths?.joist?.length ? availableDepths.joist : standardDepths;
   
-  // Find the nearest standard depth
-  const depth = findNearestValue(fireAdjustedDepth, standardDepths);
+  // Sort depths to ensure they're in ascending order
+  joistDepths.sort((a, b) => a - b);
+  
+  console.log(`[JOIST] Available joist depths: ${joistDepths.join(', ')}mm`);
+  console.log(`[JOIST] Required adjusted depth: ${fireAdjustedDepth}mm`);
+  
+  // Find the next available depth that meets or exceeds the required depth
+  const depth = joistDepths.find(d => d >= fireAdjustedDepth) || joistDepths[joistDepths.length - 1];
+  
+  console.log(`[JOIST] Selected depth: ${depth}mm (next available depth >= ${fireAdjustedDepth}mm)`);
+  
+  // Detailed logging to help debugging
+  console.log(`[JOIST-DEBUG] Selection process:`);
+  joistDepths.forEach(d => {
+    const isSelected = d === depth;
+    const isSuitable = d >= fireAdjustedDepth;
+    console.log(`  ${isSelected ? '✓' : ' '} ${d}mm - ${isSuitable ? 'Suitable' : 'Too small'} (required: ${fireAdjustedDepth.toFixed(1)}mm)`);
+  });
   
   // Final deflection check with selected size
   const finalMomentOfInertia = (initialWidth * Math.pow(depth, 3)) / 12;
@@ -108,7 +142,7 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
   console.log(`[JOIST] Final selected size: ${initialWidth}×${depth}mm`);
   console.log(`[JOIST] Final deflection: ${finalDeflection.toFixed(1)}mm (limit: ${maxAllowableDeflection.toFixed(1)}mm)`);
   
-  // Return the calculated joist size and details
+  // Return the calculated joist size and details with explicit span value to ensure it's propagated correctly
   return {
     width: initialWidth,
     depth,
@@ -122,8 +156,66 @@ export function calculateJoistSize(span, spacing, load, timberGrade, fireRating 
     allowableDeflection: maxAllowableDeflection,
     bendingDepth: Math.ceil(requiredDepth),
     deflectionDepth: Math.ceil(directDeflectionDepth),
-    fireAdjustedDepth
+    fireAdjustedDepth,
+    deflectionLimit,
+    safetyFactor
   };
+}
+
+/**
+ * Test function to verify calculation with 9m span
+ * This is a standalone function for debugging
+ */
+export function test9mJoistCalculation() {
+  console.log("==== JOIST MODULE: TESTING 9M JOIST CALCULATION ====");
+  
+  const span = 9; // 9 meters
+  const spacing = 800; // 800mm spacing
+  const load = 2; // 2kPa
+  const timberGrade = 'ML38';
+  const fireRating = 'none';
+  const deflectionLimit = 300; // L/300
+  const safetyFactor = 1.5;
+
+  // Get available depths directly
+  const { availableDepths } = checkMasslamSizesLoaded();
+  console.log("Available depths from MASSLAM sizes data:", availableDepths);
+  
+  // Get available joist depths
+  const joistDepths = availableDepths ? availableDepths.joist : [200, 270, 335, 410, 480, 550, 620];
+  joistDepths.sort((a, b) => a - b);
+  console.log("Sorted joist depths:", joistDepths);
+
+  // Run the calculation
+  const result = calculateJoistSize(
+    span,
+    spacing,
+    load,
+    timberGrade,
+    fireRating,
+    deflectionLimit,
+    safetyFactor
+  );
+
+  // Log the results
+  console.log('\nRESULT:');
+  console.log(`Width: ${result.width}mm`);
+  console.log(`Depth: ${result.depth}mm`);
+  console.log(`Governing: ${result.isDeflectionGoverning ? 'Deflection' : 'Bending'}`);
+  console.log(`Bending depth required: ${result.bendingDepth}mm`);
+  console.log(`Deflection depth required: ${result.deflectionDepth}mm`);
+  console.log(`Fire adjusted depth: ${result.fireAdjustedDepth}mm`);
+
+  // Verify the expected depth
+  const expectedDepth = 480;
+  if (result.depth === expectedDepth) {
+    console.log(`\n✅ SUCCESS: Joist depth matches expected value of ${expectedDepth}mm`);
+  } else {
+    console.log(`\n❌ FAILURE: Expected depth of ${expectedDepth}mm but got ${result.depth}mm`);
+  }
+  console.log("==== END OF TEST ====");
+  
+  return result;
 }
 
 /**

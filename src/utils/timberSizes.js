@@ -583,15 +583,51 @@ export function verifyLoadedSizes() {
 }
 
 /**
- * Check if the MASSLAM sizes have been loaded
- * @returns {boolean} Whether the MASSLAM sizes have been loaded
+ * Check if the MASSLAM sizes have been loaded and return available depths
+ * @returns {Object} Object with loaded status and available depths for each member type
  */
 export function checkMasslamSizesLoaded() {
-  const loaded = getMasslamSizes().length > 0;
+  const sizes = getMasslamSizes();
+  const loaded = sizes.length > 0;
+  
   if (!loaded) {
     console.warn('MASSLAM sizes not loaded yet. Make sure to call loadMasslamSizes() before using any functions that depend on it.');
+    return { loaded: false };
   }
-  return loaded;
+  
+  // Extract available depths for each member type
+  const joistSizes = sizes.filter(size => size.type === 'joist');
+  const beamSizes = sizes.filter(size => size.type === 'beam');
+  const columnSizes = sizes.filter(size => size.type === 'column');
+  
+  // Get unique depths for each type
+  const joistDepths = [...new Set(joistSizes.map(size => size.depth))].sort((a, b) => a - b);
+  const beamDepths = [...new Set(beamSizes.map(size => size.depth))].sort((a, b) => a - b);
+  const columnDepths = [...new Set(columnSizes.map(size => size.depth))].sort((a, b) => a - b);
+  
+  // Get unique widths for each type
+  const joistWidths = [...new Set(joistSizes.map(size => size.width))].sort((a, b) => a - b);
+  const beamWidths = [...new Set(beamSizes.map(size => size.width))].sort((a, b) => a - b);
+  const columnWidths = [...new Set(columnSizes.map(size => size.width))].sort((a, b) => a - b);
+  
+  console.log('[TIMBER] Available MASSLAM sizes extracted from CSV data:');
+  console.log(`[TIMBER] Joist depths: ${joistDepths.join(', ')}mm`);
+  console.log(`[TIMBER] Beam depths: ${beamDepths.join(', ')}mm`);
+  console.log(`[TIMBER] Column depths: ${columnDepths.join(', ')}mm`);
+  
+  return {
+    loaded,
+    availableDepths: {
+      joist: joistDepths,
+      beam: beamDepths,
+      column: columnDepths
+    },
+    availableWidths: {
+      joist: joistWidths,
+      beam: beamWidths,
+      column: columnWidths
+    }
+  };
 }
 
 /**

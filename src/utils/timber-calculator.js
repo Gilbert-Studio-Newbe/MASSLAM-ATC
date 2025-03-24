@@ -23,12 +23,61 @@ export {
   calculateColumnVolume
 };
 
+// Add a test function to debug joist calculations with a 9m span
+export function test9mJoistCalculation() {
+  console.log("==== TESTING 9M JOIST CALCULATION ====");
+  const span = 9;
+  const spacing = 800;
+  const load = 2;
+  const timberGrade = 'ML38';
+  const fireRating = 'none';
+  const deflectionLimit = 300;
+  const safetyFactor = 1.5;
+
+  const result = calculateJoistSize(
+    span,
+    spacing,
+    load,
+    timberGrade,
+    fireRating,
+    deflectionLimit,
+    safetyFactor
+  );
+
+  console.log('\nRESULT:');
+  console.log(`Width: ${result.width}mm`);
+  console.log(`Depth: ${result.depth}mm`);
+  console.log(`Governing: ${result.isDeflectionGoverning ? 'Deflection' : 'Bending'}`);
+  console.log(`Bending depth required: ${result.bendingDepth}mm`);
+  console.log(`Deflection depth required: ${result.deflectionDepth}mm`);
+  console.log(`Fire adjusted depth: ${result.fireAdjustedDepth}mm`);
+  
+  // Log the full result object
+  console.log('\nFULL RESULT OBJECT:');
+  console.log(JSON.stringify(result, null, 2));
+
+  const expectedDepth = 480;
+  if (result.depth === expectedDepth) {
+    console.log(`\n✅ SUCCESS: Joist depth matches expected value of ${expectedDepth}mm`);
+  } else {
+    console.log(`\n❌ FAILURE: Expected depth of ${expectedDepth}mm but got ${result.depth}mm`);
+  }
+  console.log("==== END OF TEST ====");
+  
+  return result;
+}
+
 /**
  * Calculate structure dimensions for a complete building
  * @param {Object} buildingData - Building data object with dimensions and parameters
  * @returns {Object} Calculated dimensions for joists, beams, and columns
  */
 export function calculateStructure(buildingData) {
+  // Log COMPLETE building data for debugging
+  console.log("[STRUCTURE DEBUG] ====== FULL BUILDING DATA RECEIVED ======");
+  console.log(JSON.stringify(buildingData, null, 2));
+  console.log("[STRUCTURE DEBUG] ======================================");
+  
   const {
     buildingLength,
     buildingWidth,
@@ -38,58 +87,99 @@ export function calculateStructure(buildingData) {
     timberGrade,
     fireRating,
     numFloors = 1,
-    floorHeight = 3.0
+    floorHeight = 3.0,
+    deflectionLimit = 300, // Default deflection limit of L/300 if not specified
+    safetyFactor = 1.5,    // Default safety factor of 1.5 if not specified
+    lengthwiseBays: numLengthwiseBays = 1,
+    widthwiseBays: numWidthwiseBays = 1
   } = buildingData;
   
   console.log('[STRUCTURE] Starting structural calculations for building:', {
     length: buildingLength,
     width: buildingWidth, 
     joists: joistsRunLengthwise ? 'lengthwise' : 'widthwise',
-    spacing: joistSpacing
+    spacing: joistSpacing,
+    deflectionLimit: `L/${deflectionLimit}`,
+    safetyFactor
   });
   
   // Calculate bay dimensions
-  const lengthwiseBays = buildingData.customLengthwiseBayWidths || [];
-  const widthwiseBays = buildingData.customWidthwiseBayWidths || [];
+  const customLengthwiseBayWidths = buildingData.customLengthwiseBayWidths || [];
+  const customWidthwiseBayWidths = buildingData.customWidthwiseBayWidths || [];
   
   // Calculate average bay dimensions
   let avgBayWidth, avgBayLength;
   
-  if (buildingData.useCustomBayDimensions && lengthwiseBays.length > 0 && widthwiseBays.length > 0) {
-    avgBayWidth = widthwiseBays.reduce((sum, width) => sum + width, 0) / widthwiseBays.length;
-    avgBayLength = lengthwiseBays.reduce((sum, width) => sum + width, 0) / lengthwiseBays.length;
+  if (buildingData.useCustomBayDimensions && customLengthwiseBayWidths.length > 0 && customWidthwiseBayWidths.length > 0) {
+    avgBayWidth = customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0) / customWidthwiseBayWidths.length;
+    avgBayLength = customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0) / customLengthwiseBayWidths.length;
   } else {
-    avgBayWidth = buildingWidth / buildingData.widthwiseBays;
-    avgBayLength = buildingLength / buildingData.lengthwiseBays;
+    avgBayWidth = buildingWidth / numWidthwiseBays;
+    avgBayLength = buildingLength / numLengthwiseBays;
   }
   
   // Calculate max bay spans
-  const maxLengthwiseBayWidth = lengthwiseBays.length > 0 
-    ? Math.max(...lengthwiseBays) 
+  const maxLengthwiseBayWidth = customLengthwiseBayWidths.length > 0 
+    ? Math.max(...customLengthwiseBayWidths) 
     : avgBayLength;
     
-  const maxWidthwiseBayWidth = widthwiseBays.length > 0 
-    ? Math.max(...widthwiseBays) 
+  const maxWidthwiseBayWidth = customWidthwiseBayWidths.length > 0 
+    ? Math.max(...customWidthwiseBayWidths) 
     : avgBayWidth;
   
   // Calculate joist spans based on joist direction
+  // When joists run lengthwise, they span across the width of the building
+  // When joists run widthwise, they span across the length of the building
   const joistSpan = joistsRunLengthwise ? maxWidthwiseBayWidth : maxLengthwiseBayWidth;
   
   console.log(`[STRUCTURE] Joist span: ${joistSpan.toFixed(2)}m based on ${joistsRunLengthwise ? 'widthwise' : 'lengthwise'} bay direction`);
+  console.log(`[STRUCTURE DEBUG] Derived Joist Span Calculation:
+    - joistsRunLengthwise: ${joistsRunLengthwise}
+    - maxWidthwiseBayWidth: ${maxWidthwiseBayWidth}
+    - maxLengthwiseBayWidth: ${maxLengthwiseBayWidth}
+    - avgBayWidth: ${avgBayWidth}
+    - avgBayLength: ${avgBayLength}
+    - widthwiseBays count: ${numWidthwiseBays}
+    - lengthwiseBays count: ${numLengthwiseBays}
+    - Final joistSpan: ${joistSpan}
+  `);
   
   // Check if span exceeds maximum
   if (joistSpan > buildingData.maxBaySpan) {
     console.error(`[STRUCTURE] The joist span (${joistSpan.toFixed(2)}m) exceeds the maximum allowable span (${buildingData.maxBaySpan.toFixed(2)}m)`);
   }
   
-  // Calculate joist size
+  console.log(`[STRUCTURE DEBUG] About to call calculateJoistSize with:
+    - joistSpan: ${joistSpan}
+    - joistSpacing: ${joistSpacing * 1000} (converting from m to mm)
+    - load: ${load}
+    - timberGrade: ${timberGrade}
+    - fireRating: ${fireRating}
+    - deflectionLimit: ${deflectionLimit}
+    - safetyFactor: ${safetyFactor}
+  `);
+  
+  // Calculate joist size, passing user-specified deflection limit and safety factor
+  // Note: joistSpacing is converted from m to mm for the calculation
   const joistSize = calculateJoistSize(
     joistSpan, 
-    joistSpacing, 
+    joistSpacing * 1000, // Convert to mm for the calculation
     load, 
     timberGrade,
-    fireRating
+    fireRating,
+    deflectionLimit,
+    safetyFactor
   );
+  
+  console.log(`[STRUCTURE DEBUG] Joist calculation result:
+    - width: ${joistSize.width}
+    - depth: ${joistSize.depth}
+    - span used: ${joistSize.span}
+    - isDeflectionGoverning: ${joistSize.isDeflectionGoverning}
+    - bendingDepth: ${joistSize.bendingDepth}
+    - deflectionDepth: ${joistSize.deflectionDepth}
+    - fireAdjustedDepth: ${joistSize.fireAdjustedDepth}
+  `);
   
   // Calculate beam span based on joist direction
   const beamSpan = joistsRunLengthwise ? maxLengthwiseBayWidth : maxWidthwiseBayWidth;
@@ -111,7 +201,9 @@ export function calculateStructure(buildingData) {
     joistsRunLengthwise,
     avgBayWidth,
     avgBayLength,
-    false // interior beam
+    false, // interior beam
+    deflectionLimit, // Pass user-specified deflection limit
+    safetyFactor    // Pass the provided safety factor
   );
   
   const edgeBeamSize = calculateMultiFloorBeamSize(
@@ -123,7 +215,9 @@ export function calculateStructure(buildingData) {
     joistsRunLengthwise,
     avgBayWidth,
     avgBayLength,
-    true // edge beam
+    true, // edge beam
+    deflectionLimit, // Pass user-specified deflection limit
+    safetyFactor    // Pass the provided safety factor
   );
   
   // Calculate tributary area for columns
@@ -143,12 +237,28 @@ export function calculateStructure(buildingData) {
   console.log(`[STRUCTURE] Column width (${columnSize.width}mm) set to match beam width (${interiorBeamSize.width}mm)`);
   
   // Return all calculated sizes
-  return {
-    joistSize,
+  const result = {
+    joistSize: {
+      ...joistSize,
+      // Ensure we're returning all the calculation parameters for display in the UI
+      span: joistSpan,  // Use the calculated span from building dimensions
+      spacing: joistSpacing,
+      load,
+      grade: timberGrade,
+      safetyFactor,
+      deflectionLimit,
+      // Update timestamp to force refresh
+      calculatedAt: new Date().toISOString()
+    },
     beamSize: interiorBeamSize,
     edgeBeamSize,
     columnSize
   };
+  
+  console.log("[STRUCTURE DEBUG] Final result object being returned:");
+  console.log(JSON.stringify(result, null, 2));
+  
+  return result;
 }
 
 /**
