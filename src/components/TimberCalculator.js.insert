@@ -1,2 +1,0 @@
-  // NOTE: The volume calculation functions (calculateJoistVolume, calculateBeamVolume, calculateColumnVolume)
-  // have been moved to separate utility files in src/utils/calculations/ and are now imported at the top of this file.

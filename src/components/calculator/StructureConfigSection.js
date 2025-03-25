@@ -29,19 +29,19 @@ const StructureConfigSection = ({
         onInputChange={onInputChange}
       />
       
-      <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Structure Configuration</h3>
+      <h3 className="text-xl font-semibold mb-6 text-gray-800">Structure Configuration</h3>
       
       {/* Joist Direction */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">Joist Direction</label>
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Joist Direction</label>
         <div className="flex items-center">
           <button
             type="button"
             onClick={() => onToggleJoistDirection(false)}
-            className={`px-4 py-2 text-sm font-medium rounded-l-md ${
+            className={`px-4 py-2 text-sm font-medium rounded-l-md border ${
               buildingData.joistsRunLengthwise
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
             }`}
           >
             Lengthwise
@@ -49,16 +49,16 @@ const StructureConfigSection = ({
           <button
             type="button"
             onClick={() => onToggleJoistDirection(true)}
-            className={`px-4 py-2 text-sm font-medium rounded-r-md ${
+            className={`px-4 py-2 text-sm font-medium rounded-r-md border-t border-b border-r ${
               !buildingData.joistsRunLengthwise
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
             }`}
           >
             Widthwise
           </button>
         </div>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-2 text-sm text-gray-500">
           {!buildingData.joistsRunLengthwise
             ? `Joists span ${buildingData.buildingWidth}m width, supported by beams along length`
             : `Joists span ${buildingData.buildingLength}m length, supported by beams along width`}
@@ -66,10 +66,10 @@ const StructureConfigSection = ({
       </div>
       
       {/* Custom Bay Dimensions */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between">
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
           <label className="block text-sm font-medium text-gray-700">
-            Use Custom Bay Dimensions
+            Custom Bay Dimensions
           </label>
           <label className="inline-flex items-center cursor-pointer">
             <input

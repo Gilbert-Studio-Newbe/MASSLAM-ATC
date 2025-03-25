@@ -262,21 +262,16 @@ export default function TimberCalculator() {
       )}
       
       {/* Header */}
-      <div className="mb-8 text-center">
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">MASSLAM Timber Structure Calculator</h1>
-        <p className="text-gray-600 mt-2 md:text-lg">
-          Design a multi-level timber building with MASSLAM engineered timber
-        </p>
-            </div>
-            
-      {/* Reset Button */}
-      <div className="mb-6 text-right">
-        <button 
-          className="apple-button apple-button-outline py-2 px-4 text-sm"
-          onClick={handleReset}
-        >
-          Reset Calculator
-        </button>
+      <div className="mb-8">
+        {/* Reset Button */}
+        <div className="text-right">
+          <button 
+            className="apple-button apple-button-outline py-2 px-4 text-sm"
+            onClick={handleReset}
+          >
+            Reset Calculator
+          </button>
+        </div>
       </div>
       
       {/* Main Content */}
@@ -302,62 +297,32 @@ export default function TimberCalculator() {
               />
               
               {/* Loading Parameters Section */}
-              <div className="apple-specs-table mb-6 md:mb-8">
-                <h3 className="text-md md:text-lg font-semibold mb-4 md:mb-6">Loading Parameters</h3>
-                
-                {/* Load Type Selector */}
-                <LoadTypeSelector 
-                  value={buildingData.load}
-                  onChange={handleLoadChange}
-                />
-                
-                {/* Fire Rating Selector */}
-                <FireRatingSelector 
-                  selectedRating={buildingData.fireRating}
-                  onChange={onFireRatingChange}
-                />
-                
-                {/* Calculate Button */}
-                <div className="mt-6">
-                  <button 
-                    className="apple-button apple-button-primary w-full py-3"
-                    onClick={() => {
-                      console.log("JOIST DEBUG - Manual calculation triggered");
-                      console.log("JOIST DEBUG - Current building dimensions:", {
-                        length: buildingData.buildingLength,
-                        width: buildingData.buildingWidth,
-                        joistSpacing: buildingData.joistSpacing,
-                        joistsRunLengthwise: buildingData.joistsRunLengthwise,
-                        lengthwiseBays: buildingData.lengthwiseBays,
-                        widthwiseBays: buildingData.widthwiseBays,
-                        useCustomBayDimensions: buildingData.useCustomBayDimensions,
-                        customLengthwiseBayWidths: buildingData.customLengthwiseBayWidths,
-                        customWidthwiseBayWidths: buildingData.customWidthwiseBayWidths,
-                      });
-                      
-                      // Force reset any existing results first
-                      updateBuildingData('results', null);
-                      
-                      // Run the calculation
-                      calculateResults();
-                      
-                      // Force React to refresh the entire component tree
-                      setTimeout(() => {
-                        // Update the state to trigger a re-render
-                        console.log("JOIST DEBUG - Forcing component refresh");
-                        setIsMobile(prevState => {
-                          // Toggle and toggle back to force update without changing actual value
-                          setTimeout(() => setIsMobile(prevState), 10);
-                          return !prevState;
-                        });
-                      }, 100);
-                    }}
-                  >
-                    Calculate Results
-                            </button>
-                          </div>
-                      </div>
-                      
+              <div className="mb-8">
+                <div className="space-y-6">
+                  {/* Load Type Selector */}
+                  <LoadTypeSelector 
+                    value={buildingData.load}
+                    onChange={handleLoadChange}
+                  />
+                  
+                  {/* Fire Rating Selector */}
+                  <FireRatingSelector 
+                    selectedRating={buildingData.fireRating}
+                    onChange={onFireRatingChange}
+                  />
+                  
+                  {/* Calculate Button */}
+                  <div className="mt-8">
+                    <button 
+                      className="w-full px-6 py-3 text-base font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      onClick={calculateResults}
+                    >
+                      Calculate Results
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
               {/* Note: Timber Grade moved to Calculation Methodology Page */}
                       </div>
                   </div>

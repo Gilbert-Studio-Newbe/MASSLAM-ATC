@@ -1,92 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatCurrency } from '../../utils/costEstimator';
 import { useBuildingData } from '@/contexts/BuildingDataContext';
 import BayLayoutVisualizer from './BayLayoutVisualizer';
-
-// Add a debugging component to show bay size calculations
-const BayDebugger = () => {
-  const { buildingData } = useBuildingData();
-  
-  // Calculate the bay dimensions directly (mirroring the logic in timber-calculator.js)
-  const calculateBayDimensions = () => {
-    const {
-      buildingLength,
-      buildingWidth,
-      lengthwiseBays: numLengthwiseBays = 1,
-      widthwiseBays: numWidthwiseBays = 1,
-      useCustomBayDimensions,
-      customLengthwiseBayWidths,
-      customWidthwiseBayWidths,
-      joistsRunLengthwise
-    } = buildingData;
-    
-    // Calculate bay dimensions
-    const lengthwiseBaysArray = customLengthwiseBayWidths || [];
-    const widthwiseBaysArray = customWidthwiseBayWidths || [];
-    
-    // Calculate average bay dimensions
-    let avgBayWidth, avgBayLength;
-    
-    if (useCustomBayDimensions && lengthwiseBaysArray.length > 0 && widthwiseBaysArray.length > 0) {
-      avgBayWidth = widthwiseBaysArray.reduce((sum, width) => sum + width, 0) / widthwiseBaysArray.length;
-      avgBayLength = lengthwiseBaysArray.reduce((sum, width) => sum + width, 0) / lengthwiseBaysArray.length;
-    } else {
-      avgBayWidth = buildingWidth / numWidthwiseBays;
-      avgBayLength = buildingLength / numLengthwiseBays;
-    }
-    
-    // Calculate max bay spans
-    const maxLengthwiseBayWidth = lengthwiseBaysArray.length > 0 
-      ? Math.max(...lengthwiseBaysArray) 
-      : avgBayLength;
-      
-    const maxWidthwiseBayWidth = widthwiseBaysArray.length > 0 
-      ? Math.max(...widthwiseBaysArray) 
-      : avgBayWidth;
-    
-    // Calculate joist spans based on joist direction
-    // When joists run lengthwise, they span across the width of the building
-    // When joists run widthwise, they span across the length of the building
-    const joistSpan = joistsRunLengthwise ? maxWidthwiseBayWidth : maxLengthwiseBayWidth;
-    
-    return {
-      avgBayWidth,
-      avgBayLength,
-      maxLengthwiseBayWidth,
-      maxWidthwiseBayWidth,
-      joistSpan,
-      // Include raw inputs for debugging
-      inputs: {
-        length: buildingLength,
-        width: buildingWidth,
-        lengthwiseBays: numLengthwiseBays,
-        widthwiseBays: numWidthwiseBays,
-        joistsRunLengthwise
-      }
-    };
-  };
-  
-  const bayDimensions = calculateBayDimensions();
-  
-  return (
-    <div className="my-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
-      <h4 className="font-bold mb-1">Bay Dimensions Debugger</h4>
-      <p><span className="font-semibold">Building:</span> {buildingData.buildingLength}m × {buildingData.buildingWidth}m</p>
-      <p><span className="font-semibold">Bays:</span> {buildingData.lengthwiseBays} lengthwise × {buildingData.widthwiseBays} widthwise</p>
-      <p><span className="font-semibold">Joist Direction:</span> {buildingData.joistsRunLengthwise ? 'Lengthwise' : 'Widthwise'}</p>
-      <p><span className="font-semibold">Load:</span> {buildingData.load}kPa</p>
-      <p><span className="font-semibold">Custom Bay Dimensions:</span> {buildingData.useCustomBayDimensions ? 'Yes' : 'No'}</p>
-      <p className="text-sm font-semibold mt-2">Calculated Values:</p>
-      <p><span className="font-semibold">Avg Bay Size:</span> {bayDimensions.avgBayLength.toFixed(2)}m × {bayDimensions.avgBayWidth.toFixed(2)}m</p>
-      <p><span className="font-semibold">Max Lengthwise Bay:</span> {bayDimensions.maxLengthwiseBayWidth.toFixed(2)}m</p>
-      <p><span className="font-semibold">Max Widthwise Bay:</span> {bayDimensions.maxWidthwiseBayWidth.toFixed(2)}m</p>
-      <p className="text-red-600 font-bold">Calculated Joist Span: {bayDimensions.joistSpan.toFixed(2)}m</p>
-    </div>
-  );
-};
 
 /**
  * ResultsDisplay component for showing calculation results
@@ -96,66 +14,23 @@ const ResultsDisplay = ({
   onSaveClick,
   isMobile
 }) => {
-  // Add client-side state to avoid hydration mismatch
   const [isClient, setIsClient] = useState(false);
-  // Create refs for backward compatibility
-  const joistWidthRef = useRef(null);
-  const joistDepthRef = useRef(null);
-  const resultsRef = useRef(null);
-  
-  // Get building data from context
-  const { buildingData, updateBuildingData } = useBuildingData();
-  
-  // Use a force update counter to ensure the component refreshes when results change
-  const [updateCounter, setUpdateCounter] = useState(0);
-  const [debugTimestamp, setDebugTimestamp] = useState(new Date().toISOString());
+  const { buildingData } = useBuildingData();
   
   // Set isClient to true once component mounts on client
   useEffect(() => {
     setIsClient(true);
   }, []);
-  
-  // Force refresh when results change
-  useEffect(() => {
-    if (results?.joistSize) {
-      console.log("JOIST DEBUG - Raw results received in ResultsDisplay:", JSON.stringify(results.joistSize, null, 2));
-      console.log("JOIST DEBUG - Results updated:", {
-        width: results.joistSize.width, 
-        depth: results.joistSize.depth,
-        span: results.joistSize.span,
-        spacing: results.joistSize.spacing,
-        load: results.joistSize.load,
-        grade: results.joistSize.grade,
-        fireRating: results.joistSize.fireRating,
-        bendingDepth: results.joistSize.bendingDepth,
-        deflectionDepth: results.joistSize.deflectionDepth,
-        timestamp: new Date().toISOString()
-      });
-      
-      // Force a refresh to ensure UI updates
-      setUpdateCounter(prev => prev + 1);
-      setDebugTimestamp(new Date().toISOString());
-    }
-  }, [results]);
-  
+
   // If we have results, show them
   const hasResults = results && results.joistSize && results.beamSize;
   const hasBeamSize = results?.beamSize?.width && results?.beamSize?.depth;
   const hasEdgeBeamSize = results?.edgeBeamSize?.width && results?.edgeBeamSize?.depth;
 
-  // Handler functions for BayLayoutVisualizer
-  const handleToggleCustomBayDimensions = () => {
-    updateBuildingData('useCustomBayDimensions', !buildingData.useCustomBayDimensions);
-  };
-
-  const handleJoistDirectionChange = (value) => {
-    updateBuildingData('joistsRunLengthwise', value);
-  };
-
   return (
-    <div className="apple-results" key={`joists-${updateCounter}-beams-${results.interiorBeamSize?.width || 'NA'}-${results.interiorBeamSize?.depth || 'NA'}-joists-${results.joistSize?.width || 'NA'}-${results.joistSize?.depth || 'NA'}`} ref={resultsRef}>
+    <div className="apple-results">
       <div className="apple-card-header flex justify-between items-center">
-        <h2 className="text-lg md:text-xl font-semibold m-0">Results</h2>
+        <h2 className="text-lg font-semibold m-0">Results</h2>
         
         {/* Action Buttons */}
         <div className="flex">
@@ -191,8 +66,6 @@ const ResultsDisplay = ({
               useCustomBayDimensions={buildingData.useCustomBayDimensions}
               customLengthwiseBayWidths={buildingData.customLengthwiseBayWidths}
               customWidthwiseBayWidths={buildingData.customWidthwiseBayWidths}
-              handleToggleCustomBayDimensions={handleToggleCustomBayDimensions}
-              handleJoistDirectionChange={handleJoistDirectionChange}
             />
           </div>
         </div>
@@ -200,16 +73,16 @@ const ResultsDisplay = ({
         {/* Member Sizes Section */}
         <div className="apple-card mb-8">
           <div className="apple-card-header">
-            <h3 className="text-md font-semibold">Member Sizes</h3>
+            <h3 className="text-lg font-semibold">Member Sizes</h3>
           </div>
           
           <div className="apple-card-body">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <h4 className="text-sm font-medium mb-2">Joists</h4>
+                <h4 className="text-base font-medium mb-2">Joists</h4>
                 <div className="text-sm">
-                  <p><span className="text-gray-500">Width:</span> <span ref={joistWidthRef} data-joist-width>{results?.joistSize?.width || 'N/A'}mm</span></p>
-                  <p><span className="text-gray-500">Depth:</span> <span ref={joistDepthRef} data-joist-depth>{results?.joistSize?.depth || 'N/A'}mm</span></p>
+                  <p><span className="text-gray-500">Width:</span> {results?.joistSize?.width || 'N/A'}mm</p>
+                  <p><span className="text-gray-500">Depth:</span> {results?.joistSize?.depth || 'N/A'}mm</p>
                   <p><span className="text-gray-500">Span:</span> {results?.joistSize?.span?.toFixed(2) || 'N/A'}m</p>
                   <p><span className="text-gray-500">Governing:</span> {results?.joistSize?.isDeflectionGoverning ? 'Deflection' : 'Bending'}</p>
                 
@@ -237,7 +110,7 @@ const ResultsDisplay = ({
                 </div>
               </div>
               <div>
-                <h4 className="text-sm font-medium mb-2">Beams</h4>
+                <h4 className="text-base font-medium mb-2">Beams</h4>
                 <div className="text-sm">
                   <p><span className="text-gray-500">Interior Beams:</span> {hasBeamSize ? `${results.beamSize.width || 'N/A'}mm × ${results.beamSize.depth || 'N/A'}mm` : 'N/A'}</p>
                   <p><span className="text-gray-500">Edge Beams:</span> {hasEdgeBeamSize ? `${results.edgeBeamSize.width || 'N/A'}mm × ${results.edgeBeamSize.depth || 'N/A'}mm` : 'N/A'}</p>
@@ -269,7 +142,7 @@ const ResultsDisplay = ({
                 </div>
               </div>
               <div>
-                <h4 className="text-sm font-medium mb-2">Columns</h4>
+                <h4 className="text-base font-medium mb-2">Columns</h4>
                 <div className="text-sm">
                   <p><span className="text-gray-500">Volume:</span> {
                     typeof results?.elementVolumes?.columns === 'number' 
@@ -304,27 +177,27 @@ const ResultsDisplay = ({
         {/* Cost Summary Section */}
         <div className="apple-card mb-8">
           <div className="apple-card-header">
-            <h3 className="text-md font-semibold">Cost Summary</h3>
+            <h3 className="text-lg font-semibold">Cost Summary</h3>
           </div>
           <div className="apple-card-body">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-sm font-medium mb-2">Materials</h4>
-                <div className="text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-base font-medium text-gray-700 mb-2">Materials</h4>
+                <div className="text-sm text-gray-600">
                   <p><span className="text-gray-500">Beams:</span> {results.costs?.elements?.beams?.cost ? formatCurrency(results.costs.elements.beams.cost) : 'N/A'}</p>
                   <p><span className="text-gray-500">Columns:</span> {results.costs?.elements?.columns?.cost ? formatCurrency(results.costs.elements.columns.cost) : 'N/A'}</p>
                   <p><span className="text-gray-500">Joists:</span> {results.costs?.elements?.joists?.cost ? formatCurrency(results.costs.elements.joists.cost) : 'N/A'}</p>
                   {results.costs?.elements?.joists?.sizeUsed && (
-                    <div className="text-xs mt-1 text-gray-500">
+                    <div className="text-xs mt-2 text-gray-500">
                       <p>Using joist size: {results.costs.elements.joists.sizeUsed.replace('x', '×')}mm</p>
                       <p>Rate: {formatCurrency(results.costs.elements.joists.rate)}/m²</p>
                     </div>
                   )}
                 </div>
               </div>
-              <div>
-                <h4 className="text-sm font-medium mb-2">Total</h4>
-                <div className="text-sm">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-base font-medium text-gray-700 mb-2">Total</h4>
+                <div className="text-sm text-gray-600">
                   <p><span className="text-gray-500">Materials:</span> {results.costs?.total ? formatCurrency(results.costs.total) : 'N/A'}</p>
                   <p><span className="text-gray-500">Carbon Saved:</span> {typeof results.carbonSavings === 'number' ? `${results.carbonSavings.toFixed(2)} tonnes CO₂e` : 'N/A'}</p>
                 </div>
@@ -336,12 +209,12 @@ const ResultsDisplay = ({
         {/* Material Summary Section */}
         <div className="apple-card">
           <div className="apple-card-header">
-            <h3 className="text-md font-semibold">Material Summary</h3>
+            <h3 className="text-lg font-semibold">Material Summary</h3>
           </div>
           <div className="apple-card-body">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <h4 className="text-sm font-medium mb-2">Joists</h4>
+                <h4 className="text-base font-medium mb-2">Joists</h4>
                 <div className="text-sm">
                   <p><span className="text-gray-500">Volume:</span> {
                     typeof results.elementVolumes?.joists === 'number' 
@@ -368,7 +241,7 @@ const ResultsDisplay = ({
                 </div>
               </div>
               <div>
-                <h4 className="text-sm font-medium mb-2">Beams</h4>
+                <h4 className="text-base font-medium mb-2">Beams</h4>
                 <div className="text-sm">
                   <p><span className="text-gray-500">Volume:</span> {
                     typeof results.elementVolumes?.beams === 'number' 
@@ -389,7 +262,7 @@ const ResultsDisplay = ({
                 </div>
               </div>
               <div>
-                <h4 className="text-sm font-medium mb-2">Columns</h4>
+                <h4 className="text-base font-medium mb-2">Columns</h4>
                 <div className="text-sm">
                   <p><span className="text-gray-500">Volume:</span> {
                     typeof results?.elementVolumes?.columns === 'number' 
@@ -426,11 +299,6 @@ const ResultsDisplay = ({
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Add Bay Debugger at the bottom */}
-        <div className="mt-8">
-          <BayDebugger />
         </div>
       </div>
     </div>
