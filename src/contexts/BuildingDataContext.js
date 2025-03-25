@@ -71,6 +71,86 @@ export function BuildingDataProvider({ children }) {
     }));
   };
   
+  // Ensure bay dimensions always match building dimensions
+  useEffect(() => {
+    // Function to round to 2 decimal places for display
+    const roundTwoDecimals = (num) => Math.round(num * 100) / 100;
+    
+    if (buildingData.useCustomBayDimensions) {
+      // Check and fix lengthwise bay widths
+      if (buildingData.customLengthwiseBayWidths?.length !== buildingData.lengthwiseBays) {
+        const avgWidth = buildingData.buildingLength / buildingData.lengthwiseBays;
+        const newWidths = Array(buildingData.lengthwiseBays).fill(0).map(() => roundTwoDecimals(avgWidth));
+        
+        // Correct any rounding error by adjusting the last bay
+        const totalWidth = newWidths.reduce((sum, width) => sum + width, 0);
+        const difference = roundTwoDecimals(buildingData.buildingLength - totalWidth);
+        
+        if (Math.abs(difference) > 0.001) {
+          newWidths[newWidths.length - 1] = roundTwoDecimals(newWidths[newWidths.length - 1] + difference);
+        }
+        
+        updateBuildingData('customLengthwiseBayWidths', newWidths);
+      } else {
+        // Check if total matches the building length
+        const totalLength = buildingData.customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0);
+        if (Math.abs(totalLength - buildingData.buildingLength) > 0.01) {
+          // Fix the mismatch by adjusting all bays proportionally
+          const scaleFactor = buildingData.buildingLength / totalLength;
+          const newWidths = [...buildingData.customLengthwiseBayWidths].map(
+            width => roundTwoDecimals(width * scaleFactor)
+          );
+          
+          // Correct any remaining rounding error by adjusting the last bay
+          const newTotal = newWidths.reduce((sum, width) => sum + width, 0);
+          const finalDifference = roundTwoDecimals(buildingData.buildingLength - newTotal);
+          
+          if (Math.abs(finalDifference) > 0.001) {
+            newWidths[newWidths.length - 1] = roundTwoDecimals(newWidths[newWidths.length - 1] + finalDifference);
+          }
+          
+          updateBuildingData('customLengthwiseBayWidths', newWidths);
+        }
+      }
+      
+      // Check and fix widthwise bay widths
+      if (buildingData.customWidthwiseBayWidths?.length !== buildingData.widthwiseBays) {
+        const avgWidth = buildingData.buildingWidth / buildingData.widthwiseBays;
+        const newWidths = Array(buildingData.widthwiseBays).fill(0).map(() => roundTwoDecimals(avgWidth));
+        
+        // Correct any rounding error by adjusting the last bay
+        const totalWidth = newWidths.reduce((sum, width) => sum + width, 0);
+        const difference = roundTwoDecimals(buildingData.buildingWidth - totalWidth);
+        
+        if (Math.abs(difference) > 0.001) {
+          newWidths[newWidths.length - 1] = roundTwoDecimals(newWidths[newWidths.length - 1] + difference);
+        }
+        
+        updateBuildingData('customWidthwiseBayWidths', newWidths);
+      } else {
+        // Check if total matches the building width
+        const totalWidth = buildingData.customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0);
+        if (Math.abs(totalWidth - buildingData.buildingWidth) > 0.01) {
+          // Fix the mismatch by adjusting all bays proportionally
+          const scaleFactor = buildingData.buildingWidth / totalWidth;
+          const newWidths = [...buildingData.customWidthwiseBayWidths].map(
+            width => roundTwoDecimals(width * scaleFactor)
+          );
+          
+          // Correct any remaining rounding error by adjusting the last bay
+          const newTotal = newWidths.reduce((sum, width) => sum + width, 0);
+          const finalDifference = roundTwoDecimals(buildingData.buildingWidth - newTotal);
+          
+          if (Math.abs(finalDifference) > 0.001) {
+            newWidths[newWidths.length - 1] = roundTwoDecimals(newWidths[newWidths.length - 1] + finalDifference);
+          }
+          
+          updateBuildingData('customWidthwiseBayWidths', newWidths);
+        }
+      }
+    }
+  }, [buildingData.lengthwiseBays, buildingData.widthwiseBays, buildingData.buildingLength, buildingData.buildingWidth, buildingData.useCustomBayDimensions]);
+  
   // Specialized function for updating calculation results
   const updateCalculationResults = (results) => {
     console.log("JOIST DEBUG - Updating calculation results in context");

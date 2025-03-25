@@ -32,26 +32,50 @@ export default function Home() {
             A parametric design tool for timber structures using MASSLAM sections
           </p>
           <div className={styles.buttonContainer}>
-            <Link href="/timber-calculator" className={styles.primaryButton}>
+            <Link 
+              href="/timber-calculator" 
+              className={styles.primaryButton}
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/timber-calculator";
+              }}
+            >
               Start Designing
             </Link>
-            <Link href="/masslam-sizes" className={styles.secondaryButton}>
+            <Link 
+              href="/masslam-sizes" 
+              className={styles.secondaryButton}
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/masslam-sizes";
+              }}
+            >
               View MASSLAM Sizes
             </Link>
-            <Link href="/calculation-methodology" className={styles.secondaryButton}>
+            <Link 
+              href="/calculation-methodology" 
+              className={styles.secondaryButton}
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/calculation-methodology";
+              }}
+            >
               Calculation Methodology
             </Link>
           </div>
         </div>
         <div className={styles.heroImage}>
-          <Image
-            src="/images/timber-structure.jpg"
-            alt="Timber structure"
-            width={600}
-            height={400}
-            priority
-            className={styles.image}
-          />
+          <div className={styles.image} style={{
+            width: '600px',
+            height: '400px',
+            backgroundColor: '#f0f0f0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '8px'
+          }}>
+            Timber Structure Image
+          </div>
         </div>
       </div>
 

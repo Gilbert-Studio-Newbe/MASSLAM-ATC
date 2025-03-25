@@ -102,6 +102,9 @@ const ResultsDisplay = ({
   const joistDepthRef = useRef(null);
   const resultsRef = useRef(null);
   
+  // Get building data for additional information like floor height
+  const { buildingData } = useBuildingData();
+  
   // Use a force update counter to ensure the component refreshes when results change
   const [updateCounter, setUpdateCounter] = useState(0);
   const [debugTimestamp, setDebugTimestamp] = useState(new Date().toISOString());
@@ -133,6 +136,27 @@ const ResultsDisplay = ({
       setDebugTimestamp(new Date().toISOString());
     }
   }, [results]);
+  
+  // If we have results, show them
+  const hasResults = results && results.joistSize && results.beamSize;
+  const hasJoistSize = hasResults && results.joistSize;
+  const hasBeamSize = hasResults && results.beamSize;
+  const hasEdgeBeamSize = hasResults && results.edgeBeamSize;
+  const hasColumnSize = hasResults && results.columnSize;
+  
+  // Local state for debugger to avoid hydration issues
+  const [localWidth, setLocalWidth] = useState(hasJoistSize ? results.joistSize.width : null);
+  const [localDepth, setLocalDepth] = useState(hasJoistSize ? results.joistSize.depth : null);
+  
+  // Update refs when results change
+  useEffect(() => {
+    if (hasJoistSize) {
+      if (joistWidthRef.current) joistWidthRef.current.textContent = results.joistSize.width;
+      if (joistDepthRef.current) joistDepthRef.current.textContent = results.joistSize.depth;
+      setLocalWidth(results.joistSize.width);
+      setLocalDepth(results.joistSize.depth);
+    }
+  }, [hasJoistSize, results?.joistSize?.width, results?.joistSize?.depth, updateCounter]);
   
   // During server-side rendering or before client hydration
   if (!isClient) {
@@ -181,10 +205,6 @@ const ResultsDisplay = ({
   // Generate a key for the component to force re-render when values change
   const resultsKey = `joists-${updateCounter}-beams-${results.interiorBeamSize?.width || 'NA'}-${results.interiorBeamSize?.depth || 'NA'}-joists-${results.joistSize?.width || 'NA'}-${results.joistSize?.depth || 'NA'}`;
   
-  // Extract joist dimensions directly from results
-  const joistWidth = results.joistSize?.width || 'N/A';
-  const joistDepth = results.joistSize?.depth || 'N/A';
-  
   return (
     <div className="apple-results" key={resultsKey} ref={resultsRef}>
       <div className="apple-card-header flex justify-between items-center">
@@ -193,8 +213,14 @@ const ResultsDisplay = ({
         {/* Action Buttons */}
         <div className="flex">
           <Link 
+            href="/timber-calculator/debug" 
+            className="apple-button apple-button-secondary mr-2"
+          >
+            Debug Info
+          </Link>
+          <Link 
             href="/3d-visualization" 
-            className="apple-button apple-button-secondary mr-4"
+            className="apple-button apple-button-secondary mr-2"
           >
             View 3D Model
           </Link>
@@ -214,36 +240,6 @@ const ResultsDisplay = ({
             <h3 className="text-md font-semibold">Member Sizes</h3>
           </div>
           
-          {/* Add debug information */}
-          <div className="px-4 py-2 bg-yellow-50 text-xs">
-            <p><strong>Debug Info:</strong> (Updated: {debugTimestamp})</p>
-            
-            {/* Add Bay Dimensions Debugger */}
-            <BayDebugger />
-            
-            <pre>{JSON.stringify({
-              hasResults: !!results,
-              joistSize: results?.joistSize || 'No joist size',
-              rawCalculations: results?.joistSize ? {
-                span: results.joistSize.span,
-                spacing: results.joistSize.spacing,
-                load: results.joistSize.load,
-                grade: results.joistSize.grade,
-                fireRating: results.joistSize.fireRating,
-                deflectionLimit: results.joistSize.deflectionLimit,
-                safetyFactor: results.joistSize.safetyFactor,
-                bendingDepth: results.joistSize.bendingDepth,
-                deflectionDepth: results.joistSize.deflectionDepth,
-                isDeflectionGoverning: results.joistSize.isDeflectionGoverning,
-                fireAdjustedDepth: results.joistSize.fireAdjustedDepth
-              } : null,
-              updateCounter,
-              localWidth: joistWidth,
-              localDepth: joistDepth,
-              timestamp: debugTimestamp
-            }, null, 2)}</pre>
-          </div>
-          
           <div className="apple-card-body">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
@@ -254,15 +250,15 @@ const ResultsDisplay = ({
                   <p><span className="text-gray-500">Depth:</span> <span ref={joistDepthRef} data-joist-depth>{results?.joistSize?.depth || 'N/A'}mm</span></p>
                   <p><span className="text-gray-500">Span:</span> {results?.joistSize?.span?.toFixed(2) || 'N/A'}m</p>
                   <p><span className="text-gray-500">Governing:</span> {results?.joistSize?.isDeflectionGoverning ? 'Deflection' : 'Bending'}</p>
-                  
+                
                   {/* Add debug information dropdown */}
                   {results.joistSize && (
                     <div className="mt-2 pt-2 border-t border-gray-200 text-xs">
-                      <details open>
+                      <details className="cursor-pointer">
                         <summary className="font-medium text-blue-600 cursor-pointer">Calculation Details</summary>
                         <div className="mt-1 p-2 bg-gray-50 rounded">
                           <p><span className="font-medium">Span:</span> {results.joistSize.span?.toFixed(2)}m</p>
-                          <p><span className="font-medium">Spacing:</span> {results.joistSize.spacing}m</p>
+                          <p><span className="font-medium">Spacing:</span> {(results.joistSize.spacing/1000).toFixed(1)}m</p>
                           <p><span className="font-medium">Load:</span> {results.joistSize.load}kPa</p>
                           <p><span className="font-medium">Safety Factor:</span> {results.joistSize.safetyFactor || 1.5}</p>
                           <p><span className="font-medium">Deflection Limit:</span> L/{results.joistSize.deflectionLimit || 300}</p>
@@ -270,7 +266,7 @@ const ResultsDisplay = ({
                           <p><span className="font-medium">Bending Depth Required:</span> {results.joistSize.bendingDepth}mm</p>
                           <p><span className="font-medium">Deflection Depth Required:</span> {results.joistSize.deflectionDepth}mm</p>
                           <p><span className="font-medium">Fire Adjusted Depth:</span> {results.joistSize.fireAdjustedDepth}mm</p>
-                          <p className="text-red-600 font-bold">Required Depth for {results.joistSize.span?.toFixed(2)}m span: {results.joistSize.fireAdjustedDepth}mm</p>
+                          <p className="text-red-600 font-bold">Required Depth for {results.joistSize.span?.toFixed(2)}m span: {results.joistSize.depth}mm</p>
                         </div>
                       </details>
                     </div>
@@ -280,14 +276,40 @@ const ResultsDisplay = ({
               <div>
                 <h4 className="text-sm font-medium mb-2">Beams</h4>
                 <div className="text-sm">
-                  <p><span className="text-gray-500">Interior Beams:</span> {results.interiorBeamSize?.width || 'N/A'}mm × {results.interiorBeamSize?.depth || 'N/A'}mm</p>
-                  <p><span className="text-gray-500">Edge Beams:</span> {results.edgeBeamSize?.width || 'N/A'}mm × {results.edgeBeamSize?.depth || 'N/A'}mm</p>
+                  <p><span className="text-gray-500">Interior Beams:</span> {hasBeamSize ? `${results.beamSize.width || 'N/A'}mm × ${results.beamSize.depth || 'N/A'}mm` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Edge Beams:</span> {hasEdgeBeamSize ? `${results.edgeBeamSize.width || 'N/A'}mm × ${results.edgeBeamSize.depth || 'N/A'}mm` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Span:</span> {hasBeamSize && results.beamSize.span ? `${results.beamSize.span.toFixed(2)}m` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Governing:</span> {hasBeamSize ? (results.beamSize.isDeflectionGoverning ? 'Deflection' : 'Bending') : 'N/A'}</p>
+                  
+                  {/* Add beam debug information dropdown */}
+                  {(hasBeamSize || hasEdgeBeamSize) && (
+                    <div className="mt-2 pt-2 border-t border-gray-200 text-xs">
+                      <details className="cursor-pointer">
+                        <summary className="font-medium text-blue-600 cursor-pointer">Calculation Details</summary>
+                        <div className="mt-1 p-2 bg-gray-50 rounded mb-2">
+                          <p className="font-bold">Interior Beams</p>
+                          <p><span className="font-medium">Span:</span> {hasBeamSize && results.beamSize.span ? results.beamSize.span.toFixed(2) : 'N/A'}m</p>
+                          <p><span className="font-medium">Tributary Width:</span> {hasBeamSize && results.beamSize.tributaryWidth ? results.beamSize.tributaryWidth.toFixed(2) : 'N/A'}m</p>
+                          <p><span className="font-medium">Load per Meter:</span> {hasBeamSize && results.beamSize.loadPerMeter ? results.beamSize.loadPerMeter.toFixed(2) : 'N/A'}kN/m</p>
+                          <p><span className="font-medium">Governing:</span> {hasBeamSize ? (results.beamSize.isDeflectionGoverning ? 'Deflection' : 'Bending') : 'N/A'}</p>
+                        </div>
+                        <div className="mt-1 p-2 bg-gray-50 rounded">
+                          <p className="font-bold">Edge Beams</p>
+                          <p><span className="font-medium">Span:</span> {hasEdgeBeamSize && results.edgeBeamSize.span ? results.edgeBeamSize.span.toFixed(2) : 'N/A'}m</p>
+                          <p><span className="font-medium">Tributary Width:</span> {hasEdgeBeamSize && results.edgeBeamSize.tributaryWidth ? results.edgeBeamSize.tributaryWidth.toFixed(2) : 'N/A'}m</p>
+                          <p><span className="font-medium">Load per Meter:</span> {hasEdgeBeamSize && results.edgeBeamSize.loadPerMeter ? results.edgeBeamSize.loadPerMeter.toFixed(2) : 'N/A'}kN/m</p>
+                          <p><span className="font-medium">Governing:</span> {hasEdgeBeamSize ? (results.edgeBeamSize.isDeflectionGoverning ? 'Deflection' : 'Bending') : 'N/A'}</p>
+                        </div>
+                      </details>
+                    </div>
+                  )}
                 </div>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-2">Columns</h4>
                 <div className="text-sm">
                   <p><span className="text-gray-500">Size:</span> {results.columnSize?.width || 'N/A'}mm × {results.columnSize?.depth || 'N/A'}mm</p>
+                  <p><span className="text-gray-500">Height:</span> {results.columnSize?.height || buildingData?.floorHeight ? `${(results.columnSize?.height || buildingData?.floorHeight).toFixed(2)}m` : 'N/A'}</p>
                 </div>
               </div>
             </div>
@@ -340,8 +362,8 @@ const ResultsDisplay = ({
                 <div className="text-sm">
                   <p><span className="text-gray-500">Volume:</span> {typeof results.elementVolumes?.beams === 'number' ? `${results.elementVolumes.beams.toFixed(2)} m³` : 'N/A'}</p>
                   <p><span className="text-gray-500">Quantity:</span> {typeof results.elementCounts?.beams === 'number' ? `${results.elementCounts.beams} pieces` : 'N/A'}</p>
-                  <p><span className="text-gray-500">Interior:</span> {results.interiorBeamSize ? `${results.interiorBeamSize.width}×${results.interiorBeamSize.depth}mm` : 'N/A'}</p>
-                  <p><span className="text-gray-500">Edge:</span> {results.edgeBeamSize ? `${results.edgeBeamSize.width}×${results.edgeBeamSize.depth}mm` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Interior:</span> {hasBeamSize ? `${results.beamSize.width}×${results.beamSize.depth}mm` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Edge:</span> {hasEdgeBeamSize ? `${results.edgeBeamSize.width}×${results.edgeBeamSize.depth}mm` : 'N/A'}</p>
                 </div>
               </div>
               <div>
@@ -360,6 +382,11 @@ const ResultsDisplay = ({
               </div>
             </div>
           </div>
+        </div>
+        
+        {/* Add Bay Debugger at the bottom */}
+        <div className="mt-8">
+          <BayDebugger />
         </div>
       </div>
     </div>

@@ -172,27 +172,53 @@ export function calculateMultiFloorBeamSize(
   let tributaryWidth;
   
   if (avgBayWidth > 0 && avgBayLength > 0) {
-    // If we have bay dimensions, use them for a more realistic tributary width
-    if (isEdgeBeam) {
-      // Edge beams support half of one bay
-      tributaryWidth = joistsRunLengthwise ? avgBayWidth / 2 : avgBayLength / 2;
+    console.log(`[BEAM] Using bay dimensions: avgBayWidth=${avgBayWidth}m, avgBayLength=${avgBayLength}m`);
+    
+    // Determine which dimension is perpendicular to the beam span
+    // The perpendicular dimension determines the tributary width
+    let perpDimension;
+    
+    if (joistsRunLengthwise) {
+      // If joists run lengthwise, beams run widthwise (perpendicular to joists)
+      // So the perpendicular dimension to the beam is the bay width
+      perpDimension = avgBayWidth;
     } else {
-      // Interior beams support half of the bay on each side
-      // For uniform bay sizes, this is approximately the full bay width
-      tributaryWidth = joistsRunLengthwise ? avgBayWidth : avgBayLength;
+      // If joists run widthwise, beams run lengthwise
+      // So the perpendicular dimension to the beam is the bay length
+      perpDimension = avgBayLength;
     }
+    
+    if (isEdgeBeam) {
+      // Edge beams only support load from one side
+      // They support half of one bay's worth of floor area
+      tributaryWidth = perpDimension / 2;
+    } else {
+      // Interior beams support load from both sides
+      // They support half of each adjacent bay's floor area (total = one full bay)
+      tributaryWidth = perpDimension;
+    }
+    
+    console.log(`[BEAM] Perpendicular dimension: ${perpDimension}m, resulting tributaryWidth: ${tributaryWidth}m`);
   } else {
     // Fallback calculation if bay dimensions aren't provided
-    tributaryWidth = isEdgeBeam ? 2.5 : 5.0;
+    // Use joistSpacing as a simpler approximation
+    const joistSpacingM = typeof joistSpacing === 'number' ? joistSpacing / 1000 : 0.8;
+    
+    if (isEdgeBeam) {
+      // Edge beams support half the load of interior beams
+      tributaryWidth = joistSpacingM / 2;
+    } else {
+      // Interior beams support joists from both sides
+      tributaryWidth = joistSpacingM;
+    }
+    
+    console.log(`[BEAM] Using fallback calculation with joistSpacing=${joistSpacingM}m`);
   }
-  
-  // Convert the joistSpacing from millimeters to meters if needed
-  const joistSpacingM = typeof joistSpacing === 'number' ? joistSpacing / 1000 : 0.8;
   
   // Scale the load by the number of floors
   const scaledLoad = load * numFloors;
   
-  console.log(`[BEAM] Tributary width=${tributaryWidth.toFixed(2)}m, scaled load=${scaledLoad.toFixed(2)}kPa`);
+  console.log(`[BEAM] Final tributary width=${tributaryWidth.toFixed(2)}m, scaled load=${scaledLoad.toFixed(2)}kPa`);
   
   // Use the base beam calculation with scaled parameters, passing deflection limit and safety factor
   return calculateBeamSize(span, scaledLoad, 'ML38', tributaryWidth, fireRating, deflectionLimit, safetyFactor);
