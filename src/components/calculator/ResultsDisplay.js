@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { formatCurrency } from '../../utils/costEstimator';
 import { useBuildingData } from '@/contexts/BuildingDataContext';
+import BayLayoutVisualizer from './BayLayoutVisualizer';
 
 // Add a debugging component to show bay size calculations
 const BayDebugger = () => {
@@ -103,7 +104,7 @@ const ResultsDisplay = ({
   const resultsRef = useRef(null);
   
   // Get building data for additional information like floor height
-  const { buildingData } = useBuildingData();
+  const { buildingData, updateBuildingData } = useBuildingData();
   
   // Use a force update counter to ensure the component refreshes when results change
   const [updateCounter, setUpdateCounter] = useState(0);
@@ -136,6 +137,15 @@ const ResultsDisplay = ({
       setDebugTimestamp(new Date().toISOString());
     }
   }, [results]);
+  
+  // Handler functions for BayLayoutVisualizer
+  const handleToggleCustomBayDimensions = () => {
+    updateBuildingData('useCustomBayDimensions', !buildingData.useCustomBayDimensions);
+  };
+  
+  const handleJoistDirectionChange = (value) => {
+    updateBuildingData('joistsRunLengthwise', value);
+  };
   
   // If we have results, show them
   const hasResults = results && results.joistSize && results.beamSize;
@@ -431,6 +441,25 @@ const ResultsDisplay = ({
                 <p><span className="text-gray-700">Total Joist Area:</span> {typeof results.elementVolumes?.joistArea === 'number' ? `${results.elementVolumes.joistArea.toFixed(2)} m²` : 'N/A'}</p>
               </div>
             </div>
+          </div>
+        </div>
+        
+        {/* Bay Layout Visualization */}
+        <div className="apple-card mt-8">
+          <div className="apple-card-header">
+            <h3 className="text-md font-semibold">Bay Layout</h3>
+          </div>
+          <div className="apple-card-body">
+            <BayLayoutVisualizer 
+              buildingData={buildingData}
+              results={results}
+              isMobile={isMobile}
+              useCustomBayDimensions={buildingData.useCustomBayDimensions}
+              customLengthwiseBayWidths={buildingData.customLengthwiseBayWidths || []}
+              customWidthwiseBayWidths={buildingData.customWidthwiseBayWidths || []}
+              handleToggleCustomBayDimensions={handleToggleCustomBayDimensions}
+              handleJoistDirectionChange={handleJoistDirectionChange}
+            />
           </div>
         </div>
         
