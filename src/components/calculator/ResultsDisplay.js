@@ -188,6 +188,9 @@ const ResultsDisplay = ({
               buildingData={buildingData}
               results={results}
               isMobile={isMobile}
+              useCustomBayDimensions={buildingData.useCustomBayDimensions}
+              customLengthwiseBayWidths={buildingData.customLengthwiseBayWidths}
+              customWidthwiseBayWidths={buildingData.customWidthwiseBayWidths}
               handleToggleCustomBayDimensions={handleToggleCustomBayDimensions}
               handleJoistDirectionChange={handleJoistDirectionChange}
             />

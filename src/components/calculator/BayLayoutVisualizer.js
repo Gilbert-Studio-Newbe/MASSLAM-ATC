@@ -50,7 +50,7 @@ const BayLayoutVisualizer = ({
 
   // Calculate bay dimensions based on whether custom dimensions are used
   const calculateBayDimensions = () => {
-    if (!useCustomBayDimensions) {
+    if (!useCustomBayDimensions || !customLengthwiseBayWidths || !customWidthwiseBayWidths) {
       // Use equal distribution
       return {
         lengthwiseBayWidths: Array(lengthwiseBays).fill(buildingLength / lengthwiseBays),
@@ -58,11 +58,10 @@ const BayLayoutVisualizer = ({
       };
     }
     
-    // Ensure the sum of custom dimensions matches the building dimensions
+    // Use custom dimensions and normalize if needed
     const totalLengthwise = customLengthwiseBayWidths.reduce((sum, width) => sum + width, 0);
     const totalWidthwise = customWidthwiseBayWidths.reduce((sum, width) => sum + width, 0);
     
-    // Normalize if needed
     let normalizedLengthwiseBayWidths = [...customLengthwiseBayWidths];
     let normalizedWidthwiseBayWidths = [...customWidthwiseBayWidths];
     
