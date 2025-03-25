@@ -106,6 +106,15 @@ const ResultsDisplay = ({
   // Get building data for additional information like floor height
   const { buildingData, updateBuildingData } = useBuildingData();
   
+  // Handler functions for BayLayoutVisualizer
+  const handleToggleCustomBayDimensions = () => {
+    updateBuildingData('useCustomBayDimensions', !buildingData.useCustomBayDimensions);
+  };
+  
+  const handleJoistDirectionChange = (value) => {
+    updateBuildingData('joistsRunLengthwise', value);
+  };
+  
   // Use a force update counter to ensure the component refreshes when results change
   const [updateCounter, setUpdateCounter] = useState(0);
   const [debugTimestamp, setDebugTimestamp] = useState(new Date().toISOString());
@@ -137,15 +146,6 @@ const ResultsDisplay = ({
       setDebugTimestamp(new Date().toISOString());
     }
   }, [results]);
-  
-  // Handler functions for BayLayoutVisualizer
-  const handleToggleCustomBayDimensions = () => {
-    updateBuildingData('useCustomBayDimensions', !buildingData.useCustomBayDimensions);
-  };
-  
-  const handleJoistDirectionChange = (value) => {
-    updateBuildingData('joistsRunLengthwise', value);
-  };
   
   // If we have results, show them
   const hasResults = results && results.joistSize && results.beamSize;
@@ -244,6 +244,22 @@ const ResultsDisplay = ({
       </div>
       
       <div className="apple-results-body">
+        {/* Bay Layout Visualizer */}
+        <div className="apple-card mb-8">
+          <div className="apple-card-body">
+            <BayLayoutVisualizer
+              buildingData={buildingData}
+              results={results}
+              isMobile={isMobile}
+              useCustomBayDimensions={buildingData.useCustomBayDimensions}
+              customLengthwiseBayWidths={buildingData.customLengthwiseBayWidths}
+              customWidthwiseBayWidths={buildingData.customWidthwiseBayWidths}
+              handleToggleCustomBayDimensions={handleToggleCustomBayDimensions}
+              handleJoistDirectionChange={handleJoistDirectionChange}
+            />
+          </div>
+        </div>
+        
         {/* Member Sizes Section */}
         <div className="apple-card mb-8">
           <div className="apple-card-header">
@@ -441,25 +457,6 @@ const ResultsDisplay = ({
                 <p><span className="text-gray-700">Total Joist Area:</span> {typeof results.elementVolumes?.joistArea === 'number' ? `${results.elementVolumes.joistArea.toFixed(2)} m²` : 'N/A'}</p>
               </div>
             </div>
-          </div>
-        </div>
-        
-        {/* Bay Layout Visualization */}
-        <div className="apple-card mt-8">
-          <div className="apple-card-header">
-            <h3 className="text-md font-semibold">Bay Layout</h3>
-          </div>
-          <div className="apple-card-body">
-            <BayLayoutVisualizer 
-              buildingData={buildingData}
-              results={results}
-              isMobile={isMobile}
-              useCustomBayDimensions={buildingData.useCustomBayDimensions}
-              customLengthwiseBayWidths={buildingData.customLengthwiseBayWidths || []}
-              customWidthwiseBayWidths={buildingData.customWidthwiseBayWidths || []}
-              handleToggleCustomBayDimensions={handleToggleCustomBayDimensions}
-              handleJoistDirectionChange={handleJoistDirectionChange}
-            />
           </div>
         </div>
         
