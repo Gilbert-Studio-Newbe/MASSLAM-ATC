@@ -1,23 +1,12 @@
 import React from 'react';
-import styles from '../styles/TimberCalculator.module.css';
+import { useBuildingData } from '../contexts/BuildingDataContext';
 
-const BuildingForm = ({
-  buildingLength,
-  buildingWidth,
-  numFloors,
-  floorHeight,
-  load,
-  fireRating,
-  lengthwiseBays,
-  widthwiseBays,
-  joistsRunLengthwise,
-  onInputChange,
-  onCalculate
-}) => {
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === 'checkbox' ? checked : type === 'number' ? parseFloat(value) : value;
-    onInputChange(name, newValue);
+const BuildingForm = ({ onCalculate }) => {
+  const { buildingData, updateBuildingData } = useBuildingData();
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    updateBuildingData({ [name]: parseFloat(value) || 0 });
   };
 
   const handleSubmit = (e) => {
@@ -26,158 +15,155 @@ const BuildingForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className={styles.formSection}>
-        <h2 className={styles.sectionTitle}>Building Dimensions</h2>
-        <div className={styles.formRow}>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="buildingLength">Building Length (m)</label>
-            <input
-              className={styles.input}
-              type="number"
-              id="buildingLength"
-              name="buildingLength"
-              min="1"
-              step="0.1"
-              value={buildingLength}
-              onChange={handleChange}
-              required
-            />
+    <div className="bg-white rounded-lg shadow-sm p-6">
+      <h2 className="text-lg font-semibold mb-6">Building Parameters</h2>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Building Dimensions */}
+          <div className="space-y-4">
+            <h3 className="text-base font-medium">Building Dimensions</h3>
+            <div>
+              <label htmlFor="buildingLength" className="block text-sm font-medium text-gray-700 mb-1">
+                Length (m)
+              </label>
+              <input
+                type="number"
+                id="buildingLength"
+                name="buildingLength"
+                value={buildingData.buildingLength}
+                onChange={handleInputChange}
+                min="1"
+                step="0.1"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-masslam focus:border-transparent"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="buildingWidth" className="block text-sm font-medium text-gray-700 mb-1">
+                Width (m)
+              </label>
+              <input
+                type="number"
+                id="buildingWidth"
+                name="buildingWidth"
+                value={buildingData.buildingWidth}
+                onChange={handleInputChange}
+                min="1"
+                step="0.1"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-masslam focus:border-transparent"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="numFloors" className="block text-sm font-medium text-gray-700 mb-1">
+                Number of Floors
+              </label>
+              <input
+                type="number"
+                id="numFloors"
+                name="numFloors"
+                value={buildingData.numFloors}
+                onChange={handleInputChange}
+                min="1"
+                max="10"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-masslam focus:border-transparent"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="floorHeight" className="block text-sm font-medium text-gray-700 mb-1">
+                Floor Height (m)
+              </label>
+              <input
+                type="number"
+                id="floorHeight"
+                name="floorHeight"
+                value={buildingData.floorHeight}
+                onChange={handleInputChange}
+                min="2"
+                max="6"
+                step="0.1"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-masslam focus:border-transparent"
+                required
+              />
+            </div>
           </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="buildingWidth">Building Width (m)</label>
-            <input
-              className={styles.input}
-              type="number"
-              id="buildingWidth"
-              name="buildingWidth"
-              min="1"
-              step="0.1"
-              value={buildingWidth}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-        <div className={styles.formRow}>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="numFloors">Number of Floors</label>
-            <input
-              className={styles.input}
-              type="number"
-              id="numFloors"
-              name="numFloors"
-              min="1"
-              max="20"
-              value={numFloors}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="floorHeight">Floor Height (m)</label>
-            <input
-              className={styles.input}
-              type="number"
-              id="floorHeight"
-              name="floorHeight"
-              min="2"
-              max="6"
-              step="0.1"
-              value={floorHeight}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-      </div>
 
-      <div className={styles.formSection}>
-        <h2 className={styles.sectionTitle}>Structural Parameters</h2>
-        <div className={styles.formRow}>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="load">Design Load (kPa)</label>
-            <input
-              className={styles.input}
-              type="number"
-              id="load"
-              name="load"
-              min="0.5"
-              max="10"
-              step="0.1"
-              value={load}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="fireRating">Fire Rating</label>
-            <select
-              className={styles.select}
-              id="fireRating"
-              name="fireRating"
-              value={fireRating}
-              onChange={handleChange}
-            >
-              <option value="none">None</option>
-              <option value="30/30/30">30/30/30</option>
-              <option value="60/60/60">60/60/60</option>
-              <option value="90/90/90">90/90/90</option>
-              <option value="120/120/120">120/120/120</option>
-            </select>
+          {/* Grid Configuration */}
+          <div className="space-y-4">
+            <h3 className="text-base font-medium">Grid Configuration</h3>
+            <div>
+              <label htmlFor="lengthwiseBays" className="block text-sm font-medium text-gray-700 mb-1">
+                Lengthwise Bays
+              </label>
+              <input
+                type="number"
+                id="lengthwiseBays"
+                name="lengthwiseBays"
+                value={buildingData.lengthwiseBays}
+                onChange={handleInputChange}
+                min="1"
+                max="10"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-masslam focus:border-transparent"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="widthwiseBays" className="block text-sm font-medium text-gray-700 mb-1">
+                Widthwise Bays
+              </label>
+              <input
+                type="number"
+                id="widthwiseBays"
+                name="widthwiseBays"
+                value={buildingData.widthwiseBays}
+                onChange={handleInputChange}
+                min="1"
+                max="10"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-masslam focus:border-transparent"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Joist Direction
+              </label>
+              <div className="flex items-center space-x-4">
+                <label className="inline-flex items-center">
+                  <input
+                    type="radio"
+                    name="joistsRunLengthwise"
+                    checked={buildingData.joistsRunLengthwise}
+                    onChange={() => updateBuildingData({ joistsRunLengthwise: true })}
+                    className="form-radio text-masslam"
+                  />
+                  <span className="ml-2">Lengthwise</span>
+                </label>
+                <label className="inline-flex items-center">
+                  <input
+                    type="radio"
+                    name="joistsRunLengthwise"
+                    checked={!buildingData.joistsRunLengthwise}
+                    onChange={() => updateBuildingData({ joistsRunLengthwise: false })}
+                    className="form-radio text-masslam"
+                  />
+                  <span className="ml-2">Widthwise</span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className={styles.formSection}>
-        <h2 className={styles.sectionTitle}>Bay Configuration</h2>
-        <div className={styles.formRow}>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="lengthwiseBays">Lengthwise Bays</label>
-            <input
-              className={styles.input}
-              type="number"
-              id="lengthwiseBays"
-              name="lengthwiseBays"
-              min="1"
-              max="20"
-              value={lengthwiseBays}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="widthwiseBays">Widthwise Bays</label>
-            <input
-              className={styles.input}
-              type="number"
-              id="widthwiseBays"
-              name="widthwiseBays"
-              min="1"
-              max="20"
-              value={widthwiseBays}
-              onChange={handleChange}
-              required
-            />
-          </div>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="px-6 py-2 bg-masslam text-white rounded-md hover:bg-masslam-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-masslam"
+          >
+            Calculate
+          </button>
         </div>
-        <div className={styles.formGroup}>
-          <label className={styles.label}>
-            <input
-              type="checkbox"
-              name="joistsRunLengthwise"
-              checked={joistsRunLengthwise}
-              onChange={handleChange}
-            />
-            Joists Run Lengthwise
-          </label>
-        </div>
-      </div>
-
-      <div className={styles.buttonGroup}>
-        <button type="submit" className={styles.button}>Calculate</button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 };
 

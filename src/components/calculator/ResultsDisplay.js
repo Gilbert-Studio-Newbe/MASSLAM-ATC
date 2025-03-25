@@ -81,7 +81,7 @@ const ResultsDisplay = ({
               <div className="flex justify-between items-baseline">
                 <div>
                   <div className="text-4xl font-bold text-masslam mb-2">
-                    {formatCurrency(results.costs?.total || 0)}
+                    {formatCurrency((results?.costs?.total) || 0)}
                   </div>
                   <div className="text-sm text-gray-500">Excluding GST and installation</div>
                 </div>
@@ -90,10 +90,10 @@ const ResultsDisplay = ({
                     Carbon Saving vs Steel/Concrete:
                   </div>
                   <div className="text-2xl font-semibold text-green-700">
-                    {results.carbonSavings?.toFixed(2) || '0.00'} tonnes CO₂e
+                    {(results?.carbonSavings || 0).toFixed(2)} tonnes CO₂e
                   </div>
                   <div className="text-sm text-gray-500">
-                    Equivalent to {Math.round((results.carbonSavings || 0) * 4.3)} trees planted
+                    Equivalent to {Math.round((results?.carbonSavings || 0) * 4.3)} trees planted
                   </div>
                 </div>
               </div>
@@ -103,30 +103,30 @@ const ResultsDisplay = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h4 className="text-lg font-semibold mb-3">Joists</h4>
-                <div className="text-3xl font-bold mb-4">{formatCurrency(results.costs?.elements?.joists?.cost || 0)}</div>
+                <div className="text-3xl font-bold mb-4">{formatCurrency((results?.costs?.elements?.joists?.cost) || 0)}</div>
                 <div className="space-y-2 text-gray-600">
-                  <p>{results.elementCounts?.joists || 0} pieces</p>
-                  <p>{results.floorArea?.toFixed(1) || 0} m²</p>
-                  <p>Rate: {formatCurrency(results.costs?.elements?.joists?.rate || 0)}/m²</p>
+                  <p>{(results?.elementCounts?.joists) || 0} pieces</p>
+                  <p>{(results?.floorArea || 0).toFixed(1)} m²</p>
+                  <p>Rate: {formatCurrency((results?.costs?.elements?.joists?.rate) || 0)}/m²</p>
                 </div>
               </div>
 
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h4 className="text-lg font-semibold mb-3">Beams</h4>
-                <div className="text-3xl font-bold mb-4">{formatCurrency(results.costs?.elements?.beams?.cost || 0)}</div>
+                <div className="text-3xl font-bold mb-4">{formatCurrency((results?.costs?.elements?.beams?.cost) || 0)}</div>
                 <div className="space-y-2 text-gray-600">
-                  <p>{results.elementCounts?.beams || 0} pieces</p>
-                  <p>{results.elementVolumes?.beams?.toFixed(1) || 0} m³</p>
+                  <p>{(results?.elementCounts?.beams) || 0} pieces</p>
+                  <p>{(results?.elementVolumes?.beams || 0).toFixed(1)} m³</p>
                   <p>Rate: {formatCurrency(3200)}/m³</p>
                 </div>
               </div>
 
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h4 className="text-lg font-semibold mb-3">Columns</h4>
-                <div className="text-3xl font-bold mb-4">{formatCurrency(results.costs?.elements?.columns?.cost || 0)}</div>
+                <div className="text-3xl font-bold mb-4">{formatCurrency((results?.costs?.elements?.columns?.cost) || 0)}</div>
                 <div className="space-y-2 text-gray-600">
-                  <p>{results.elementCounts?.columns || 0} pieces</p>
-                  <p>{results.elementVolumes?.columns?.toFixed(1) || 0} m³</p>
+                  <p>{(results?.elementCounts?.columns) || 0} pieces</p>
+                  <p>{(results?.elementVolumes?.columns || 0).toFixed(1)} m³</p>
                   <p>Rate: {formatCurrency(3200)}/m³</p>
                 </div>
               </div>

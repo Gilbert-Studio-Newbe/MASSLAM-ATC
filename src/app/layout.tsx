@@ -1,41 +1,45 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
-import AppProviders from '../components/AppProviders';
+import { BuildingDataProvider } from '../contexts/BuildingDataContext';
+import { FireResistanceProvider } from '../contexts/FireResistanceContext';
+import { NotificationProvider } from '../contexts/NotificationContext';
 import Navigation from '../components/Navigation';
-import type { ReactNode } from 'react';
 
-export const metadata = { 
-  title: 'MASSLAM ATC', 
-  description: 'Automated Timber Calculator', 
-}; 
+const inter = Inter({ subsets: ['latin'] });
 
-const inter = Inter({ subsets: ['latin'] }); 
+export const metadata = {
+  title: 'MASSLAM Timber Structure Calculator',
+  description: 'Design a multi-level timber building with MASSLAM engineered timber',
+};
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
       <head>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-        <style dangerouslySetInnerHTML={{ __html: `
-          /* Critical CSS to ensure basic styling works even if external CSS fails */
-          :root {
-            --apple-bg: #f0f2f5;
-            --apple-text: #333;
-            --apple-accent: #0071e3;
-            --apple-nav-bg: #fff;
-            --apple-nav-border: #d2d2d7;
-            --apple-input-border: #d2d2d7;
-            --apple-shadow: rgba(0, 0, 0, 0.1);
-          }
-        ` }} />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className={inter.className}>
-        <AppProviders>
-          <div className="fixed top-0 w-full z-50">
-            <Navigation />
-          </div>
-          <div className="mt-16">{children}</div>
-        </AppProviders>
+        <BuildingDataProvider>
+          <NotificationProvider>
+            <FireResistanceProvider>
+              <Navigation />
+              <main className="apple-container py-4 md:py-8">
+                {children}
+              </main>
+              <footer className="apple-footer py-4 mt-8 border-t border-gray-200">
+                <div className="apple-container text-center text-sm text-gray-600">
+                  <p>ATC by ASH - Parametric Design Tool</p>
+                </div>
+              </footer>
+            </FireResistanceProvider>
+          </NotificationProvider>
+        </BuildingDataProvider>
       </body>
     </html>
   );

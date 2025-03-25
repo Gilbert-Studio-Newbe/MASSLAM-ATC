@@ -1,82 +1,64 @@
-import React from 'react';
-import styles from '../styles/TimberCalculator.module.css';
+import React, { useState } from 'react';
 
-const SaveModal = ({ isOpen, onClose, projectDetails, onSave, onProjectDetailsChange, saveMessage }) => {
+const SaveModal = ({ isOpen, onClose, onSave }) => {
+  const [projectName, setProjectName] = useState('');
+  const [notes, setNotes] = useState('');
+
   if (!isOpen) return null;
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    onProjectDetailsChange({ ...projectDetails, [name]: value });
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave();
+    onSave({ projectName, notes });
+    setProjectName('');
+    setNotes('');
   };
 
   return (
-    <div className={styles.saveModal}>
-      <div className={styles.modalContent}>
-        <div className={styles.modalHeader}>
-          <h2>Save Project</h2>
-          <button className={styles.closeButton} onClick={onClose}>&times;</button>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="name">Project Name</label>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-semibold mb-4">Save Project</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="projectName" className="block text-sm font-medium text-gray-700 mb-1">
+              Project Name
+            </label>
             <input
-              className={styles.input}
               type="text"
-              id="name"
-              name="name"
-              value={projectDetails.name}
-              onChange={handleChange}
+              id="projectName"
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-masslam focus:border-transparent"
               required
             />
           </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="client">Client</label>
-            <input
-              className={styles.input}
-              type="text"
-              id="client"
-              name="client"
-              value={projectDetails.client}
-              onChange={handleChange}
+          <div>
+            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+              Notes
+            </label>
+            <textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-masslam focus:border-transparent"
+              rows="4"
             />
           </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="location">Location</label>
-            <input
-              className={styles.input}
-              type="text"
-              id="location"
-              name="location"
-              value={projectDetails.location}
-              onChange={handleChange}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label} htmlFor="date">Date</label>
-            <input
-              className={styles.input}
-              type="date"
-              id="date"
-              name="date"
-              value={projectDetails.date}
-              onChange={handleChange}
-            />
-          </div>
-          <div className={styles.buttonGroup}>
-            <button type="button" className={`${styles.button} ${styles.secondaryButton}`} onClick={onClose}>Cancel</button>
-            <button type="submit" className={styles.button}>Save</button>
+          <div className="flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 text-white bg-masslam rounded-md hover:bg-masslam-dark"
+            >
+              Save
+            </button>
           </div>
         </form>
-        {saveMessage && (
-          <div className={`${styles.saveMessage} ${saveMessage.includes('Error') ? styles.saveError : styles.saveSuccess}`}>
-            {saveMessage}
-          </div>
-        )}
       </div>
     </div>
   );

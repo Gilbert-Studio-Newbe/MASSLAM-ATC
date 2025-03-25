@@ -69,3 +69,24 @@
     @apply transition-medium shadow hover:shadow-md;
   }
 }
+
+:root {
+  --masslam: #2C5282;
+  --masslam-light: #4299E1;
+  --masslam-dark: #2A4365;
+  --accent: #F6AD55;
+  --accent-light: #FBD38D;
+  --accent-dark: #C05621;
+}
+
+html,
+body {
+  @apply antialiased;
+  @apply bg-gray-50;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
