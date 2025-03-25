@@ -103,17 +103,8 @@ const ResultsDisplay = ({
   const joistDepthRef = useRef(null);
   const resultsRef = useRef(null);
   
-  // Get building data for additional information like floor height
+  // Get building data from context
   const { buildingData, updateBuildingData } = useBuildingData();
-  
-  // Handler functions for BayLayoutVisualizer
-  const handleToggleCustomBayDimensions = () => {
-    updateBuildingData('useCustomBayDimensions', !buildingData.useCustomBayDimensions);
-  };
-  
-  const handleJoistDirectionChange = (value) => {
-    updateBuildingData('joistsRunLengthwise', value);
-  };
   
   // Use a force update counter to ensure the component refreshes when results change
   const [updateCounter, setUpdateCounter] = useState(0);
@@ -149,74 +140,20 @@ const ResultsDisplay = ({
   
   // If we have results, show them
   const hasResults = results && results.joistSize && results.beamSize;
-  const hasJoistSize = hasResults && results.joistSize;
-  const hasBeamSize = hasResults && results.beamSize;
-  const hasEdgeBeamSize = hasResults && results.edgeBeamSize;
-  const hasColumnSize = hasResults && results.columnSize;
-  
-  // Local state for debugger to avoid hydration issues
-  const [localWidth, setLocalWidth] = useState(hasJoistSize ? results.joistSize.width : null);
-  const [localDepth, setLocalDepth] = useState(hasJoistSize ? results.joistSize.depth : null);
-  
-  // Update refs when results change
-  useEffect(() => {
-    if (hasJoistSize) {
-      if (joistWidthRef.current) joistWidthRef.current.textContent = results.joistSize.width;
-      if (joistDepthRef.current) joistDepthRef.current.textContent = results.joistSize.depth;
-      setLocalWidth(results.joistSize.width);
-      setLocalDepth(results.joistSize.depth);
-    }
-  }, [hasJoistSize, results?.joistSize?.width, results?.joistSize?.depth, updateCounter]);
-  
-  // During server-side rendering or before client hydration
-  if (!isClient) {
-    return (
-      <div className="apple-card p-6 text-center">
-        <h2 className="text-xl font-semibold mb-4">Results</h2>
-        <p style={{ color: 'var(--apple-text-secondary)' }}>Loading calculation results...</p>
-      </div>
-    );
-  }
-  
-  // If no results are available
-  if (!results) {
-    return (
-      <div className="apple-card p-6 text-center">
-        <h2 className="text-xl font-semibold mb-4">Results</h2>
-        <p style={{ color: 'var(--apple-text-secondary)' }}>Configure your timber structure parameters to see calculation results.</p>
-      </div>
-    );
-  }
-  
-  // Add console log to debug results structure (client-side only)
-  console.log("ResultsDisplay - results object:", results, "Update counter:", updateCounter);
-  
-  // Add detailed debugging for beam sizes
-  console.log("BEAM SIZES DEBUG:", {
-    interiorBeamWidth: results.interiorBeamSize?.width,
-    interiorBeamDepth: results.interiorBeamSize?.depth,
-    edgeBeamWidth: results.edgeBeamSize?.width,
-    edgeBeamDepth: results.edgeBeamSize?.depth,
-    beamSize: results.beamSize, // Check if this contains interior beam data
-  });
-  
-  // Add detailed debugging for joist sizes
-  console.log("JOIST SIZES DEBUG:", {
-    joistWidth: results.joistSize?.width, 
-    joistDepth: results.joistSize?.depth,
-    joistSpan: results.joistSize?.span,
-    joistSpacing: results.joistSize?.spacing,
-    joistLoadValue: results.joistSize?.load,
-    joistSafetyFactor: results.joistSize?.safetyFactor,
-    joistDeflectionLimit: results.joistSize?.deflectionLimit,
-    joistFireAdjustedDepth: results.joistSize?.fireAdjustedDepth
-  });
-  
-  // Generate a key for the component to force re-render when values change
-  const resultsKey = `joists-${updateCounter}-beams-${results.interiorBeamSize?.width || 'NA'}-${results.interiorBeamSize?.depth || 'NA'}-joists-${results.joistSize?.width || 'NA'}-${results.joistSize?.depth || 'NA'}`;
-  
+  const hasBeamSize = results?.beamSize?.width && results?.beamSize?.depth;
+  const hasEdgeBeamSize = results?.edgeBeamSize?.width && results?.edgeBeamSize?.depth;
+
+  // Handler functions for BayLayoutVisualizer
+  const handleToggleCustomBayDimensions = () => {
+    updateBuildingData('useCustomBayDimensions', !buildingData.useCustomBayDimensions);
+  };
+
+  const handleJoistDirectionChange = (value) => {
+    updateBuildingData('joistsRunLengthwise', value);
+  };
+
   return (
-    <div className="apple-results" key={resultsKey} ref={resultsRef}>
+    <div className="apple-results" key={`joists-${updateCounter}-beams-${results.interiorBeamSize?.width || 'NA'}-${results.interiorBeamSize?.depth || 'NA'}-joists-${results.joistSize?.width || 'NA'}-${results.joistSize?.depth || 'NA'}`} ref={resultsRef}>
       <div className="apple-card-header flex justify-between items-center">
         <h2 className="text-lg md:text-xl font-semibold m-0">Results</h2>
         
@@ -251,9 +188,6 @@ const ResultsDisplay = ({
               buildingData={buildingData}
               results={results}
               isMobile={isMobile}
-              useCustomBayDimensions={buildingData.useCustomBayDimensions}
-              customLengthwiseBayWidths={buildingData.customLengthwiseBayWidths}
-              customWidthwiseBayWidths={buildingData.customWidthwiseBayWidths}
               handleToggleCustomBayDimensions={handleToggleCustomBayDimensions}
               handleJoistDirectionChange={handleJoistDirectionChange}
             />
@@ -271,17 +205,18 @@ const ResultsDisplay = ({
               <div>
                 <h4 className="text-sm font-medium mb-2">Joists</h4>
                 <div className="text-sm">
-                  <p className="text-red-500 font-bold">Calculated Span: {results?.joistSize?.span?.toFixed(2) || 'N/A'}m</p>
                   <p><span className="text-gray-500">Width:</span> <span ref={joistWidthRef} data-joist-width>{results?.joistSize?.width || 'N/A'}mm</span></p>
                   <p><span className="text-gray-500">Depth:</span> <span ref={joistDepthRef} data-joist-depth>{results?.joistSize?.depth || 'N/A'}mm</span></p>
                   <p><span className="text-gray-500">Span:</span> {results?.joistSize?.span?.toFixed(2) || 'N/A'}m</p>
                   <p><span className="text-gray-500">Governing:</span> {results?.joistSize?.isDeflectionGoverning ? 'Deflection' : 'Bending'}</p>
                 
                   {/* Add debug information dropdown */}
-                  {results.joistSize && (
+                  {results?.joistSize && (
                     <div className="mt-2 pt-2 border-t border-gray-200 text-xs">
-                      <details className="cursor-pointer">
-                        <summary className="font-medium text-blue-600 cursor-pointer">Calculation Details</summary>
+                      <details className="cursor-pointer group">
+                        <summary className="font-medium text-blue-600 cursor-pointer hover:text-blue-700">
+                          Calculation Details
+                        </summary>
                         <div className="mt-1 p-2 bg-gray-50 rounded">
                           <p><span className="font-medium">Span:</span> {results.joistSize.span?.toFixed(2)}m</p>
                           <p><span className="font-medium">Spacing:</span> {(results.joistSize.spacing/1000).toFixed(1)}m</p>
@@ -292,7 +227,6 @@ const ResultsDisplay = ({
                           <p><span className="font-medium">Bending Depth Required:</span> {results.joistSize.bendingDepth}mm</p>
                           <p><span className="font-medium">Deflection Depth Required:</span> {results.joistSize.deflectionDepth}mm</p>
                           <p><span className="font-medium">Fire Adjusted Depth:</span> {results.joistSize.fireAdjustedDepth}mm</p>
-                          <p className="text-red-600 font-bold">Required Depth for {results.joistSize.span?.toFixed(2)}m span: {results.joistSize.depth}mm</p>
                         </div>
                       </details>
                     </div>
@@ -334,8 +268,30 @@ const ResultsDisplay = ({
               <div>
                 <h4 className="text-sm font-medium mb-2">Columns</h4>
                 <div className="text-sm">
-                  <p><span className="text-gray-500">Size:</span> {results.columnSize?.width || 'N/A'}mm × {results.columnSize?.depth || 'N/A'}mm</p>
-                  <p><span className="text-gray-500">Height:</span> {results.columnSize?.height || buildingData?.floorHeight ? `${(results.columnSize?.height || buildingData?.floorHeight).toFixed(2)}m` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Volume:</span> {
+                    typeof results?.elementVolumes?.columns === 'number' 
+                      ? `${results.elementVolumes.columns.toFixed(2)} m³` 
+                      : buildingData?.floorHeight && results?.columnSize && buildingData?.numFloors
+                        ? `${((results.columnSize.width * results.columnSize.depth * 0.000001 * buildingData.floorHeight * buildingData.numFloors) || 0).toFixed(2)} m³` 
+                        : 'N/A'
+                  }</p>
+                  <p><span className="text-gray-500">Quantity:</span> {
+                    typeof results?.elementCounts?.columns === 'number' 
+                      ? `${results.elementCounts.columns} pieces` 
+                      : buildingData?.lengthwiseBays != null && buildingData?.widthwiseBays != null && buildingData?.numFloors != null
+                        ? `${((buildingData.lengthwiseBays + 1) * (buildingData.widthwiseBays + 1) * buildingData.numFloors)} pieces` 
+                        : 'N/A'
+                  }</p>
+                  <p><span className="text-gray-500">Size:</span> {
+                    results?.columnSize?.width && results?.columnSize?.depth
+                      ? `${results.columnSize.width}×${results.columnSize.depth}mm` 
+                      : 'N/A'
+                  }</p>
+                  <p><span className="text-gray-500">Height:</span> {
+                    buildingData?.floorHeight
+                      ? `${buildingData.floorHeight.toFixed(2)}m` 
+                      : 'N/A'
+                  }</p>
                 </div>
               </div>
             </div>
@@ -433,20 +389,29 @@ const ResultsDisplay = ({
                 <h4 className="text-sm font-medium mb-2">Columns</h4>
                 <div className="text-sm">
                   <p><span className="text-gray-500">Volume:</span> {
-                    typeof results.elementVolumes?.columns === 'number' 
+                    typeof results?.elementVolumes?.columns === 'number' 
                       ? `${results.elementVolumes.columns.toFixed(2)} m³` 
-                      : results.columnSize 
-                        ? `${((results.columnSize.width * results.columnSize.depth * 0.000001 * (buildingData?.floorHeight || 3)) || 0).toFixed(2)} m³` 
+                      : buildingData?.floorHeight && results?.columnSize && buildingData?.numFloors
+                        ? `${((results.columnSize.width * results.columnSize.depth * 0.000001 * buildingData.floorHeight * buildingData.numFloors) || 0).toFixed(2)} m³` 
                         : 'N/A'
                   }</p>
                   <p><span className="text-gray-500">Quantity:</span> {
-                    typeof results.elementCounts?.columns === 'number' 
+                    typeof results?.elementCounts?.columns === 'number' 
                       ? `${results.elementCounts.columns} pieces` 
-                      : buildingData
-                        ? `${((buildingData.lengthwiseBays + 1) * (buildingData.widthwiseBays + 1) || 0)} pieces` 
+                      : buildingData?.lengthwiseBays != null && buildingData?.widthwiseBays != null && buildingData?.numFloors != null
+                        ? `${((buildingData.lengthwiseBays + 1) * (buildingData.widthwiseBays + 1) * buildingData.numFloors)} pieces` 
                         : 'N/A'
                   }</p>
-                  <p><span className="text-gray-500">Size:</span> {results.columnSize ? `${results.columnSize.width}×${results.columnSize.depth}mm` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Size:</span> {
+                    results?.columnSize?.width && results?.columnSize?.depth
+                      ? `${results.columnSize.width}×${results.columnSize.depth}mm` 
+                      : 'N/A'
+                  }</p>
+                  <p><span className="text-gray-500">Height:</span> {
+                    buildingData?.floorHeight
+                      ? `${buildingData.floorHeight.toFixed(2)}m` 
+                      : 'N/A'
+                  }</p>
                 </div>
               </div>
             </div>

@@ -315,7 +315,7 @@ export function calculateStructure(buildingData) {
   );
   
   // Calculate number of columns
-  const columnCount = (numLengthwiseBays + 1) * (numWidthwiseBays + 1);
+  const columnCount = (numLengthwiseBays + 1) * (numWidthwiseBays + 1) * numFloors;
   
   // Calculate total timber volume
   const totalTimberVolume = joistVolume + beamVolume + columnVolume;
