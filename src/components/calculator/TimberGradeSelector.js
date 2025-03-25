@@ -7,12 +7,12 @@
  */
 const TimberGradeSelector = ({ value, onChange }) => {
   return (
-    <div className="mt-4">
-      <label className="block text-sm font-medium text-gray-700">Timber Grade</label>
+    <div className="space-y-4">
+      <h3 className="subsection-header">Timber Grade</h3>
       <select
         id="timberGrade"
         name="timberGrade"
-        className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        className="input-field appearance-none bg-white"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >

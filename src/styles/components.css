@@ -1,0 +1,164 @@
+/* Typography */
+.text-display {
+  @apply font-display text-header-xl font-bold text-text-primary;
+}
+
+.section-header {
+  @apply font-sans text-header font-semibold text-text-primary pb-2 border-b border-border-light;
+}
+
+.subsection-header {
+  @apply font-sans text-header-sm font-semibold text-text-primary;
+}
+
+.body-text {
+  @apply font-sans text-body text-text-secondary;
+}
+
+.body-text-small {
+  @apply font-sans text-body-sm text-text-tertiary;
+}
+
+/* Form Elements */
+.input-field {
+  @apply h-8 px-2 py-0 w-full
+    bg-background-primary
+    border border-border
+    rounded
+    text-body text-text-secondary
+    focus:border-primary focus:ring-1 focus:ring-primary focus:ring-offset-0
+    disabled:bg-background-secondary disabled:text-text-tertiary
+    transition-colors duration-150;
+}
+
+.select-field {
+  @apply input-field appearance-none pr-8
+    bg-[url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")]
+    bg-[length:16px] bg-no-repeat bg-[center_right_10px];
+}
+
+.radio-field {
+  @apply h-4 w-4
+    text-primary
+    border-border
+    focus:ring-primary focus:ring-offset-0
+    cursor-pointer;
+}
+
+.checkbox-field {
+  @apply h-4 w-4
+    text-primary
+    border-border
+    rounded
+    focus:ring-primary focus:ring-offset-0
+    cursor-pointer;
+}
+
+/* Buttons */
+.btn-primary {
+  @apply h-9 px-4
+    bg-primary hover:bg-primary-hover
+    text-white font-medium text-body
+    rounded
+    focus:outline-none focus:ring-1 focus:ring-primary focus:ring-offset-0
+    disabled:opacity-50
+    transition-colors duration-150;
+}
+
+.btn-secondary {
+  @apply h-9 px-4
+    bg-background-primary hover:bg-background-secondary
+    text-text-secondary font-medium text-body
+    border border-border
+    rounded
+    focus:outline-none focus:ring-1 focus:ring-primary focus:ring-offset-0
+    disabled:opacity-50
+    transition-colors duration-150;
+}
+
+.btn-icon {
+  @apply h-8 w-8
+    bg-transparent hover:bg-background-secondary
+    text-text-tertiary hover:text-text-secondary
+    rounded
+    focus:outline-none focus:ring-1 focus:ring-primary focus:ring-offset-0
+    transition-colors duration-150;
+}
+
+/* Cards */
+.card {
+  @apply bg-background-primary
+    border border-border-light
+    rounded
+    overflow-hidden;
+}
+
+.card-header {
+  @apply p-4
+    border-b border-border-light;
+}
+
+.card-body {
+  @apply p-4;
+}
+
+/* Layout */
+.container {
+  @apply max-w-[1200px] mx-auto px-4 md:px-6;
+}
+
+.section {
+  @apply mb-10;
+}
+
+.subsection {
+  @apply mb-6;
+}
+
+/* Form Groups */
+.form-group {
+  @apply space-y-2;
+}
+
+.form-label {
+  @apply block text-body text-text-secondary font-medium;
+}
+
+.form-helper {
+  @apply text-body-sm text-text-tertiary mt-1;
+}
+
+/* Grid */
+.grid-cols-auto-fit {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+}
+
+/* Cost Display */
+.cost-total {
+  @apply text-header-lg font-semibold text-text-primary;
+}
+
+.cost-breakdown {
+  @apply text-body text-text-tertiary;
+}
+
+/* Status Indicators */
+.badge-success {
+  @apply px-2 py-1
+    bg-success/10
+    text-success text-body-sm font-medium
+    rounded;
+}
+
+/* Loading States */
+.loading-skeleton {
+  @apply animate-pulse bg-background-secondary rounded;
+}
+
+/* Tooltips */
+.tooltip {
+  @apply absolute z-10 p-2
+    bg-text-primary text-white text-body-sm
+    rounded
+    shadow-sm;
+} 

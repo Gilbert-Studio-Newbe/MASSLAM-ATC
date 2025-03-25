@@ -245,16 +245,16 @@ export default function TimberCalculator() {
     <div className="apple-container mx-auto px-4 py-8">
       {/* Success message for saving */}
       {saveMessage && (
-      <SuccessMessage 
-        message={saveMessage} 
+        <SuccessMessage 
+          message={saveMessage} 
           onClose={() => setSaveMessage('')}
-      />
+        />
       )}
       
       {/* Save Project Modal */}
       {showSaveModal && (
-      <SaveProjectModal
-        projectDetails={projectDetails}
+        <SaveProjectModal
+          projectDetails={projectDetails}
           onDetailChange={handleProjectDetailsChange}
           onSave={onSaveProject}
           onCancel={() => setShowSaveModal(false)}
@@ -275,15 +275,11 @@ export default function TimberCalculator() {
       </div>
       
       {/* Main Content */}
-      <div className="grid md:grid-cols-12 gap-6">
+      <div className="grid lg:grid-cols-12 gap-8">
         {/* Input Panel */}
-        <div className="md:col-span-5 lg:col-span-6 xl:col-span-5">
+        <div className="lg:col-span-6 xl:col-span-5">
           <div className="apple-panel">
             <div className="apple-panel-content">
-              <h2 className="text-xl font-semibold mb-4">
-                Building Configuration
-              </h2>
-              
               {/* Structure Configuration Section */}
               <StructureConfigSection 
                 buildingData={buildingData}
@@ -322,12 +318,10 @@ export default function TimberCalculator() {
                   </div>
                 </div>
               </div>
-              
-              {/* Note: Timber Grade moved to Calculation Methodology Page */}
-                      </div>
-                  </div>
-              </div>
-              
+            </div>
+          </div>
+        </div>
+        
         {/* Results Panel */}
         <div className="lg:col-span-6 xl:col-span-7 w-full">
           <ResultsDisplay 

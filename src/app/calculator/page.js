@@ -25,5 +25,13 @@ export default function TimberCalculatorPage() {
     }
   }, []);
 
-  return <TimberCalculator />;
+  return (
+    <div>
+      <h1 className="page-title">Member Calculator</h1>
+      <p className="text-descriptive mb-8">
+        Design and optimize timber members for your building structure. Input your requirements and get instant sizing and cost estimates.
+      </p>
+      <TimberCalculator />
+    </div>
+  );
 } 

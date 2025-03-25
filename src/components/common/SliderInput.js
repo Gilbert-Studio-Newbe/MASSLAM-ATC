@@ -85,12 +85,12 @@ const SliderInput = ({
   };
 
   return (
-    <div className="mb-4">
-      <div className="flex justify-between items-center mb-1">
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
         <div className="flex-grow">
-          <label className="text-sm font-medium text-gray-700">{label}</label>
+          <label className="text-[14px] text-[#333333] font-medium">{label}</label>
           {description && (
-            <div className="text-xs text-gray-500">{description}</div>
+            <div className="text-[12px] text-[#666666] mt-1">{description}</div>
           )}
         </div>
         <div className="flex items-center">
@@ -102,10 +102,10 @@ const SliderInput = ({
             onBlur={handleInputBlur}
             onKeyDown={handleKeyPress}
             onClick={startEditing}
-            className="w-20 px-2 py-1 text-right border border-gray-300 rounded-md text-sm"
+            className={`w-20 h-8 px-2 text-right text-[14px] border border-[#CCCCCC] rounded-[4px] focus:border-[#3D7EDC] focus:ring-1 focus:ring-[#3D7EDC] ${disabled ? 'bg-[#F5F5F5] text-[#666666]' : 'bg-white text-[#333333]'}`}
             disabled={disabled}
           />
-          <span className="ml-1 text-sm text-gray-500 min-w-8 text-left">{unit}</span>
+          <span className="ml-2 text-[14px] text-[#666666] min-w-8 text-left">{unit}</span>
         </div>
       </div>
     </div>

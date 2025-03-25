@@ -97,6 +97,15 @@ const BayLayoutVisualizer = ({
   const viewBoxPadding = isMobile ? 2.5 : 2;
   const viewBox = `-${viewBoxPadding} -${viewBoxPadding} ${totalWidth + viewBoxPadding*2} ${totalHeight + viewBoxPadding*2}`;
 
+  // Design system colors
+  const colors = {
+    primary: '#3D7EDC',
+    secondary: '#666666',
+    border: '#CCCCCC',
+    text: '#333333',
+    background: '#FFFFFF'
+  };
+
   // Render functions for different elements
   const renderJoists = () => {
     const joistSpacingM = 0.8;
@@ -122,7 +131,7 @@ const BayLayoutVisualizer = ({
                 y1={bayStartY}
                 x2={joistX}
                 y2={bayEndY}
-                stroke="#cccccc"
+                stroke={colors.border}
                 strokeWidth="0.03"
                 strokeDasharray="0.1,0.1"
               />
@@ -150,7 +159,7 @@ const BayLayoutVisualizer = ({
                 y1={joistY}
                 x2={bayEndX}
                 y2={joistY}
-                stroke="#cccccc"
+                stroke={colors.border}
                 strokeWidth="0.03"
                 strokeDasharray="0.1,0.1"
               />
@@ -180,7 +189,7 @@ const BayLayoutVisualizer = ({
             y1={0}
             x2={x}
             y2={totalHeight}
-            stroke="#555555"
+            stroke={colors.text}
             strokeWidth="0.08"
             strokeLinecap="square"
           />
@@ -200,7 +209,7 @@ const BayLayoutVisualizer = ({
             y1={y}
             x2={totalWidth}
             y2={y}
-            stroke="#555555"
+            stroke={colors.text}
             strokeWidth="0.08"
             strokeLinecap="square"
           />
@@ -255,8 +264,8 @@ const BayLayoutVisualizer = ({
           y={y - scaledColumnHeight/2}
           width={scaledColumnWidth}
           height={scaledColumnHeight}
-          fill="#555"
-          stroke="#333"
+          fill={colors.text}
+          stroke={colors.text}
           strokeWidth="0.02"
           rx="0.02"
           ry="0.02"
@@ -282,8 +291,9 @@ const BayLayoutVisualizer = ({
             y={-0.8 * (isMobile ? 1.5 : 1.2)}
             textAnchor="middle"
             fontSize={fontSize}
-            fontWeight={isMobile ? "bold" : "normal"}
-            fill="#666666"
+            fontWeight="500"
+            fill={colors.secondary}
+            className="font-medium"
           >
             {String.fromCharCode(65 + i)}
           </text>
@@ -297,8 +307,9 @@ const BayLayoutVisualizer = ({
             y={bayPositionsY[i] + height / 2 + 0.1}
             textAnchor="middle"
             fontSize={fontSize}
-            fontWeight={isMobile ? "bold" : "normal"}
-            fill="#666666"
+            fontWeight="500"
+            fill={colors.secondary}
+            className="font-medium"
           >
             {i + 1}
           </text>
@@ -311,8 +322,8 @@ const BayLayoutVisualizer = ({
           y={totalHeight / 2}
           textAnchor="middle"
           fontSize={fontSize}
-          fontWeight={isMobile ? "bold" : "normal"}
-          fill="#666666"
+          fontWeight="400"
+          fill={colors.secondary}
           transform={`rotate(90, ${totalWidth + positionOffset}, ${totalHeight / 2})`}
         >
           {buildingWidth.toFixed(1)}m
@@ -325,8 +336,8 @@ const BayLayoutVisualizer = ({
           y={totalHeight + positionOffset}
           textAnchor="middle"
           fontSize={fontSize}
-          fontWeight={isMobile ? "bold" : "normal"}
-          fill="#666666"
+          fontWeight="400"
+          fill={colors.secondary}
         >
           {buildingLength.toFixed(1)}m
         </text>
@@ -340,7 +351,7 @@ const BayLayoutVisualizer = ({
         width={svgDimensions.width}
         height={svgDimensions.height}
         viewBox={`0 0 ${svgDimensions.width} ${svgDimensions.height}`}
-        className="rounded"
+        className="rounded-[4px]"
       >
         <svg 
           width="100%" 
@@ -348,13 +359,12 @@ const BayLayoutVisualizer = ({
           viewBox={viewBox}
           preserveAspectRatio="xMidYMid meet"
           style={{ 
-            background: 'white', 
+            background: colors.background,
             maxWidth: '100%',
             maxHeight: '100%',
             objectFit: 'contain'
           }}
         >
-          {/* Remove border rect and just keep building elements */}
           <g className="joists">{renderJoists()}</g>
           <g className="beams">{renderBeams()}</g>
           <g className="columns">{renderColumns()}</g>
@@ -362,13 +372,13 @@ const BayLayoutVisualizer = ({
         </svg>
       </svg>
 
-      <div className="text-center text-sm mt-4" style={{ color: 'var(--apple-text-secondary)' }}>
+      <div className="mt-4 text-center">
         {!useCustomBayDimensions ? (
-          <div className="text-xs md:text-sm">
+          <div className="text-[12px] text-[#666666]">
             Grid Cell Size: {(buildingLength / lengthwiseBays).toFixed(2)}m × {(buildingWidth / widthwiseBays).toFixed(2)}m
           </div>
         ) : (
-          <div className="text-xs md:text-sm">Custom grid cell sizes applied</div>
+          <div className="text-[12px] text-[#666666]">Custom grid cell sizes applied</div>
         )}
       </div>
     </div>
