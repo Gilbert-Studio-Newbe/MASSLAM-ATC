@@ -352,16 +352,40 @@ const ResultsDisplay = ({
               <div>
                 <h4 className="text-sm font-medium mb-2">Joists</h4>
                 <div className="text-sm">
-                  <p><span className="text-gray-500">Volume:</span> {typeof results.elementVolumes?.joists === 'number' ? `${results.elementVolumes.joists.toFixed(2)} m³` : 'N/A'}</p>
-                  <p><span className="text-gray-500">Quantity:</span> {typeof results.elementCounts?.joists === 'number' ? `${results.elementCounts.joists} pieces` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Volume:</span> {
+                    typeof results.elementVolumes?.joists === 'number' 
+                      ? `${results.elementVolumes.joists.toFixed(2)} m³` 
+                      : results.joistSize 
+                        ? `${((results.joistSize.width * results.joistSize.depth * 0.000001 * results.joistSize.span) || 0).toFixed(2)} m³` 
+                        : 'N/A'
+                  }</p>
+                  <p><span className="text-gray-500">Quantity:</span> {
+                    typeof results.elementCounts?.joists === 'number' 
+                      ? `${results.elementCounts.joists} pieces` 
+                      : buildingData && results.joistSize
+                        ? `${Math.ceil(buildingData.buildingLength / buildingData.joistSpacing) || 0} pieces` 
+                        : 'N/A'
+                  }</p>
                   <p><span className="text-gray-500">Size:</span> {results.joistSize ? `${results.joistSize.width}×${results.joistSize.depth}mm` : 'N/A'}</p>
                 </div>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-2">Beams</h4>
                 <div className="text-sm">
-                  <p><span className="text-gray-500">Volume:</span> {typeof results.elementVolumes?.beams === 'number' ? `${results.elementVolumes.beams.toFixed(2)} m³` : 'N/A'}</p>
-                  <p><span className="text-gray-500">Quantity:</span> {typeof results.elementCounts?.beams === 'number' ? `${results.elementCounts.beams} pieces` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Volume:</span> {
+                    typeof results.elementVolumes?.beams === 'number' 
+                      ? `${results.elementVolumes.beams.toFixed(2)} m³` 
+                      : results.beamSize 
+                        ? `${((results.beamSize.width * results.beamSize.depth * 0.000001 * results.beamSize.span) || 0).toFixed(2)} m³` 
+                        : 'N/A'
+                  }</p>
+                  <p><span className="text-gray-500">Quantity:</span> {
+                    typeof results.elementCounts?.beams === 'number' 
+                      ? `${results.elementCounts.beams} pieces` 
+                      : buildingData
+                        ? `${((buildingData.lengthwiseBays + 1) * (buildingData.widthwiseBays) || 0)} pieces` 
+                        : 'N/A'
+                  }</p>
                   <p><span className="text-gray-500">Interior:</span> {hasBeamSize ? `${results.beamSize.width}×${results.beamSize.depth}mm` : 'N/A'}</p>
                   <p><span className="text-gray-500">Edge:</span> {hasEdgeBeamSize ? `${results.edgeBeamSize.width}×${results.edgeBeamSize.depth}mm` : 'N/A'}</p>
                 </div>
@@ -369,8 +393,20 @@ const ResultsDisplay = ({
               <div>
                 <h4 className="text-sm font-medium mb-2">Columns</h4>
                 <div className="text-sm">
-                  <p><span className="text-gray-500">Volume:</span> {typeof results.elementVolumes?.columns === 'number' ? `${results.elementVolumes.columns.toFixed(2)} m³` : 'N/A'}</p>
-                  <p><span className="text-gray-500">Quantity:</span> {typeof results.elementCounts?.columns === 'number' ? `${results.elementCounts.columns} pieces` : 'N/A'}</p>
+                  <p><span className="text-gray-500">Volume:</span> {
+                    typeof results.elementVolumes?.columns === 'number' 
+                      ? `${results.elementVolumes.columns.toFixed(2)} m³` 
+                      : results.columnSize 
+                        ? `${((results.columnSize.width * results.columnSize.depth * 0.000001 * (buildingData?.floorHeight || 3)) || 0).toFixed(2)} m³` 
+                        : 'N/A'
+                  }</p>
+                  <p><span className="text-gray-500">Quantity:</span> {
+                    typeof results.elementCounts?.columns === 'number' 
+                      ? `${results.elementCounts.columns} pieces` 
+                      : buildingData
+                        ? `${((buildingData.lengthwiseBays + 1) * (buildingData.widthwiseBays + 1) || 0)} pieces` 
+                        : 'N/A'
+                  }</p>
                   <p><span className="text-gray-500">Size:</span> {results.columnSize ? `${results.columnSize.width}×${results.columnSize.depth}mm` : 'N/A'}</p>
                 </div>
               </div>

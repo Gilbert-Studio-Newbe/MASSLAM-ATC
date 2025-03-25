@@ -193,13 +193,23 @@ export function useFormState() {
         columnSize: results.columnSize,
         timberWeight: weightResults.weight,
         timberVolume: weightResults.totalVolume,
-        elementVolumes: weightResults.elements,
+        elementVolumes: {
+          joists: results.elementVolumes?.joists || weightResults.elements.joists.volume,
+          beams: results.elementVolumes?.beams || weightResults.elements.beams.volume,
+          columns: results.elementVolumes?.columns || weightResults.elements.columns.volume
+        },
+        elementCounts: {
+          joists: results.elementCounts?.joists || weightResults.elements.joists.count,
+          beams: results.elementCounts?.beams || weightResults.elements.beams.count,
+          columns: results.elementCounts?.columns || weightResults.elements.columns.count
+        },
         carbonSavings: carbonResults.carbonSavings,
         carbonStorage: carbonResults.carbonStorage
       };
       
       // Update results in state
       console.log("[FORM DEBUG] About to update local state with results");
+      console.log("[FORM DEBUG] Combined results object:", JSON.stringify(combinedResults, null, 2));
       setResults(combinedResults);
       
       // Update context with calculated results
@@ -207,6 +217,8 @@ export function useFormState() {
       updateCalculationResults(combinedResults);
       
       console.log("[FORM] Calculation completed:", combinedResults);
+      console.log("[FORM DEBUG] elementVolumes:", combinedResults.elementVolumes);
+      console.log("[FORM DEBUG] elementCounts:", combinedResults.elementCounts);
       console.log("[FORM DEBUG] ========== CALCULATION COMPLETE ==========");
     } catch (error) {
       console.error("[FORM] Error in calculations:", error);

@@ -4,26 +4,25 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from './page.module.css';
-import { calculateJoistSize } from '../utils/timberEngineering';
+import { calculateJoistSize } from '../utils/calculations/joist-calculator';
+import TimberCalculator from '../components/TimberCalculator';
 
 export default function Home() {
   const [testResult, setTestResult] = useState(null);
 
+  // Test the function
   useEffect(() => {
-    // Test the calculateJoistSize function
     try {
-      console.log('Testing calculateJoistSize function...');
-      const result = calculateJoistSize(5, 2, 'none');
-      console.log('Test result:', result);
+      const result = calculateJoistSize(9000, 600, 2.0, 2.0, []);
+      console.log("Joist size calculation test result:", result);
       setTestResult(result);
     } catch (error) {
-      console.error('Error testing calculateJoistSize:', error);
-      setTestResult({ error: error.message });
+      console.error("Error testing joist calculation:", error);
     }
   }, []);
 
   return (
-    <main className={styles.main}>
+    <div className={styles.container}>
       <div className={styles.hero}>
         <div className={styles.heroContent}>
           <h1 className={styles.title}>ATC by ASH</h1>
@@ -32,36 +31,24 @@ export default function Home() {
             A parametric design tool for timber structures using MASSLAM sections
           </p>
           <div className={styles.buttonContainer}>
-            <Link 
+            <a 
               href="/timber-calculator" 
               className={styles.primaryButton}
-              onClick={(e) => {
-                e.preventDefault();
-                window.location.href = "/timber-calculator";
-              }}
             >
               Start Designing
-            </Link>
-            <Link 
+            </a>
+            <a 
               href="/masslam-sizes" 
               className={styles.secondaryButton}
-              onClick={(e) => {
-                e.preventDefault();
-                window.location.href = "/masslam-sizes";
-              }}
             >
               View MASSLAM Sizes
-            </Link>
-            <Link 
+            </a>
+            <a 
               href="/calculation-methodology" 
               className={styles.secondaryButton}
-              onClick={(e) => {
-                e.preventDefault();
-                window.location.href = "/calculation-methodology";
-              }}
             >
               Calculation Methodology
-            </Link>
+            </a>
           </div>
         </div>
         <div className={styles.heroImage}>
@@ -86,46 +73,39 @@ export default function Home() {
         </div>
       )}
 
-      <section className={styles.features}>
+      <div className={styles.features}>
         <h2 className={styles.sectionTitle}>Features</h2>
         <div className={styles.featureGrid}>
-          <div className={styles.featureCard}>
+          <div className={styles.feature}>
             <h3>Parametric Design</h3>
-            <p>
-              Quickly iterate through different structural configurations and see results in real-time.
-            </p>
+            <p>Quickly explore different structural configurations with real-time feedback.</p>
           </div>
-          <div className={styles.featureCard}>
-            <h3>MASSLAM Integration</h3>
-            <p>
-              Designed specifically for ASH's MASSLAM engineered timber products.
-            </p>
+          <div className={styles.feature}>
+            <h3>Precision Calculations</h3>
+            <p>Accurate sizing of joists, beams and columns according to AS1720.</p>
           </div>
-          <div className={styles.featureCard}>
-            <h3>Cost Estimation</h3>
-            <p>
-              Get preliminary cost estimates for your timber structure design.
-            </p>
+          <div className={styles.feature}>
+            <h3>MASSLAM Sections</h3>
+            <p>Utilize the complete range of ASH's MASSLAM glulam products.</p>
           </div>
-          <div className={styles.featureCard}>
-            <h3>Carbon Calculation</h3>
-            <p>
-              Understand the environmental impact and carbon storage of your design.
-            </p>
+          <div className={styles.feature}>
+            <h3>Carbon Calculations</h3>
+            <p>Estimate the carbon stored in your timber structure design.</p>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section className={styles.about}>
+      <div className={styles.aboutSection}>
         <h2 className={styles.sectionTitle}>About MASSLAM</h2>
-        <p>
-          MASSLAM is a range of engineered timber products manufactured by ASH (Australian Sustainable Hardwoods).
-          Made from sustainably sourced Victorian hardwood, MASSLAM offers exceptional strength, durability, and fire resistance.
+        <p className={styles.aboutText}>
+          MASSLAM is a range of GL17 and GL21 glue laminated timber products manufactured by Australian Sustainable Hardwoods (ASH). Made from Victorian Hardwoods, MASSLAM products offer superior strength, stiffness, and fire resistance compared to traditional softwood alternatives.
         </p>
-        <p>
-          Learn more about <a href="https://ash.com.au/masslam/" target="_blank" rel="noopener noreferrer">MASSLAM</a>.
-        </p>
-      </section>
-    </main>
+        <div className={styles.ctaContainer}>
+          <a href="https://www.ash.com.au/masslam/" className={styles.ctaButton} target="_blank" rel="noopener noreferrer">
+            Learn More About MASSLAM
+          </a>
+        </div>
+      </div>
+    </div>
   );
 } 

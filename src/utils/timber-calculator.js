@@ -236,6 +236,68 @@ export function calculateStructure(buildingData) {
   // Log the column-beam width relationship
   console.log(`[STRUCTURE] Column width (${columnSize.width}mm) set to match beam width (${interiorBeamSize.width}mm)`);
   
+  // Calculate volumes and element counts
+  // Calculate joist volume (cubic meters) using the utility function
+  const joistVolume = calculateJoistVolume(
+    joistSize,
+    buildingLength,
+    buildingWidth,
+    joistSpacing,
+    joistsRunLengthwise
+  );
+  
+  // Calculate number of joists based on dimensions and spacing
+  let joistCount;
+  if (joistsRunLengthwise) {
+    joistCount = Math.ceil(buildingWidth / joistSpacing);
+  } else {
+    joistCount = Math.ceil(buildingLength / joistSpacing);
+  }
+  joistCount = joistCount * numFloors; // Multiply by number of floors
+  
+  // Calculate beam volume
+  const beamVolume = calculateBeamVolume(
+    interiorBeamSize,
+    edgeBeamSize,
+    buildingLength,
+    buildingWidth,
+    numLengthwiseBays,
+    numWidthwiseBays,
+    joistsRunLengthwise
+  );
+  
+  // Calculate number of beams
+  let beamCount;
+  if (joistsRunLengthwise) {
+    // Beams run widthwise only
+    beamCount = (numLengthwiseBays + 1) * numWidthwiseBays;
+  } else {
+    // Beams run lengthwise only
+    beamCount = (numWidthwiseBays + 1) * numLengthwiseBays;
+  }
+  beamCount = beamCount * numFloors; // Multiply by number of floors
+  
+  // Calculate column volume
+  const columnVolume = calculateColumnVolume(
+    columnSize,
+    buildingLength,
+    buildingWidth,
+    numLengthwiseBays,
+    numWidthwiseBays,
+    floorHeight,
+    numFloors
+  );
+  
+  // Calculate number of columns
+  const columnCount = (numLengthwiseBays + 1) * (numWidthwiseBays + 1);
+  
+  // Calculate total timber volume
+  const totalTimberVolume = joistVolume + beamVolume + columnVolume;
+  
+  // Calculate timber weight using density from timber properties
+  const density = TIMBER_PROPERTIES[timberGrade]?.density || 600; // kg/m³
+  const timberWeight = totalTimberVolume * density;
+  
   // Return all calculated sizes
   const result = {
     joistSize: {
@@ -252,7 +314,20 @@ export function calculateStructure(buildingData) {
     },
     beamSize: interiorBeamSize,
     edgeBeamSize,
-    columnSize
+    columnSize,
+    // Add volume and count information for materials summary
+    elementVolumes: {
+      joists: joistVolume,
+      beams: beamVolume,
+      columns: columnVolume
+    },
+    elementCounts: {
+      joists: joistCount,
+      beams: beamCount,
+      columns: columnCount
+    },
+    timberVolume: totalTimberVolume,
+    timberWeight: timberWeight
   };
   
   console.log("[STRUCTURE DEBUG] Final result object being returned:");
