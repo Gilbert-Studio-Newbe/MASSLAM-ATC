@@ -2,49 +2,222 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --masslam: #2C5282;
+  --masslam-light: #4299E1;
+  --masslam-dark: #2A4365;
+  --accent: #F6AD55;
+  --accent-light: #FBD38D;
+  --accent-dark: #C05621;
+  --apple-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  --apple-bg: #f5f5f7;
+  --apple-text: #1d1d1f;
+  --apple-text-secondary: #86868b;
+  --apple-blue: #0071e3;
+  --apple-blue-hover: #0077ed;
+  --apple-card-bg: #ffffff;
+  --apple-border: #d2d2d7;
+  --apple-success: #4bb543;
+  --apple-warning: #ff9500;
+  --apple-error: #ff3b30;
+  --apple-section-spacing: 3rem;
+  --apple-component-spacing: 1.5rem;
+}
+
+@layer base {
+  html {
+    @apply text-gray-900;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+  }
+  h1 {
+    @apply text-2xl;
+  }
+  h2 {
+    @apply text-xl;
+  }
+  h3 {
+    @apply text-lg;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded font-medium transition-colors;
+  }
+  .btn-primary {
+    @apply bg-green-600 text-white hover:bg-green-700;
+  }
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+  }
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700;
+  }
+  .btn-info {
+    @apply bg-blue-500 text-white hover:bg-blue-600;
+  }
+  .input {
+    @apply p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent;
+  }
+  .select {
+    @apply p-2 border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent;
+  }
+  .card {
+    @apply bg-white rounded-lg shadow p-6;
+  }
+  .card-header {
+    @apply flex justify-between items-center mb-4 pb-2 border-b border-gray-200;
+  }
+  .masslam-logo {
+    @apply bg-orange-500 text-white p-2 rounded font-bold text-center;
+  }
+}
+
 /* Navigation styles */
 .text-masslam {
-  color: #2d3748;
+  color: var(--masslam);
 }
 
 .text-accent {
-  color: #38a169;
+  color: var(--accent);
 }
 
 .bg-masslam {
-  background-color: #2d3748;
+  background-color: var(--masslam);
 }
 
 .hover\:bg-accent:hover {
-  background-color: #38a169;
+  background-color: var(--accent);
 }
 
 .hover\:text-accent:hover {
-  color: #38a169;
+  color: var(--accent);
 }
 
-/* Mobile menu styles */
-.mobile-menu {
-  transition: all 0.3s ease-in-out;
-  max-height: 0;
-  overflow: hidden;
-}
-
-.mobile-menu.open {
-  max-height: 500px;
-}
-
-.apple-header {
-  background-color: white;
-  border-bottom: 1px solid #e2e8f0;
-}
-
+/* Layout components */
 .apple-container {
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 1rem;
 }
 
+.apple-section {
+  margin-bottom: var(--apple-section-spacing);
+}
+
+/* Header and navigation */
+.apple-header {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--apple-border);
+}
+
 .apple-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 0.5rem 0;
+}
+
+.apple-nav-list {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.apple-nav-link {
+  color: var(--apple-text);
+  text-decoration: none;
+  margin: 0 0.75rem;
+  font-size: 0.875rem;
+  transition: color 0.2s ease;
+}
+
+.apple-nav-link:hover {
+  color: var(--apple-blue);
+}
+
+/* Mobile menu styles */
+.mobile-menu-button {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.mobile-nav {
+  display: block;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-button {
+    display: block;
+  }
+  
+  .mobile-nav {
+    display: none;
+  }
+  
+  .mobile-nav.active {
+    display: block;
+  }
+  
+  .apple-nav-list {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .apple-nav-list > * + * {
+    margin-left: 0;
+    margin-top: 1rem;
+  }
+  
+  .apple-nav-list {
+    padding-top: 1rem;
+  }
+}
+
+/* Footer */
+.apple-footer {
+  background-color: var(--apple-bg);
+  padding: 2rem 0;
+  border-top: 1px solid var(--apple-border);
+  font-size: 0.875rem;
+  color: var(--apple-text-secondary);
+}
+
+/* Custom animation classes */
+.transition-fast {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-medium {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.shadow-hover {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.shadow-hover:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 } 

@@ -1,336 +1,103 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  loadMasslamSizes, 
-  getAllMasslamSizes, 
-  debugMasslamSizes, 
-  verifyLoadedSizes,
-  initializeMasslamSizes,
-  getMasslamSizes,
-  filterToStandardSizes
-} from '@/utils/timberSizes';
-import styles from './MasslamSizes.module.css';
+import { useRouter } from 'next/navigation';
+import { fetchMasslamSizes } from '../../utils/data-fetchers';
 
-export default function MasslamSizesPage() {
-  const [sizes, setSizes] = useState([]);
+export default function MasslamSizes() {
+  const [sizes, setSizes] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [verificationResult, setVerificationResult] = useState(null);
-  const [uploadStatus, setUploadStatus] = useState(null);
-  const [refreshStatus, setRefreshStatus] = useState(null);
-  const fileInputRef = useRef(null);
+  const router = useRouter();
 
   useEffect(() => {
-    console.log('MasslamSizesPage: Component mounted');
-    
-    // Initialize the MASSLAM sizes module
-    console.log('Initializing MASSLAM sizes module from MasslamSizesPage');
-    initializeMasslamSizes();
-    
-    // Log the current state of MASSLAM sizes
-    console.log('Initial MASSLAM sizes:', getMasslamSizes());
-    
-    loadSizesFromCSV();
+    const loadSizes = async () => {
+      try {
+        const data = await fetchMasslamSizes();
+        setSizes(data);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    loadSizes();
   }, []);
 
-  const loadSizesFromCSV = async () => {
-    try {
-      setLoading(true);
-      
-      console.log('Loading MASSLAM sizes from MasslamSizesPage');
-      const loadedSizes = await loadMasslamSizes();
-      console.log(`Loaded ${loadedSizes.length} sizes from CSV`);
-      
-      // Filter to standard sizes
-      console.log('Filtering to standard sizes');
-      const standardSizes = filterToStandardSizes();
-      console.log(`Filtered to ${standardSizes.length} standard sizes`);
-      
-      // Get all sizes using the getter function
-      const allSizes = getAllMasslamSizes();
-      setSizes(allSizes);
-      
-      // Verify the loaded sizes
-      const verified = verifyLoadedSizes();
-      setVerificationResult(verified);
-      console.log('Verification result:', verified);
-      
-      // Debug the loaded sizes
-      debugMasslamSizes();
-      
-      // Fetch the raw CSV content for debugging
-      const csvUrl = typeof window !== 'undefined' 
-        ? new URL('/data/masslam_sizes.csv', window.location.origin).toString()
-        : '/data/masslam_sizes.csv';
-      
-      const response = await fetch(csvUrl);
-      const csvText = await response.text();
-      console.log('Raw CSV content length:', csvText.length);
-      console.log('CSV data lines:', csvText.trim().split('\n').length - 1); // Exclude header
-      
-      setLoading(false);
-    } catch (err) {
-      console.error('Error loading MASSLAM sizes:', err);
-      setError(err.message);
-      setLoading(false);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="p-4 bg-gray-50 rounded-lg text-center">
+        <p className="text-gray-600 italic">Loading MASSLAM sizes...</p>
+      </div>
+    );
+  }
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    try {
-      setUploadStatus({ status: 'uploading', message: 'Uploading CSV file...' });
-      
-      // Create a FormData object to send the file
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Send the file to the server
-      const response = await fetch('/api/upload-csv', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to upload CSV file');
-      }
-      
-      const data = await response.json();
-      
-      // Reset the module and reload the sizes
-      initializeMasslamSizes();
-      await loadSizesFromCSV();
-      
-      setUploadStatus({ 
-        status: 'success', 
-        message: `CSV file uploaded successfully. ${data.message || ''}` 
-      });
-      
-      // Clear the file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    } catch (err) {
-      console.error('Error uploading CSV file:', err);
-      setUploadStatus({ 
-        status: 'error', 
-        message: `Error uploading CSV file: ${err.message}` 
-      });
-    }
-  };
-
-  const refreshTimberSizes = async () => {
-    try {
-      setRefreshStatus({ status: 'refreshing', message: 'Refreshing timber sizes...' });
-      
-      // Call the refresh API endpoint
-      const response = await fetch('/api/refresh-timber-sizes', {
-        method: 'POST',
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to refresh timber sizes');
-      }
-      
-      const data = await response.json();
-      
-      // Reset the module and reload the sizes
-      initializeMasslamSizes();
-      await loadSizesFromCSV();
-      
-      setRefreshStatus({ 
-        status: 'success', 
-        message: `Timber sizes refreshed successfully. ${data.message || ''}` 
-      });
-    } catch (err) {
-      console.error('Error refreshing timber sizes:', err);
-      setRefreshStatus({ 
-        status: 'error', 
-        message: `Error refreshing timber sizes: ${err.message}` 
-      });
-    }
-  };
-
-  // Group sizes by type
-  const sizesByType = sizes.reduce((acc, size) => {
-    acc[size.type] = acc[size.type] || [];
-    acc[size.type].push(size);
-    return acc;
-  }, {});
+  if (error) {
+    return (
+      <div className="p-4 bg-red-50 border border-red-400 rounded-lg mb-6">
+        <p className="text-red-700">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.navigation}>
-        <Link href="/" className={styles.navLink}>
-          &larr; Back to Calculator
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+      <div className="mb-6">
+        <Link 
+          href="/"
+          className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+        >
+          ← Back to Calculator
         </Link>
       </div>
-      
-      <h1>MASSLAM Timber Sizes</h1>
-      
-      {loading && <p className={styles.loading}>Loading sizes...</p>}
-      
-      {error && (
-        <div className={styles.error}>
-          <h2>Error Loading Sizes</h2>
-          <p>{error}</p>
-        </div>
-      )}
-      
-      {/* File Upload Section */}
-      <div className={styles.uploadSection}>
-        <h2>Upload New CSV File</h2>
-        <p>
-          Upload a new CSV file to update the MASSLAM sizes. The file should have the following columns:
-          <code>width,depth,type</code> with types being "beam", "column", or "joist".
-        </p>
-        <div className={styles.fileUpload}>
-          <input 
-            type="file" 
-            accept=".csv" 
-            onChange={handleFileUpload} 
-            ref={fileInputRef}
-            className={styles.fileInput}
-          />
-          <button 
-            onClick={() => fileInputRef.current?.click()} 
-            className={styles.button}
-          >
-            Select CSV File
-          </button>
-        </div>
+
+      <h1 className="text-3xl font-bold mb-6">MASSLAM Sizes</h1>
+
+      <div className="bg-white shadow rounded-lg p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4">Available Sections</h2>
         
-        {uploadStatus && (
-          <div className={`${styles.uploadStatus} ${styles[uploadStatus.status]}`}>
-            <p>{uploadStatus.message}</p>
+        {sizes && Object.entries(sizes).map(([type, sections]) => (
+          <div key={type} className="mb-8">
+            <h3 className="text-lg font-medium mb-3">{type}</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Width (mm)</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Depth (mm)</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Area (mm²)</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">I<sub>xx</sub> (mm⁴)</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Z<sub>xx</sub> (mm³)</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {sections.map((section, index) => (
+                    <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{section.width}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{section.depth}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{section.area}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{section.Ixx}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{section.Zxx}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        )}
-        
-        {refreshStatus && (
-          <div className={`${styles.uploadStatus} ${styles[refreshStatus.status]}`}>
-            <p>{refreshStatus.message}</p>
-          </div>
-        )}
-        
-        <div className={styles.actions}>
-          <button 
-            onClick={() => {
-              initializeMasslamSizes();
-              loadSizesFromCSV();
-            }} 
-            className={styles.button}
-          >
-            Reload Sizes
-          </button>
-          <button 
-            onClick={refreshTimberSizes} 
-            className={styles.button}
-          >
-            Refresh Timber Sizes
-          </button>
-          <button 
-            onClick={() => debugMasslamSizes()} 
-            className={styles.button}
-          >
-            Debug Sizes
-          </button>
-        </div>
+        ))}
       </div>
-      
-      {verificationResult === false && (
-        <div className={styles.warning}>
-          <h2>⚠️ Verification Warning</h2>
-          <p>
-            The loaded sizes do not match the expected validation criteria.
-            This may indicate an issue with the CSV file or the loading process.
-          </p>
-          <p>
-            <strong>Current CSV Summary:</strong>
-          </p>
-          <ul>
-            <li>Total sizes: {sizes.length}</li>
-            <li>Types: {Object.keys(sizesByType).join(', ')}</li>
-            <li>Widths: {[...new Set(sizes.map(s => s.width))].sort((a, b) => a - b).join(', ')}</li>
-            <li>Depths: {[...new Set(sizes.map(s => s.depth))].sort((a, b) => a - b).join(', ')}</li>
-          </ul>
-          <div className={styles.actions}>
-            <button 
-              onClick={() => {
-                initializeMasslamSizes();
-                loadSizesFromCSV();
-              }} 
-              className={styles.button}
-            >
-              Reload Sizes
-            </button>
-            <button 
-              onClick={() => debugMasslamSizes()} 
-              className={styles.button}
-            >
-              Debug Sizes
-            </button>
-          </div>
-        </div>
-      )}
-      
-      {verificationResult === true && (
-        <div className={styles.success}>
-          <h2>✅ Verification Successful</h2>
-          <p>
-            The loaded sizes meet all validation criteria.
-          </p>
-          <p>
-            <strong>Current CSV Summary:</strong>
-          </p>
-          <ul>
-            <li>Total sizes: {sizes.length}</li>
-            <li>Types: {Object.keys(sizesByType).join(', ')}</li>
-            <li>Widths: {[...new Set(sizes.map(s => s.width))].sort((a, b) => a - b).join(', ')}</li>
-            <li>Depths: {[...new Set(sizes.map(s => s.depth))].sort((a, b) => a - b).join(', ')}</li>
-          </ul>
-        </div>
-      )}
-      
-      <div className={styles.summary}>
-        <h2>Summary</h2>
-        <p>Total sizes: {sizes.length}</p>
-        <p>Types: {Object.keys(sizesByType).join(', ')}</p>
-        <p>Widths: {[...new Set(sizes.map(s => s.width))].sort((a, b) => a - b).join(', ')}</p>
-        <p>Depths: {[...new Set(sizes.map(s => s.depth))].sort((a, b) => a - b).join(', ')}</p>
+
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">Notes</h2>
+        <ul className="list-disc list-inside space-y-2 text-gray-700">
+          <li>All sections are manufactured from Victorian Hardwood</li>
+          <li>Custom sizes available on request</li>
+          <li>GL17 and GL21 grades available</li>
+          <li>Fire resistance ratings up to 120 minutes</li>
+        </ul>
       </div>
-      
-      {Object.entries(sizesByType).map(([type, typeSizes]) => (
-        <div key={type} className={styles.typeSection}>
-          <h2>{type.charAt(0).toUpperCase() + type.slice(1)}s</h2>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Width (mm)</th>
-                <th>Depth (mm)</th>
-                <th>Type</th>
-              </tr>
-            </thead>
-            <tbody>
-              {typeSizes.sort((a, b) => {
-                if (a.width !== b.width) return a.width - b.width;
-                return a.depth - b.depth;
-              }).map((size, index) => (
-                <tr key={index}>
-                  <td>{size.width}</td>
-                  <td>{size.depth}</td>
-                  <td>{size.type}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ))}
     </div>
   );
 } 
