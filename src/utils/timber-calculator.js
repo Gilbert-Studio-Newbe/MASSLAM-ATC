@@ -88,11 +88,14 @@ export function calculateStructure(buildingData) {
     fireRating,
     numFloors = 1,
     floorHeight = 3.0,
-    deflectionLimit = 300, // Default deflection limit of L/300 if not specified
-    safetyFactor = 1.5,    // Default safety factor of 1.5 if not specified
     lengthwiseBays: numLengthwiseBays = 1,
     widthwiseBays: numWidthwiseBays = 1
   } = buildingData;
+  
+  // Get calculation parameters from buildingData or use defaults
+  const calculationParams = buildingData.calculationParams || {};
+  const deflectionLimit = buildingData.deflectionLimit || calculationParams.allowableDeflection || 300; // Default L/300
+  const safetyFactor = buildingData.safetyFactor || calculationParams.safetyFactor || 1.5; // Default 1.5
   
   console.log('[STRUCTURE] Starting structural calculations for building:', {
     length: buildingLength,
@@ -100,7 +103,8 @@ export function calculateStructure(buildingData) {
     joists: joistsRunLengthwise ? 'lengthwise' : 'widthwise',
     spacing: joistSpacing,
     deflectionLimit: `L/${deflectionLimit}`,
-    safetyFactor
+    safetyFactor,
+    calculationParams: calculationParams
   });
   
   // Calculate bay dimensions

@@ -177,6 +177,51 @@ export default function TimberCalculator() {
     calculateResults
   ]);
 
+  // Use calculation parameters from BuildingDataContext if available
+  useEffect(() => {
+    if (buildingData.calculationParams) {
+      console.log("Using saved calculation parameters:", buildingData.calculationParams);
+    }
+  }, [buildingData.calculationParams]);
+
+  // Modify the calculateStructure function to use calculation parameters
+  const calculateStructure = async () => {
+    setIsCalculating(true);
+    setError(null);
+    
+    try {
+      console.log("Calculating structure with data:", buildingData);
+      
+      // Get calculation parameters from BuildingData if available
+      const calculationParams = buildingData.calculationParams || {};
+      const deflectionLimit = calculationParams.allowableDeflection || 300; // Default to L/300
+      const safetyFactor = calculationParams.safetyFactor || 2.0; // Default to 2.0
+      
+      // Calculate structure using timber-calculator.js with our parameters
+      const structureResults = await calculateTimberStructure({
+        ...buildingData,
+        deflectionLimit,
+        safetyFactor
+      });
+      
+      console.log("Structure calculation results:", structureResults);
+      
+      // Update results in state and context
+      setResults(structureResults);
+      setResults(prevResults => {
+        const newResults = { ...structureResults, timestamp: new Date().toISOString() };
+        updateCalculationResults(newResults);
+        return newResults;
+      });
+      
+    } catch (err) {
+      console.error("Calculation error:", err);
+      setError(err.message || "Failed to calculate structure");
+    } finally {
+      setIsCalculating(false);
+    }
+  };
+
   // Handle save button click
   const onSaveClick = () => {
     if (!results) {

@@ -6,6 +6,7 @@ import { TIMBER_PROPERTIES, loadTimberProperties } from '@/utils/timberEngineeri
 import { getML38Properties } from '@/utils/masslamProperties';
 import TimberGradeSelector from '@/components/calculator/TimberGradeSelector';
 import { useBuildingData } from '@/contexts/BuildingDataContext';
+import useLocalStorage from '@/hooks/useLocalStorage';
 
 export default function CalculationMethodologyPage() {
   const { buildingData, updateBuildingData } = useBuildingData();
@@ -58,12 +59,12 @@ export default function CalculationMethodologyPage() {
     });
   };
   
-  // Default values for calculation parameters
-  const [allowableDeflection, setAllowableDeflection] = useState(300); // L/300 is typical
-  const [safetyFactor, setSafetyFactor] = useState(2.0); // Typical safety factor
-  const [loadDurationFactor, setLoadDurationFactor] = useState(0.8); // Medium-term loading
-  const [deadLoad, setDeadLoad] = useState(0.5); // kPa
-  const [liveLoad, setLiveLoad] = useState(2); // kPa (residential)
+  // Use localStorage for calculation parameters to persist across navigation
+  const [allowableDeflection, setAllowableDeflection] = useLocalStorage('calc_allowableDeflection', 300); // L/300 is typical
+  const [safetyFactor, setSafetyFactor] = useLocalStorage('calc_safetyFactor', 2.0); // Typical safety factor
+  const [loadDurationFactor, setLoadDurationFactor] = useLocalStorage('calc_loadDurationFactor', 0.8); // Medium-term loading
+  const [deadLoad, setDeadLoad] = useLocalStorage('calc_deadLoad', 0.5); // kPa
+  const [liveLoad, setLiveLoad] = useLocalStorage('calc_liveLoad', 2.0); // kPa (residential)
   
   // Initialize maxSpan from buildingData context
   const [maxSpan, setMaxSpan] = useState(buildingData.maxBaySpan); // meters
@@ -74,6 +75,21 @@ export default function CalculationMethodologyPage() {
       updateBuildingData('maxBaySpan', maxSpan);
     }
   }, [maxSpan, buildingData.maxBaySpan, updateBuildingData]);
+  
+  // Update buildingData when calculation parameters change
+  useEffect(() => {
+    // Update the BuildingDataContext with our calculation parameters
+    updateBuildingData('calculationParams', {
+      allowableDeflection,
+      safetyFactor,
+      loadDurationFactor,
+      deadLoad,
+      liveLoad
+    });
+    
+    // Also update the specific load value in buildingData directly
+    updateBuildingData('load', deadLoad + liveLoad);
+  }, [allowableDeflection, safetyFactor, loadDurationFactor, deadLoad, liveLoad, updateBuildingData]);
   
   const [timberGrade, setTimberGrade] = useState('ML38'); // Default timber grade
   
@@ -105,6 +121,19 @@ export default function CalculationMethodologyPage() {
     }
     
     loadProperties();
+  }, []);
+
+  // Load existing calculation parameters from buildingData if they exist
+  useEffect(() => {
+    if (buildingData.calculationParams) {
+      const params = buildingData.calculationParams;
+      
+      if (params.allowableDeflection) setAllowableDeflection(params.allowableDeflection);
+      if (params.safetyFactor) setSafetyFactor(params.safetyFactor);
+      if (params.loadDurationFactor) setLoadDurationFactor(params.loadDurationFactor);
+      if (params.deadLoad) setDeadLoad(params.deadLoad);
+      if (params.liveLoad) setLiveLoad(params.liveLoad);
+    }
   }, []);
   
   // Calculate example span based on current parameters
