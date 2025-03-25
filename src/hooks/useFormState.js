@@ -204,7 +204,9 @@ export function useFormState() {
           columns: results.elementCounts?.columns || weightResults.elements.columns.count
         },
         carbonSavings: carbonResults.carbonSavings,
-        carbonStorage: carbonResults.carbonStorage
+        carbonStorage: carbonResults.carbonStorage,
+        // Include costs if provided by the structure calculation
+        costs: results.costs || null
       };
       
       // Update results in state

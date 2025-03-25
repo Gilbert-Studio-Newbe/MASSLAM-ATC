@@ -10,6 +10,7 @@ import { calculateColumnSize, calculateMultiFloorColumnSize, calculateColumnVolu
 
 // Import utilities
 import { initializeTimberUtils, TIMBER_PROPERTIES } from './timber-utils';
+import { calculateCost } from './costEstimator';
 
 // Re-export all calculator functions
 export {
@@ -65,6 +66,27 @@ export function test9mJoistCalculation() {
   console.log("==== END OF TEST ====");
   
   return result;
+}
+
+/**
+ * Calculate cost estimate for the structure
+ * @param {Object} result - Result object from calculateStructure or calculateTimberWeight
+ * @param {Object} joistSize - Joist dimensions for rate lookup
+ * @returns {Object} - Cost breakdown and total
+ */
+export function calculateCostEstimate(result, joistSize) {
+  // Create the volumes object expected by calculateCost
+  const volumes = {
+    beamVolume: result.elementVolumes?.beams || 0,
+    columnVolume: result.elementVolumes?.columns || 0,
+    joistArea: result.elementVolumes?.joistArea || 0 // Use the calculated joistArea instead of joistVolume
+  };
+  
+  console.log("[COST] Calculating costs with volumes:", volumes);
+  console.log("[COST] Using joist size for rate lookup:", joistSize);
+  
+  // Calculate costs with the volumes and joist size (for specific rate lookup)
+  return calculateCost(volumes, joistSize);
 }
 
 /**
@@ -302,6 +324,9 @@ export function calculateStructure(buildingData) {
   const density = TIMBER_PROPERTIES[timberGrade]?.density || 600; // kg/m³
   const timberWeight = totalTimberVolume * density;
   
+  // Calculate joist area in square meters (m²)
+  const joistArea = buildingLength * buildingWidth * numFloors;
+  
   // Return all calculated sizes
   const result = {
     joistSize: {
@@ -323,7 +348,8 @@ export function calculateStructure(buildingData) {
     elementVolumes: {
       joists: joistVolume,
       beams: beamVolume,
-      columns: columnVolume
+      columns: columnVolume,
+      joistArea: joistArea // Add joistArea to elementVolumes
     },
     elementCounts: {
       joists: joistCount,
@@ -333,6 +359,10 @@ export function calculateStructure(buildingData) {
     timberVolume: totalTimberVolume,
     timberWeight: timberWeight
   };
+  
+  // Calculate cost estimate
+  const costs = calculateCostEstimate(result, joistSize);
+  result.costs = costs;
   
   console.log("[STRUCTURE DEBUG] Final result object being returned:");
   console.log(JSON.stringify(result, null, 2));

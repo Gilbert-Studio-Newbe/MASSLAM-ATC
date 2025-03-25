@@ -112,15 +112,92 @@ export function saveRates(beamRate, columnRate, joistRates) {
 }
 
 /**
+ * Find the closest standard joist size based on width and depth
+ * @param {Object} joistSize - The joist dimensions
+ * @param {Object} joistRates - Available joist rates by size
+ * @returns {string} - The closest standard joist size key
+ */
+function findClosestJoistSize(joistSize, joistRates) {
+  // If the exact size exists, return it
+  const exactSizeKey = `${joistSize.width}x${joistSize.depth}`;
+  if (joistRates[exactSizeKey]) {
+    console.log(`Exact joist size match found: ${exactSizeKey}`);
+    return exactSizeKey;
+  }
+  
+  // Otherwise, find the closest standard size
+  console.log(`No exact match for ${exactSizeKey}, finding closest standard size`);
+  
+  // Parse all available sizes
+  const standardSizes = Object.keys(joistRates).map(key => {
+    const [width, depth] = key.split('x').map(Number);
+    return { key, width, depth, area: width * depth };
+  });
+  
+  // Calculate the area of the requested joist
+  const requestedArea = joistSize.width * joistSize.depth;
+  
+  // Find the closest size by area
+  let closestSize = standardSizes[0];
+  let minDifference = Math.abs(closestSize.area - requestedArea);
+  
+  for (let i = 1; i < standardSizes.length; i++) {
+    const sizeDifference = Math.abs(standardSizes[i].area - requestedArea);
+    if (sizeDifference < minDifference) {
+      minDifference = sizeDifference;
+      closestSize = standardSizes[i];
+    }
+  }
+  
+  console.log(`Closest standard joist size: ${closestSize.key} for requested size ${exactSizeKey}`);
+  return closestSize.key;
+}
+
+/**
  * Simple function to calculate cost based on volumes and rates
  * @param {Object} volumes - Object containing volumes of different timber elements in m³ or m²
+ * @param {Object} joistSize - Optional joist size for specific rate lookup
  * @returns {Object} - Cost breakdown and total 
  */
-export function calculateCost(volumes) {
-  // Simply get the rates from localStorage or use defaults
+export function calculateCost(volumes, joistSize) {
+  // Get rates from localStorage or use defaults
   const beamRate = parseFloat(localStorage.getItem(STORAGE_KEYS.BEAM_RATE)) || DEFAULT_BEAM_RATE;
   const columnRate = parseFloat(localStorage.getItem(STORAGE_KEYS.COLUMN_RATE)) || DEFAULT_COLUMN_RATE;
-  const joistRate = parseFloat(localStorage.getItem('joistRate')) || DEFAULT_JOIST_RATE;
+  
+  // Get joist rates from localStorage or use defaults
+  let joistRate = DEFAULT_JOIST_RATE;
+  let joistSizeUsed = null;
+  
+  try {
+    // If we have joist size information, look up the specific rate
+    if (joistSize && joistSize.width && joistSize.depth) {
+      // Get all joist rates
+      let joistRates = {};
+      const storedJoistRates = localStorage.getItem(STORAGE_KEYS.JOIST_RATES);
+      if (storedJoistRates) {
+        joistRates = JSON.parse(storedJoistRates);
+      } else {
+        joistRates = { ...DEFAULT_JOIST_RATES };
+        console.log('No joist rates found in localStorage, using default rates');
+      }
+      
+      // Find the closest joist size
+      const closestSizeKey = findClosestJoistSize(joistSize, joistRates);
+      joistSizeUsed = closestSizeKey;
+      
+      // Get the rate
+      if (joistRates[closestSizeKey]) {
+        joistRate = joistRates[closestSizeKey];
+        console.log(`Using joist rate for size ${closestSizeKey}: $${joistRate}/m²`);
+      } else {
+        console.log(`No rate found for size ${closestSizeKey}, using default rate: $${DEFAULT_JOIST_RATE}/m²`);
+      }
+    } else {
+      console.log('No specific joist size provided, using default rate');
+    }
+  } catch (error) {
+    console.error('Error getting joist rate:', error);
+  }
   
   console.log('Calculate Cost - Input volumes:', volumes);
   console.log('Calculate Cost - Using rates:', { beamRate, columnRate, joistRate });
@@ -142,6 +219,7 @@ export function calculateCost(volumes) {
     beamCalculation: `${beamVolume} m³ × $${beamRate}/m³ = $${beamCost}`,
     columnCalculation: `${columnVolume} m³ × $${columnRate}/m³ = $${columnCost}`,
     joistCalculation: `${joistArea} m² × $${joistRate}/m² = $${joistCost}`,
+    joistSizeUsed,
     totalCost
   });
   
@@ -162,7 +240,8 @@ export function calculateCost(volumes) {
       joists: {
         cost: joistCost,
         rate: joistRate,
-        volume: joistArea
+        area: joistArea,
+        sizeUsed: joistSizeUsed
       }
     }
   };

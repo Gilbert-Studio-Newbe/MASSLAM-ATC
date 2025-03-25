@@ -51,6 +51,12 @@ export default function Navigation() {
                 >
                   Saved Projects
                 </a>
+                <a 
+                  href="/timber-rates" 
+                  className="px-3 py-2 text-sm font-medium text-masslam hover:text-accent"
+                >
+                  Timber Rates
+                </a>
               </div>
             </div>
             <div className="flex lg:hidden">

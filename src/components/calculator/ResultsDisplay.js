@@ -329,6 +329,12 @@ const ResultsDisplay = ({
                   <p><span className="text-gray-500">Beams:</span> {results.costs?.elements?.beams?.cost ? formatCurrency(results.costs.elements.beams.cost) : 'N/A'}</p>
                   <p><span className="text-gray-500">Columns:</span> {results.costs?.elements?.columns?.cost ? formatCurrency(results.costs.elements.columns.cost) : 'N/A'}</p>
                   <p><span className="text-gray-500">Joists:</span> {results.costs?.elements?.joists?.cost ? formatCurrency(results.costs.elements.joists.cost) : 'N/A'}</p>
+                  {results.costs?.elements?.joists?.sizeUsed && (
+                    <div className="text-xs mt-1 text-gray-500">
+                      <p>Using joist size: {results.costs.elements.joists.sizeUsed.replace('x', '×')}mm</p>
+                      <p>Rate: {formatCurrency(results.costs.elements.joists.rate)}/m²</p>
+                    </div>
+                  )}
                 </div>
               </div>
               <div>
@@ -357,6 +363,13 @@ const ResultsDisplay = ({
                       ? `${results.elementVolumes.joists.toFixed(2)} m³` 
                       : results.joistSize 
                         ? `${((results.joistSize.width * results.joistSize.depth * 0.000001 * results.joistSize.span) || 0).toFixed(2)} m³` 
+                        : 'N/A'
+                  }</p>
+                  <p><span className="text-gray-500">Area:</span> {
+                    typeof results.elementVolumes?.joistArea === 'number'
+                      ? `${results.elementVolumes.joistArea.toFixed(2)} m²`
+                      : buildingData
+                        ? `${(buildingData.buildingLength * buildingData.buildingWidth * buildingData.numFloors).toFixed(2)} m²`
                         : 'N/A'
                   }</p>
                   <p><span className="text-gray-500">Quantity:</span> {
@@ -415,6 +428,7 @@ const ResultsDisplay = ({
               <div className="text-sm font-medium">
                 <p><span className="text-gray-700">Total Timber Volume:</span> {typeof results.timberVolume === 'number' ? `${results.timberVolume.toFixed(2)} m³` : 'N/A'}</p>
                 <p><span className="text-gray-700">Total Mass:</span> {typeof results.timberWeight === 'number' ? `${(results.timberWeight / 1000).toFixed(2)} tonnes` : 'N/A'}</p>
+                <p><span className="text-gray-700">Total Joist Area:</span> {typeof results.elementVolumes?.joistArea === 'number' ? `${results.elementVolumes.joistArea.toFixed(2)} m²` : 'N/A'}</p>
               </div>
             </div>
           </div>
