@@ -40,11 +40,11 @@ const StructureConfigSection = ({
         <div className="space-y-6">
           <div>
             <h3 className="subsection-header">Joist Direction</h3>
-            <div className="flex items-center">
+            <div className="flex w-full">
               <button
                 type="button"
                 onClick={() => onToggleJoistDirection(false)}
-                className={`px-4 py-2 text-sm font-medium rounded-l-md border ${
+                className={`flex-1 px-4 py-2 text-sm font-medium rounded-l-md border ${
                   buildingData.joistsRunLengthwise
                     ? 'bg-[#3D7EDC] text-white border-[#3D7EDC]'
                     : 'bg-white text-[#333333] border-[#CCCCCC] hover:bg-gray-50'
@@ -55,7 +55,7 @@ const StructureConfigSection = ({
               <button
                 type="button"
                 onClick={() => onToggleJoistDirection(true)}
-                className={`px-4 py-2 text-sm font-medium rounded-r-md border-t border-b border-r ${
+                className={`flex-1 px-4 py-2 text-sm font-medium rounded-r-md border-t border-b border-r ${
                   !buildingData.joistsRunLengthwise
                     ? 'bg-[#3D7EDC] text-white border-[#3D7EDC]'
                     : 'bg-white text-[#333333] border-[#CCCCCC] hover:bg-gray-50'

@@ -44,10 +44,26 @@ export default function Navigation() {
                 Masslam Sizes
               </Link>
               <Link 
-                href="/about"
+                href="/3d-visualization"
                 className={`px-5 py-3 text-[14px] font-medium transition-colors ${
-                  pathname === '/about' ? 'text-black' : 'text-[#333333] hover:text-black'
+                  pathname === '/3d-visualization' ? 'text-black' : 'text-[#333333] hover:text-black'
                 }`}
+              >
+                3D View
+              </Link>
+              <Link 
+                href="/projects"
+                className={`px-5 py-3 text-[14px] font-medium transition-colors ${
+                  pathname === '/projects' ? 'text-black' : 'text-[#333333] hover:text-black'
+                }`}
+              >
+                Projects
+              </Link>
+              <Link 
+                href="https://ash.com.au/application/mass-timber/"
+                className="px-5 py-3 text-[14px] font-medium text-[#333333] hover:text-black transition-colors"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 About
               </Link>
@@ -89,9 +105,25 @@ export default function Navigation() {
                 Masslam Sizes
               </Link>
               <Link
-                href="/about"
+                href="/3d-visualization"
                 className="block px-5 py-3 text-[14px] font-medium text-[#333333] hover:text-black"
                 style={{ fontFamily: 'SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif' }}
+              >
+                3D View
+              </Link>
+              <Link
+                href="/projects"
+                className="block px-5 py-3 text-[14px] font-medium text-[#333333] hover:text-black"
+                style={{ fontFamily: 'SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif' }}
+              >
+                Projects
+              </Link>
+              <Link
+                href="https://ash.com.au/application/mass-timber/"
+                className="block px-5 py-3 text-[14px] font-medium text-[#333333] hover:text-black"
+                style={{ fontFamily: 'SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif' }}
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 About
               </Link>
